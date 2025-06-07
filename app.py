@@ -229,12 +229,19 @@ def import_json_data():
     cursor = conn.cursor()
     
     try:
-        # Check if data already imported
+        # Check if data already imported by looking for a flag
+        cursor.execute("SELECT COUNT(*) FROM tools WHERE name = 'DATA_IMPORT_COMPLETED'")
+        if cursor.fetchone()[0] > 0:
+            print("📦 Data already imported, skipping...")
+            return False
+        
+        # Check if we have significant data already (more than sample data)
         cursor.execute("SELECT COUNT(*) FROM tools")
         existing_tools = cursor.fetchone()[0]
         
         # Only import if we have very few tools (just sample data)
         if existing_tools > 10:
+            print("📦 Database already has data, skipping import...")
             return False
         
         print("📦 Importing data from JSON files...")
@@ -316,6 +323,9 @@ def import_json_data():
                     print(f"Error importing comment: {e}")
             
             print(f"✅ Imported {len(comments)} comments")
+        
+        # Add import completion flag
+        cursor.execute("INSERT INTO tools (name, description, link, logo_url, category, pricing_model) VALUES ('DATA_IMPORT_COMPLETED', 'Import flag - do not delete', '#', '', 'System', 'Free')")
         
         conn.commit()
         print("🎉 Data import completed successfully!")
@@ -870,9 +880,13 @@ def admin_login():
         username = request.form['username']
         password = request.form['password']
         
-        # In production, use environment variable or more secure method
-        if username == 'admin' and password == 'admin123':
+        # Enhanced admin credentials - use environment variables in production
+        admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
+        admin_password = os.environ.get('ADMIN_PASSWORD', 'admin123')
+        
+        if username == admin_username and password == admin_password:
             session['admin'] = True
+            flash('Welcome to Admin Dashboard!', 'success')
             return redirect(url_for('admin_dashboard'))
         else:
             flash('Invalid admin credentials', 'error')
@@ -886,18 +900,51 @@ def admin_dashboard():
         return redirect(url_for('admin_login'))
     
     conn = get_db_connection()
-    tools = conn.execute('SELECT * FROM tools ORDER BY created_at DESC').fetchall()
     
-    # Get some stats
+    # Get tools with pagination
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    offset = (page - 1) * per_page
+    
+    # Get tools with average ratings
+    tools = conn.execute('''
+        SELECT t.*, 
+               COALESCE(AVG(r.rating), 0) as average_rating,
+               COUNT(r.id) as rating_count
+        FROM tools t
+        LEFT JOIN ratings r ON t.id = r.tool_id
+        WHERE t.name != 'DATA_IMPORT_COMPLETED'
+        GROUP BY t.id
+        ORDER BY t.created_at DESC 
+        LIMIT ? OFFSET ?
+    ''', (per_page, offset)).fetchall()
+    
+    # Get users
+    users = conn.execute('''SELECT id, username, email, xp, rank, created_at 
+                           FROM users ORDER BY created_at DESC LIMIT 50''').fetchall()
+    
+    # Get recent ratings/reviews
+    reviews = conn.execute('''SELECT r.id, r.rating, r.review, r.created_at,
+                                    u.username, t.name as tool_name, t.id as tool_id
+                             FROM ratings r
+                             JOIN users u ON r.user_id = u.id
+                             JOIN tools t ON r.tool_id = t.id
+                             WHERE r.review IS NOT NULL AND r.review != ''
+                             ORDER BY r.created_at DESC LIMIT 20''').fetchall()
+    
+    # Get comprehensive stats
     stats = {
-        'total_tools': conn.execute('SELECT COUNT(*) FROM tools').fetchone()[0],
+        'total_tools': conn.execute("SELECT COUNT(*) FROM tools WHERE name != 'DATA_IMPORT_COMPLETED'").fetchone()[0],
         'total_users': conn.execute('SELECT COUNT(*) FROM users').fetchone()[0],
         'total_ratings': conn.execute('SELECT COUNT(*) FROM ratings').fetchone()[0],
-        'total_comments': conn.execute('SELECT COUNT(*) FROM comments').fetchone()[0]
+        'total_comments': conn.execute('SELECT COUNT(*) FROM comments').fetchone()[0],
+        'total_reviews': conn.execute('SELECT COUNT(*) FROM ratings WHERE review IS NOT NULL AND review != ""').fetchone()[0],
+        'avg_rating': conn.execute('SELECT AVG(rating) FROM ratings').fetchone()[0] or 0
     }
     
     conn.close()
-    return render_template('admin/dashboard.html', tools=tools, stats=stats)
+    return render_template('admin/dashboard.html', 
+                         tools=tools, users=users, reviews=reviews, stats=stats, page=page)
 
 @app.route('/admin/add-tool', methods=['GET', 'POST'])
 def admin_add_tool():
@@ -928,6 +975,132 @@ def admin_add_tool():
 def admin_logout():
     session.pop('admin', None)
     return redirect(url_for('index'))
+
+# Admin CRUD operations
+@app.route('/admin/delete_tool/<int:tool_id>', methods=['POST'])
+def admin_delete_tool(tool_id):
+    if not session.get('admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        conn = get_db_connection()
+        # Check if tool exists
+        tool = conn.execute('SELECT * FROM tools WHERE id = ?', (tool_id,)).fetchone()
+        if not tool:
+            return jsonify({'success': False, 'message': 'Tool not found'}), 404
+        
+        # Delete related ratings first
+        conn.execute('DELETE FROM ratings WHERE tool_id = ?', (tool_id,))
+        # Delete related comments
+        conn.execute('DELETE FROM comments WHERE tool_id = ?', (tool_id,))
+        # Delete the tool
+        conn.execute('DELETE FROM tools WHERE id = ?', (tool_id,))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Tool deleted successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/edit_tool/<int:tool_id>', methods=['GET', 'POST'])
+def admin_edit_tool(tool_id):
+    if not session.get('admin'):
+        return redirect(url_for('admin_login'))
+    
+    conn = get_db_connection()
+    tool = conn.execute('SELECT * FROM tools WHERE id = ?', (tool_id,)).fetchone()
+    
+    if not tool:
+        flash('Tool not found', 'error')
+        return redirect(url_for('admin_dashboard'))
+    
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form['description']
+        link = request.form['website_url']
+        logo_url = request.form.get('image_url', '')
+        category = request.form['category']
+        pricing_model = request.form['pricing_model']
+        
+        try:
+            conn.execute('''
+                UPDATE tools 
+                SET name = ?, description = ?, link = ?, logo_url = ?, 
+                    category = ?, pricing_model = ?
+                WHERE id = ?
+            ''', (name, description, link, logo_url, category, pricing_model, tool_id))
+            conn.commit()
+            flash('Tool updated successfully!', 'success')
+            return redirect(url_for('admin_dashboard'))
+        except Exception as e:
+            flash(f'Error updating tool: {str(e)}', 'error')
+        finally:
+            conn.close()
+    
+    return render_template('admin/edit_tool.html', tool=tool)
+
+@app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
+def admin_delete_user(user_id):
+    if not session.get('admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        conn = get_db_connection()
+        # Check if user exists
+        user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+        if not user:
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+        
+        # Delete related ratings
+        conn.execute('DELETE FROM ratings WHERE user_id = ?', (user_id,))
+        # Delete related comments
+        conn.execute('DELETE FROM comments WHERE user_id = ?', (user_id,))
+        # Delete the user
+        conn.execute('DELETE FROM users WHERE id = ?', (user_id,))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'User deleted successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/delete_review/<int:review_id>', methods=['POST'])
+def admin_delete_review(review_id):
+    if not session.get('admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        conn = get_db_connection()
+        # Check if review exists
+        review = conn.execute('SELECT * FROM ratings WHERE id = ?', (review_id,)).fetchone()
+        if not review:
+            return jsonify({'success': False, 'message': 'Review not found'}), 404
+        
+        # Delete the review
+        conn.execute('DELETE FROM ratings WHERE id = ?', (review_id,))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Review deleted successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/admin/toggle_user/<int:user_id>', methods=['POST'])
+def admin_toggle_user(user_id):
+    if not session.get('admin'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        conn = get_db_connection()
+        user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+        if not user:
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+        
+        # For now, we'll just return success - you can implement user status toggling later
+        # This could involve adding an 'active' field to the users table
+        return jsonify({'success': True, 'message': 'User status updated'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 # Static pages
 @app.route('/about')

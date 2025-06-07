@@ -105,14 +105,13 @@
                         <h3>{{ stats.total_reviews }}</h3>
                         <p>Total Reviews</p>
                     </div>
-                </div>
-                <div class="admin-stat-card">
+                </div>                <div class="admin-stat-card">
                     <div class="admin-stat-icon bg-info">
-                        <i class="bi bi-eye"></i>
+                        <i class="bi bi-chat-dots"></i>
                     </div>
                     <div class="admin-stat-content">
-                        <h3>{{ stats.total_views }}</h3>
-                        <p>Total Views</p>
+                        <h3>{{ stats.total_comments }}</h3>
+                        <p>Total Comments</p>
                     </div>
                 </div>
             </div>
@@ -127,23 +126,21 @@
                     </a>
                 </div>
                 <div class="admin-table-container">
-                    <table class="admin-table">
-                        <thead>
+                    <table class="admin-table">                        <thead>
                             <tr>
                                 <th>Tool</th>
                                 <th>Category</th>
                                 <th>Rating</th>
-                                <th>Views</th>
+                                <th>Reviews</th>
                                 <th>Added</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for tool in recent_tools %}
-                            <tr>
-                                <td>
+                            {% for tool in tools %}
+                            <tr>                                <td>
                                     <div class="admin-tool-info">
-                                        <img src="{{ tool.image_url or url_for('static', filename='uploads/default-tool.svg') }}" 
+                                        <img src="{{ tool.logo_url or url_for('static', filename='uploads/default-tool.svg') }}" 
                                              alt="{{ tool.name }}" class="admin-tool-thumb">
                                         <div>
                                             <strong>{{ tool.name }}</strong>
@@ -151,20 +148,22 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td><span class="badge bg-secondary">{{ tool.category }}</span></td>
-                                <td>
+                                <td><span class="badge bg-secondary">{{ tool.category }}</span></td>                                <td>
                                     <div class="admin-rating">
                                         <i class="bi bi-star-fill text-warning"></i>
-                                        {{ "%.1f"|format(tool.rating) }}
+                                        {{ "%.1f"|format(tool.average_rating) }}
                                     </div>
                                 </td>
-                                <td>{{ tool.views }}</td>
-                                <td>{{ tool.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ tool.rating_count }}</td>
+                                <td>{{ tool.created_at[:10] if tool.created_at else 'N/A' }}</td>
                                 <td>
-                                    <div class="admin-actions">
-                                        <a href="{{ url_for('tool_detail', id=tool.id) }}" 
+                                    <div class="admin-actions">                                        <a href="{{ url_for('tool_detail', tool_id=tool.id) }}" 
                                            class="btn btn-sm btn-outline-primary" title="View">
                                             <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('admin_edit_tool', tool_id=tool.id) }}" 
+                                           class="btn btn-sm btn-outline-warning" title="Edit">
+                                            <i class="bi bi-pencil"></i>
                                         </a>
                                         <button class="btn btn-sm btn-outline-danger" 
                                                 onclick="deleteTool({{ tool.id }})" title="Delete">
@@ -197,7 +196,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for user in recent_users %}
+                            {% for user in users %}
                             <tr>
                                 <td>
                                     <div class="admin-user-info">
@@ -206,14 +205,17 @@
                                     </div>
                                 </td>
                                 <td>{{ user.email }}</td>
-                                <td><span class="badge bg-info">{{ user.rank }}</span></td>
-                                <td>{{ user.xp }}</td>
-                                <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td><span class="badge bg-info">{{ user.rank }}</span></td>                                <td>{{ user.xp }}</td>
+                                <td>{{ user.created_at[:10] if user.created_at else 'N/A' }}</td>
                                 <td>
                                     <div class="admin-actions">
                                         <button class="btn btn-sm btn-outline-warning" 
                                                 onclick="toggleUserStatus({{ user.id }})" title="Toggle Status">
                                             <i class="bi bi-person-check"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" 
+                                                onclick="deleteUser({{ user.id }})" title="Delete User">
+                                            <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -230,7 +232,7 @@
                     <h2>Recent Reviews</h2>
                 </div>
                 <div class="admin-reviews-grid">
-                    {% for review in recent_reviews %}
+                    {% for review in reviews %}
                     <div class="admin-review-card">
                         <div class="admin-review-header">
                             <div class="admin-review-user">
@@ -242,11 +244,10 @@
                                     <i class="bi bi-star{{ '-fill' if i < review.rating else '' }} text-warning"></i>
                                 {% endfor %}
                             </div>
-                        </div>
-                        <div class="admin-review-content">
-                            <p>{{ review.content[:100] }}...</p>
+                        </div>                        <div class="admin-review-content">
+                            <p>{{ review.review[:100] if review.review else 'No review text' }}...</p>
                             <small class="text-muted">
-                                For: <a href="{{ url_for('tool_detail', id=review.tool_id) }}">{{ review.tool_name }}</a>
+                                For: <a href="{{ url_for('tool_detail', tool_id=review.tool_id) }}">{{ review.tool_name }}</a>
                             </small>
                         </div>
                         <div class="admin-review-actions">
@@ -287,7 +288,33 @@
                 
                 xhr.send();
             }
-        }        // Delete Review Function
+        }        // Delete User Function
+        function deleteUser(userId) {
+            if (confirm('Are you sure you want to delete this user? This will also delete all their reviews and comments.')) {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', `/admin/delete_user/${userId}`, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            const data = JSON.parse(xhr.responseText);
+                            if (data.success) {
+                                location.reload();
+                            } else {
+                                alert('Error deleting user: ' + data.message);
+                            }
+                        } else {
+                            alert('Error deleting user');
+                        }
+                    }
+                };
+                
+                xhr.send();
+            }
+        }
+
+        // Delete Review Function
         function deleteReview(reviewId) {
             if (confirm('Are you sure you want to delete this review?')) {
                 const xhr = new XMLHttpRequest();
