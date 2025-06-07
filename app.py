@@ -6,6 +6,7 @@ import os
 from datetime import datetime
 import re
 import tempfile
+import json
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
@@ -19,10 +20,25 @@ def format_date_filter(date_str):
     """Template filter to format datetime strings"""
     return format_datetime(date_str)
 
+def get_db_path():
+    """Get database path - use /tmp for Vercel persistence"""
+    if os.environ.get('VERCEL'):
+        # Use /tmp directory on Vercel for better persistence
+        db_dir = '/tmp'
+        os.makedirs(db_dir, exist_ok=True)
+        return os.path.join(db_dir, 'database.db')
+    else:
+        # Use local directory for development
+        return 'database.db'
+
 # Database initialization
 def init_db():
-    # Use in-memory database for Vercel deployment
-    db_path = ':memory:' if os.environ.get('VERCEL') else 'database.db'
+    """Initialize database - file-based SQLite that persists in /tmp on Vercel"""
+    init_sqlite_db()
+
+def init_sqlite_db():
+    """Initialize SQLite database"""
+    db_path = get_db_path()
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
     
@@ -74,8 +90,7 @@ def init_db():
         downvotes INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users (id),
-        FOREIGN KEY (tool_id) REFERENCES tools (id)
-    )''')
+        FOREIGN KEY (tool_id) REFERENCES tools (id)    )''')
     
     # Run migrations
     migrate_database(c)
@@ -88,6 +103,22 @@ def init_db():
         message TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )''')
+    
+    # Add sample data for demo purposes (only if no tools exist)
+    c.execute("SELECT COUNT(*) FROM tools")
+    if c.fetchone()[0] == 0:
+        sample_tools = [
+            ('ChatGPT', 'Advanced AI chatbot for conversations and assistance', 'https://chat.openai.com', '', 'Chatbots', 'Freemium', 4.5, 1000),
+            ('Claude', 'AI assistant by Anthropic for various tasks', 'https://claude.ai', '', 'Chatbots', 'Freemium', 4.4, 800),
+            ('Midjourney', 'AI image generation tool', 'https://midjourney.com', '', 'Image Generation', 'Paid', 4.6, 1200),
+            ('GitHub Copilot', 'AI code completion tool', 'https://github.com/features/copilot', '', 'Code Generation', 'Paid', 4.3, 900),
+            ('Notion AI', 'AI-powered writing and productivity assistant', 'https://notion.so', '', 'Productivity', 'Freemium', 4.2, 600),
+            ('Jasper', 'AI content generation platform', 'https://jasper.ai', '', 'Content Creation', 'Paid', 4.1, 500)
+        ]
+        
+        for tool in sample_tools:
+            c.execute('''INSERT INTO tools (name, description, link, logo_url, category, pricing_model, average_rating, total_ratings) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)''', tool)
     
     conn.commit()
     conn.close()
@@ -133,94 +164,11 @@ def migrate_database(cursor):
         print(f"Migration error: {e}")
 
 def get_db_connection():
-    # Use in-memory database for Vercel deployment
-    db_path = ':memory:' if os.environ.get('VERCEL') else 'database.db'
+    """Get database connection - uses persistent file path"""
+    db_path = get_db_path()
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
-    
-    # If using in-memory database, initialize it each time
-    if os.environ.get('VERCEL'):
-        init_db_tables(conn)
-    
     return conn
-
-def init_db_tables(conn):
-    """Initialize database tables - used for in-memory database"""
-    c = conn.cursor()
-    
-    # Users table
-    c.execute('''CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL,
-        xp INTEGER DEFAULT 0,
-        rank TEXT DEFAULT 'AI Rookie',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )''')
-    
-    # Tools table
-    c.execute('''CREATE TABLE IF NOT EXISTS tools (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        description TEXT NOT NULL,
-        link TEXT NOT NULL,
-        logo_url TEXT,
-        category TEXT NOT NULL,
-        pricing_model TEXT NOT NULL,
-        average_rating REAL DEFAULT 0,
-        total_ratings INTEGER DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )''')
-    
-    # Ratings table
-    c.execute('''CREATE TABLE IF NOT EXISTS ratings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        tool_id INTEGER NOT NULL,
-        rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
-        review TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users (id),
-        FOREIGN KEY (tool_id) REFERENCES tools (id),
-        UNIQUE(user_id, tool_id)
-    )''')
-    
-    # Contact messages table
-    c.execute('''CREATE TABLE IF NOT EXISTS contact_messages (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL,
-        subject TEXT NOT NULL,
-        message TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )''')
-    
-    # Admin settings table
-    c.execute('''CREATE TABLE IF NOT EXISTS admin_settings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        key TEXT UNIQUE NOT NULL,
-        value TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )''')
-    
-    # Add sample data for demo purposes
-    try:
-        # Add sample tools
-        sample_tools = [
-            ('ChatGPT', 'Advanced AI chatbot for conversations and assistance', 'https://chat.openai.com', '', 'Chatbots', 'Freemium'),
-            ('Claude', 'AI assistant by Anthropic for various tasks', 'https://claude.ai', '', 'Chatbots', 'Freemium'),
-            ('Midjourney', 'AI image generation tool', 'https://midjourney.com', '', 'Image Generation', 'Paid'),
-            ('GitHub Copilot', 'AI code completion tool', 'https://github.com/features/copilot', '', 'Code Generation', 'Paid')
-        ]
-        
-        for tool in sample_tools:
-            c.execute('''INSERT OR IGNORE INTO tools (name, description, link, logo_url, category, pricing_model) 
-                        VALUES (?, ?, ?, ?, ?, ?)''', tool)
-    except:
-        pass  # Ignore errors for demo data
-    
-    conn.commit()
 
 def calculate_rank(xp):
     if xp >= 5000:
@@ -899,12 +847,15 @@ def privacy():
     return render_template('privacy.html')
 
 if __name__ == '__main__':
-    # Only initialize database if not on Vercel
-    if not os.environ.get('VERCEL'):
-        init_db()
-        if not os.path.exists('static/uploads'):
-            os.makedirs('static/uploads')
+    # Initialize database
+    init_db()
+    if not os.path.exists('static/uploads'):
+        os.makedirs('static/uploads')
     app.run(debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+
+# Initialize database on import for Vercel
+if os.environ.get('VERCEL'):
+    init_db()
 
 # Initialize database on module import for Vercel
 if os.environ.get('VERCEL'):

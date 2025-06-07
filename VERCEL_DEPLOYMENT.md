@@ -25,7 +25,8 @@
 3. **Configure Environment Variables:**
    In your Vercel dashboard, add these environment variables:
    ```
-   SECRET_KEY=your-super-secure-secret-key-here
+   POSTGRES_URL=your-postgres-connection-string-from-vercel-database
+   SECRET_KEY=your-super-secure-secret-key-here  
    VERCEL=1
    FLASK_ENV=production
    ```
@@ -37,14 +38,15 @@
 
 ### Important Notes
 
-⚠️ **Database Limitations:**
-- Vercel uses serverless functions with ephemeral storage
-- SQLite database resets on each request
-- For persistent data, consider:
-  - **Vercel Postgres** (recommended)
-  - **PlanetScale** (MySQL)
-  - **MongoDB Atlas**
-  - **Supabase** (PostgreSQL)
+⚠️ **Database Solution - FIXED!**
+- ✅ Now uses **PostgreSQL** for persistent data storage on Vercel
+- ✅ Automatically falls back to SQLite for local development
+- ✅ Your tools and user accounts will persist between deployments!
+
+**To set up the database:**
+1. Add a PostgreSQL database in your Vercel dashboard
+2. Copy the `POSTGRES_URL` to your environment variables
+3. Deploy - your data will now persist!
 
 ⚠️ **File Upload Limitations:**
 - Uploaded files are stored in temporary directories
