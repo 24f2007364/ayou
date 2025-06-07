@@ -103,8 +103,7 @@ def init_sqlite_db():
         message TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )''')
-    
-    # Add sample data for demo purposes (only if no tools exist)
+      # Add sample data for demo purposes (only if no tools exist)
     c.execute("SELECT COUNT(*) FROM tools")
     if c.fetchone()[0] == 0:
         sample_tools = [
@@ -122,6 +121,10 @@ def init_sqlite_db():
     
     conn.commit()
     conn.close()
+    
+    # Try to import JSON data if available (for Vercel deployment with exported data)
+    if os.environ.get('VERCEL'):
+        import_json_data()
 
 def migrate_database(cursor):
     """Apply database migrations"""
@@ -215,6 +218,115 @@ def format_datetime(date_str):
         return date_str.strftime('%B %d, %Y')
     else:
         return str(date_str)
+
+def import_json_data():
+    """Import data from JSON files if they exist (for Vercel deployment)"""
+    data_dir = 'data_export'
+    if not os.path.exists(data_dir):
+        return False
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # Check if data already imported
+        cursor.execute("SELECT COUNT(*) FROM tools")
+        existing_tools = cursor.fetchone()[0]
+        
+        # Only import if we have very few tools (just sample data)
+        if existing_tools > 10:
+            return False
+        
+        print("📦 Importing data from JSON files...")
+        
+        # Import users
+        users_file = os.path.join(data_dir, 'users.json')
+        if os.path.exists(users_file):
+            with open(users_file, 'r') as f:
+                users = json.load(f)
+            
+            for user in users:
+                try:
+                    cursor.execute('''INSERT OR IGNORE INTO users 
+                                    (username, email, password_hash, xp, rank, created_at) 
+                                    VALUES (?, ?, ?, ?, ?, ?)''',
+                                 (user['username'], user['email'], user['password_hash'],
+                                  user['xp'], user['rank'], user['created_at']))
+                except Exception as e:
+                    print(f"Error importing user {user.get('username', 'unknown')}: {e}")
+            
+            print(f"✅ Imported {len(users)} users")
+        
+        # Import tools
+        tools_file = os.path.join(data_dir, 'tools.json')
+        if os.path.exists(tools_file):
+            with open(tools_file, 'r') as f:
+                tools = json.load(f)
+            
+            # Clear sample data first
+            cursor.execute("DELETE FROM tools WHERE name IN ('ChatGPT', 'Claude', 'Midjourney', 'GitHub Copilot', 'Notion AI', 'Jasper')")
+            
+            for tool in tools:
+                try:
+                    cursor.execute('''INSERT OR IGNORE INTO tools 
+                                    (name, description, link, logo_url, category, pricing_model, 
+                                     average_rating, total_ratings, created_at) 
+                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                                 (tool['name'], tool['description'], tool['link'], tool['logo_url'],
+                                  tool['category'], tool['pricing_model'], tool['average_rating'],
+                                  tool['total_ratings'], tool['created_at']))
+                except Exception as e:
+                    print(f"Error importing tool {tool.get('name', 'unknown')}: {e}")
+            
+            print(f"✅ Imported {len(tools)} tools")
+        
+        # Import ratings
+        ratings_file = os.path.join(data_dir, 'ratings.json')
+        if os.path.exists(ratings_file):
+            with open(ratings_file, 'r') as f:
+                ratings = json.load(f)
+            
+            for rating in ratings:
+                try:
+                    cursor.execute('''INSERT OR IGNORE INTO ratings 
+                                    (user_id, tool_id, rating, review, created_at) 
+                                    VALUES (?, ?, ?, ?, ?)''',
+                                 (rating['user_id'], rating['tool_id'], rating['rating'],
+                                  rating['review'], rating['created_at']))
+                except Exception as e:
+                    print(f"Error importing rating: {e}")
+            
+            print(f"✅ Imported {len(ratings)} ratings")
+        
+        # Import comments  
+        comments_file = os.path.join(data_dir, 'comments.json')
+        if os.path.exists(comments_file):
+            with open(comments_file, 'r') as f:
+                comments = json.load(f)
+            
+            for comment in comments:
+                try:
+                    cursor.execute('''INSERT OR IGNORE INTO comments 
+                                    (user_id, tool_id, parent_id, comment, upvotes, downvotes, created_at) 
+                                    VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                                 (comment['user_id'], comment['tool_id'], comment.get('parent_id'),
+                                  comment['comment'], comment['upvotes'], comment['downvotes'], 
+                                  comment['created_at']))
+                except Exception as e:
+                    print(f"Error importing comment: {e}")
+            
+            print(f"✅ Imported {len(comments)} comments")
+        
+        conn.commit()
+        print("🎉 Data import completed successfully!")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error during import: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
 
 # Routes
 @app.route('/')
@@ -861,3 +973,6 @@ if os.environ.get('VERCEL'):
 if os.environ.get('VERCEL'):
     # Ensure upload directory exists in temp
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+    # Import data from JSON files if they exist (for Vercel deployment)
+    import_json_data()
