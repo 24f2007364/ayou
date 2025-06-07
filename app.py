@@ -33,145 +33,514 @@ def get_db_path():
 
 # Database initialization
 def init_db():
-    """Initialize database - file-based SQLite that persists in /tmp on Vercel"""
-    init_sqlite_db()
+    """Initialize database - Supabase for production, SQLite for local"""
+    if os.environ.get('SUPABASE_URL') and os.environ.get('SUPABASE_KEY'):
+        init_supabase_db()
+  
 
-def init_sqlite_db():
-    """Initialize SQLite database"""
-    db_path = get_db_path()
-    conn = sqlite3.connect(db_path)
-    c = conn.cursor()
-    
-    # Users table
-    c.execute('''CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL,
-        xp INTEGER DEFAULT 0,
-        rank TEXT DEFAULT 'AI Rookie',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )''')
-    
-    # Tools table
-    c.execute('''CREATE TABLE IF NOT EXISTS tools (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        description TEXT NOT NULL,
-        link TEXT NOT NULL,
-        logo_url TEXT,
-        category TEXT NOT NULL,
-        pricing_model TEXT NOT NULL,
-        average_rating REAL DEFAULT 0,
-        total_ratings INTEGER DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )''')
-    
-    # Ratings table
-    c.execute('''CREATE TABLE IF NOT EXISTS ratings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        tool_id INTEGER,
-        rating INTEGER NOT NULL,
-        review TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users (id),
-        FOREIGN KEY (tool_id) REFERENCES tools (id),
-        UNIQUE(user_id, tool_id)
-    )''')
-    
-    # Comments table (original structure)
-    c.execute('''CREATE TABLE IF NOT EXISTS comments (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        tool_id INTEGER,
-        comment TEXT NOT NULL,
-        upvotes INTEGER DEFAULT 0,
-        downvotes INTEGER DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users (id),
-        FOREIGN KEY (tool_id) REFERENCES tools (id)    )''')
-    
-    # Run migrations
-    migrate_database(c)
-    
-    # Contact messages table
-    c.execute('''CREATE TABLE IF NOT EXISTS contact_messages (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL,
-        message TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )''')
-      # Add sample data for demo purposes (only if no tools exist)
-    c.execute("SELECT COUNT(*) FROM tools")
-    if c.fetchone()[0] == 0:
-        sample_tools = [
-            ('ChatGPT', 'Advanced AI chatbot for conversations and assistance', 'https://chat.openai.com', '', 'Chatbots', 'Freemium', 4.5, 1000),
-            ('Claude', 'AI assistant by Anthropic for various tasks', 'https://claude.ai', '', 'Chatbots', 'Freemium', 4.4, 800),
-            ('Midjourney', 'AI image generation tool', 'https://midjourney.com', '', 'Image Generation', 'Paid', 4.6, 1200),
-            ('GitHub Copilot', 'AI code completion tool', 'https://github.com/features/copilot', '', 'Code Generation', 'Paid', 4.3, 900),
-            ('Notion AI', 'AI-powered writing and productivity assistant', 'https://notion.so', '', 'Productivity', 'Freemium', 4.2, 600),
-            ('Jasper', 'AI content generation platform', 'https://jasper.ai', '', 'Content Creation', 'Paid', 4.1, 500)
-        ]
-        
-        for tool in sample_tools:
-            c.execute('''INSERT INTO tools (name, description, link, logo_url, category, pricing_model, average_rating, total_ratings) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)''', tool)
-    
-    conn.commit()
-    conn.close()
-    
-    # Try to import JSON data if available (for Vercel deployment with exported data)
-    if os.environ.get('VERCEL'):
-        import_json_data()
-
-def migrate_database(cursor):
-    """Apply database migrations"""
-    # Check if new columns exist and add them if they don't
-    try:        # Check for parent_id column
-        cursor.execute("PRAGMA table_info(comments)")
-        columns = [column[1] for column in cursor.fetchall()]
-        
-        if 'parent_id' not in columns:
-            cursor.execute('ALTER TABLE comments ADD COLUMN parent_id INTEGER DEFAULT NULL')
-        if 'updated_at' not in columns:
-            cursor.execute('ALTER TABLE comments ADD COLUMN updated_at TIMESTAMP')
-        if 'is_edited' not in columns:
-            cursor.execute('ALTER TABLE comments ADD COLUMN is_edited BOOLEAN DEFAULT 0')
-            
-        # Create new tables
-        cursor.execute('''CREATE TABLE IF NOT EXISTS comment_votes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            comment_id INTEGER,
-            vote_type TEXT CHECK(vote_type IN ('upvote', 'downvote')),
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users (id),
-            FOREIGN KEY (comment_id) REFERENCES comments (id),
-            UNIQUE(user_id, comment_id)
-        )''')
-        
-        cursor.execute('''CREATE TABLE IF NOT EXISTS comment_reports (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            comment_id INTEGER,
-            reason TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users (id),
-            FOREIGN KEY (comment_id) REFERENCES comments (id),
-            UNIQUE(user_id, comment_id)
-        )''')
-        
-    except Exception as e:
-        print(f"Migration error: {e}")
+def init_supabase_db():
+    """Initialize Supabase database tables"""
+    # Supabase tables should be created via the dashboard or SQL editor
+    # We don't need to create them programmatically since we're using REST API
+    print("Supabase initialization complete - tables should exist in dashboard")
 
 def get_db_connection():
-    """Get database connection - uses persistent file path"""
+    """Get database connection - Supabase for production, SQLite for local"""
+    supabase_url = os.environ.get('SUPABASE_URL')
+    supabase_key = os.environ.get('SUPABASE_KEY')
+    
+    print(f"DEBUG: SUPABASE_URL exists: {bool(supabase_url)}")
+    print(f"DEBUG: SUPABASE_KEY exists: {bool(supabase_key)}")
+    
+    if supabase_url and supabase_key:
+        try:
+            print("DEBUG: Attempting to use Supabase")
+            return SupabaseConnection()
+        except Exception as e:
+            print(f"DEBUG: Supabase connection failed: {e}")
+            print("DEBUG: Falling back to SQLite")
+    else:
+        print("DEBUG: Using SQLite (no Supabase env vars)")
+    
+    # Use SQLite for local development or fallback
     db_path = get_db_path()
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
+
+class SupabaseConnection:
+    """Supabase database connection using REST API"""
+    def __init__(self):
+        import requests
+        
+        self.base_url = os.environ.get('SUPABASE_URL')
+        self.api_key = os.environ.get('SUPABASE_KEY')
+        self.headers = {
+            'apikey': self.api_key,
+            'Authorization': f'Bearer {self.api_key}',
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+        }
+        self.session = requests.Session()
+        self.session.headers.update(self.headers)
+        self._result = None
+        self.lastrowid = None
+    
+    def cursor(self):
+        """Return self to act as cursor (for SQLite compatibility)"""
+        return self
+    
+    def execute(self, sql, params=None):
+        """Execute SQL-like operations via Supabase REST API"""
+        sql_lower = sql.lower().strip()
+        
+        try:
+            # SELECT COUNT(*) queries
+            if 'select count(*) from tools' in sql_lower:
+                if 'data_import_completed' in sql_lower:
+                    response = self.session.get(f"{self.base_url}/rest/v1/tools?name=eq.DATA_IMPORT_COMPLETED&select=id")
+                else:
+                    response = self.session.get(f"{self.base_url}/rest/v1/tools?select=id")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    self._result = [(len(data),)]
+                else:
+                    self._result = [(0,)]
+            
+            # USER OPERATIONS
+            elif 'insert into users' in sql_lower and params:
+                user_data = {
+                    'username': params[0],
+                    'email': params[1],
+                    'password_hash': params[2]
+                }
+                response = self.session.post(f"{self.base_url}/rest/v1/users", json=user_data)
+                if response.status_code in [200, 201]:
+                    self._result = response.json()
+                    print(f"User created successfully: {user_data['username']}")
+                else:
+                    print(f"User insert failed: {response.status_code} - {response.text}")
+            
+            elif 'select id from users where username' in sql_lower and params:
+                username_or_email_1 = params[0]
+                username_or_email_2 = params[1] if len(params) > 1 else params[0]
+                
+                # Try username first
+                response = self.session.get(f"{self.base_url}/rest/v1/users?username=eq.{username_or_email_1}&select=id")
+                if response.status_code == 200 and response.json():
+                    self._result = [{'id': response.json()[0]['id']}]
+                    return self
+                
+                # Try email
+                response = self.session.get(f"{self.base_url}/rest/v1/users?email=eq.{username_or_email_2}&select=id")
+                if response.status_code == 200 and response.json():
+                    self._result = [{'id': response.json()[0]['id']}]
+                else:
+                    self._result = []
+            
+            elif 'select * from users where username' in sql_lower and params:
+                username_or_email = params[0]
+                
+                # Try username first
+                response = self.session.get(f"{self.base_url}/rest/v1/users?username=eq.{username_or_email}")
+                if response.status_code == 200 and response.json():
+                    self._result = response.json()
+                    return self
+                
+                # Try email
+                response = self.session.get(f"{self.base_url}/rest/v1/users?email=eq.{username_or_email}")
+                self._result = response.json() if response.status_code == 200 else []
+            
+            elif 'select xp from users where id' in sql_lower and params:
+                user_id = params[0]
+                response = self.session.get(f"{self.base_url}/rest/v1/users?id=eq.{user_id}&select=xp")
+                if response.status_code == 200 and response.json():
+                    self._result = [{'xp': response.json()[0]['xp']}]
+                else:
+                    self._result = []
+            
+            elif 'update users set xp' in sql_lower and params:
+                xp, rank, user_id = params[:3]
+                user_data = {'xp': xp, 'rank': rank}
+                response = self.session.patch(f"{self.base_url}/rest/v1/users?id=eq.{user_id}", json=user_data)
+                self._result = []
+            
+            elif 'select username, xp, rank from users' in sql_lower and 'order by xp desc limit 3' in sql_lower:
+                response = self.session.get(f"{self.base_url}/rest/v1/users?select=username,xp,rank&order=xp.desc&limit=3")
+                self._result = response.json() if response.status_code == 200 else []
+            
+            # TOOL OPERATIONS
+            elif 'insert into tools' in sql_lower and params:
+                tool_data = {
+                    'name': params[0],
+                    'description': params[1],
+                    'link': params[2],
+                    'logo_url': params[3] if len(params) > 3 else None,
+                    'category': params[4] if len(params) > 4 else '',
+                    'pricing_model': params[5] if len(params) > 5 else ''
+                }
+                response = self.session.post(f"{self.base_url}/rest/v1/tools", json=tool_data)
+                if response.status_code in [200, 201]:
+                    self._result = response.json()
+                else:
+                    print(f"Tool insert failed: {response.status_code} - {response.text}")
+            
+            elif ('select *, coalesce(average_rating, 0)' in sql_lower and 
+                  'from tools' in sql_lower and 'limit 12' in sql_lower):
+                # Homepage tools query
+                response = self.session.get(f"{self.base_url}/rest/v1/tools?select=*&order=average_rating.desc.nullslast,total_ratings.desc.nullslast&limit=12")
+                if response.status_code == 200:
+                    data = response.json()
+                    for tool in data:
+                        tool['average_rating'] = tool.get('average_rating') or 0
+                        tool['total_ratings'] = tool.get('total_ratings') or 0
+                    self._result = data
+                else:
+                    self._result = []
+            
+            elif ('select *, coalesce(average_rating, 0)' in sql_lower and 
+                  'from tools where 1=1' in sql_lower):
+                # Tools page query with search/filter
+                url = f"{self.base_url}/rest/v1/tools?select=*"
+                filters = []
+                
+                if params:
+                    param_idx = 0
+                    if 'name like' in sql_lower or 'description like' in sql_lower:
+                        search_term = params[param_idx].replace('%', '')
+                        filters.append(f"or=(name.ilike.%{search_term}%,description.ilike.%{search_term}%)")
+                        param_idx += 2  # Skip both search params
+                    
+                    if param_idx < len(params) and 'category =' in sql_lower:
+                        category = params[param_idx]
+                        filters.append(f"category=eq.{category}")
+                
+                if filters:
+                    url += "&" + "&".join(filters)
+                
+                url += "&order=average_rating.desc.nullslast,total_ratings.desc.nullslast"
+                
+                response = self.session.get(url)
+                if response.status_code == 200:
+                    data = response.json()
+                    for tool in data:
+                        tool['average_rating'] = tool.get('average_rating') or 0
+                        tool['total_ratings'] = tool.get('total_ratings') or 0
+                    self._result = data
+                else:
+                    self._result = []
+            
+            elif 'select distinct category from tools' in sql_lower:
+                response = self.session.get(f"{self.base_url}/rest/v1/tools?select=category")
+                if response.status_code == 200:
+                    categories = set()
+                    for tool in response.json():
+                        if tool.get('category'):
+                            categories.add(tool['category'])
+                    self._result = [{'category': cat} for cat in sorted(categories)]
+                else:
+                    self._result = []
+            
+            elif ('select *, coalesce(average_rating, 0)' in sql_lower and 
+                  'from tools where id =' in sql_lower and params):
+                # Tool detail query
+                tool_id = params[0]
+                response = self.session.get(f"{self.base_url}/rest/v1/tools?id=eq.{tool_id}")
+                if response.status_code == 200 and response.json():
+                    tool = response.json()[0]
+                    tool['average_rating'] = tool.get('average_rating') or 0
+                    tool['total_ratings'] = tool.get('total_ratings') or 0
+                    self._result = [tool]
+                else:
+                    self._result = []
+            
+            elif ('select *, coalesce(average_rating, 0)' in sql_lower and 
+                  'where category =' in sql_lower and 'and id !=' in sql_lower and params):
+                # Related tools query
+                category, tool_id = params[:2]
+                response = self.session.get(f"{self.base_url}/rest/v1/tools?category=eq.{category}&id=neq.{tool_id}&order=average_rating.desc.nullslast&limit=4")
+                if response.status_code == 200:
+                    data = response.json()
+                    for tool in data:
+                        tool['average_rating'] = tool.get('average_rating') or 0
+                        tool['total_ratings'] = tool.get('total_ratings') or 0
+                    self._result = data
+                else:
+                    self._result = []
+            
+            elif 'update tools set' in sql_lower and 'where id =' in sql_lower and params:
+                if 'average_rating' in sql_lower:
+                    # Update tool ratings
+                    avg_rating, total_ratings, tool_id = params[:3]
+                    tool_data = {'average_rating': avg_rating, 'total_ratings': total_ratings}
+                    response = self.session.patch(f"{self.base_url}/rest/v1/tools?id=eq.{tool_id}", json=tool_data)
+                else:
+                    # Update tool info
+                    name, description, link, logo_url, category, pricing_model, tool_id = params
+                    tool_data = {
+                        'name': name,
+                        'description': description,
+                        'link': link,
+                        'logo_url': logo_url,
+                        'category': category,
+                        'pricing_model': pricing_model
+                    }
+                    response = self.session.patch(f"{self.base_url}/rest/v1/tools?id=eq.{tool_id}", json=tool_data)
+                self._result = []
+            
+            # RATINGS OPERATIONS
+            elif 'select id from ratings where user_id' in sql_lower and params:
+                user_id, tool_id = params[:2]
+                response = self.session.get(f"{self.base_url}/rest/v1/ratings?user_id=eq.{user_id}&tool_id=eq.{tool_id}&select=id")
+                self._result = response.json() if response.status_code == 200 else []
+            
+            elif 'insert into ratings' in sql_lower and params:
+                user_id, tool_id, rating, review = params[:4]
+                rating_data = {
+                    'user_id': user_id,
+                    'tool_id': tool_id,
+                    'rating': rating,
+                    'review': review
+                }
+                response = self.session.post(f"{self.base_url}/rest/v1/ratings", json=rating_data)
+                if response.status_code in [200, 201]:
+                    self._result = response.json()
+                    if self._result:
+                        self.lastrowid = self._result[0].get('id')
+                else:
+                    self._result = []
+            
+            elif 'update ratings set' in sql_lower and params:
+                rating, review, user_id, tool_id = params[:4]
+                rating_data = {'rating': rating, 'review': review}
+                response = self.session.patch(f"{self.base_url}/rest/v1/ratings?user_id=eq.{user_id}&tool_id=eq.{tool_id}", json=rating_data)
+                self._result = []
+            
+            elif 'select avg(rating)' in sql_lower and 'from ratings where tool_id' in sql_lower and params:
+                tool_id = params[0]
+                response = self.session.get(f"{self.base_url}/rest/v1/ratings?tool_id=eq.{tool_id}&select=rating")
+                if response.status_code == 200:
+                    ratings = response.json()
+                    if ratings:
+                        avg_rating = sum(r['rating'] for r in ratings) / len(ratings)
+                        self._result = [{'avg': avg_rating, 'count': len(ratings)}]
+                    else:
+                        self._result = [{'avg': 0, 'count': 0}]
+                else:
+                    self._result = [{'avg': 0, 'count': 0}]
+            
+            elif ('select r.*, u.username, u.rank from ratings r' in sql_lower and 
+                  'join users u on r.user_id = u.id' in sql_lower and params):
+                # Ratings with user info
+                tool_id = params[0]
+                response = self.session.get(f"{self.base_url}/rest/v1/ratings?tool_id=eq.{tool_id}&select=*,users(username,rank)&order=created_at.desc")
+                if response.status_code == 200:
+                    ratings = response.json()
+                    # Flatten user data
+                    for rating in ratings:
+                        if rating.get('users'):
+                            rating['username'] = rating['users']['username']
+                            rating['rank'] = rating['users']['rank']
+                    self._result = ratings
+                else:
+                    self._result = []
+            
+            elif 'select * from ratings where user_id' in sql_lower and 'and tool_id' in sql_lower and params:
+                user_id, tool_id = params[:2]
+                response = self.session.get(f"{self.base_url}/rest/v1/ratings?user_id=eq.{user_id}&tool_id=eq.{tool_id}")
+                self._result = response.json() if response.status_code == 200 else []
+            
+            # SIMPLE SELECT QUERIES
+            elif 'select * from tools where id =' in sql_lower and params:
+                # Simple tool lookup by ID
+                tool_id = params[0]
+                response = self.session.get(f"{self.base_url}/rest/v1/tools?id=eq.{tool_id}")
+                self._result = response.json() if response.status_code == 200 else []
+            
+            elif 'select * from users where id =' in sql_lower and params:
+                # Simple user lookup by ID
+                user_id = params[0]
+                response = self.session.get(f"{self.base_url}/rest/v1/users?id=eq.{user_id}")
+                self._result = response.json() if response.status_code == 200 else []
+            
+            elif 'select * from ratings where id =' in sql_lower and params:
+                # Simple rating lookup by ID
+                rating_id = params[0]
+                response = self.session.get(f"{self.base_url}/rest/v1/ratings?id=eq.{rating_id}")
+                self._result = response.json() if response.status_code == 200 else []
+            
+            # CONTACT MESSAGES
+            elif 'insert into contact_messages' in sql_lower and params:
+                user_id, tool_id, comment, parent_id = params[:4]
+                comment_data = {
+                    'user_id': user_id,
+                    'tool_id': tool_id,
+                    'comment': comment,
+                    'parent_id': parent_id
+                }
+                response = self.session.post(f"{self.base_url}/rest/v1/comments", json=comment_data)
+                if response.status_code in [200, 201]:
+                    self._result = response.json()
+                    if self._result:
+                        self.lastrowid = self._result[0].get('id')
+                else:
+                    self._result = []
+            
+            elif ('select c.*, u.username, u.rank' in sql_lower and 
+                  'from comments c' in sql_lower and 'join users u' in sql_lower and
+                  'where c.tool_id' in sql_lower and 'and c.parent_id is null' in sql_lower and params):
+                # Main comments (not replies)
+                user_id_for_votes, tool_id = params[:2]
+                response = self.session.get(f"{self.base_url}/rest/v1/comments?tool_id=eq.{tool_id}&parent_id=is.null&select=*,users(username,rank)&order=created_at.asc")
+                if response.status_code == 200:
+                    comments = response.json()
+                    for comment in comments:
+                        if comment.get('users'):
+                            comment['username'] = comment['users']['username']
+                            comment['rank'] = comment['users']['rank']
+                        comment['user_vote'] = ''  # TODO: Implement vote lookup
+                    self._result = comments
+                else:
+                    self._result = []
+            
+            elif ('select c.*, u.username, u.rank' in sql_lower and 
+                  'where c.parent_id =' in sql_lower and params):
+                # Replies to comments
+                user_id_for_votes, parent_id = params[:2]
+                response = self.session.get(f"{self.base_url}/rest/v1/comments?parent_id=eq.{parent_id}&select=*,users(username,rank)&order=created_at.asc")
+                if response.status_code == 200:
+                    replies = response.json()
+                    for reply in replies:
+                        if reply.get('users'):
+                            reply['username'] = reply['users']['username']
+                            reply['rank'] = reply['users']['rank']
+                        reply['user_vote'] = ''  # TODO: Implement vote lookup
+                    self._result = replies
+                else:
+                    self._result = []
+            
+            elif 'select c.*, u.username, u.rank from comments c' in sql_lower and 'where c.id =' in sql_lower and params:
+                # Get single comment with user info
+                comment_id = params[0]
+                response = self.session.get(f"{self.base_url}/rest/v1/comments?id=eq.{comment_id}&select=*,users(username,rank)")
+                if response.status_code == 200 and response.json():
+                    comment = response.json()[0]
+                    if comment.get('users'):
+                        comment['username'] = comment['users']['username']
+                        comment['rank'] = comment['users']['rank']
+                    self._result = [comment]
+                else:
+                    self._result = []
+            
+            # CONTACT MESSAGES
+            elif 'insert into contact_messages' in sql_lower and params:
+                name, email, message = params[:3]
+                contact_data = {
+                    'name': name,
+                    'email': email,
+                    'message': message
+                }
+                response = self.session.post(f"{self.base_url}/rest/v1/contact_messages", json=contact_data)
+                self._result = []
+            
+            # COMMENT VOTES (basic implementation)
+            elif 'select vote_type from comment_votes' in sql_lower and params:
+                # Comment voting - simplified for now
+                self._result = []
+            
+            elif 'delete from comment_votes' in sql_lower or 'update comment_votes' in sql_lower or 'insert into comment_votes' in sql_lower:
+                # Comment voting operations - simplified for now
+                self._result = []
+            
+            elif 'update comments set' in sql_lower:
+                # Comment vote count updates - simplified for now
+                self._result = []
+            
+            else:
+                print(f"Unhandled SQL query: {sql_lower[:100]}...")
+                self._result = []
+                
+        except Exception as e:
+            print(f"Execute error: {e}")
+            self._result = []
+        
+        return self    
+    def fetchall(self):
+        """Return all results"""
+        return self._result if self._result else []
+    
+    def fetchone(self):
+        """Return first result"""
+        if self._result and len(self._result) > 0:
+            return self._result[0]
+        return None
+    
+    def commit(self):
+        """Commit transaction (auto-committed in Supabase)"""
+        pass
+    
+    def close(self):
+        """Close connection"""
+        pass
+    
+    def delete_tool(self, tool_id):
+        """Delete a tool and related data"""
+        try:
+            # Delete related ratings first
+            response = self.session.delete(f"{self.base_url}/rest/v1/ratings?tool_id=eq.{tool_id}")
+            print(f"Delete ratings response: {response.status_code}")
+            
+            # Delete related comments
+            response = self.session.delete(f"{self.base_url}/rest/v1/comments?tool_id=eq.{tool_id}")
+            print(f"Delete comments response: {response.status_code}")
+            
+            # Delete the tool
+            response = self.session.delete(f"{self.base_url}/rest/v1/tools?id=eq.{tool_id}")
+            print(f"Delete tool response: {response.status_code}")
+            
+            return response.status_code < 300
+        except Exception as e:
+            print(f"Delete tool error: {e}")
+            return False
+    
+    def get_tool_by_id(self, tool_id):
+        """Get tool by ID"""
+        try:
+            response = self.session.get(f"{self.base_url}/rest/v1/tools?id=eq.{tool_id}")
+            if response.status_code == 200 and response.json():
+                self._result = response.json()
+                return self
+            else:
+                self._result = []
+                return self        
+        except Exception as e:
+            print(f"Get tool by ID error: {e}")
+            self._result = []
+            return self
+    
+    def delete_user(self, user_id):
+        """Delete a user and related data"""
+        try:
+            # Delete related ratings
+            self.session.delete(f"{self.base_url}/rest/v1/ratings?user_id=eq.{user_id}")
+            # Delete related comments
+            self.session.delete(f"{self.base_url}/rest/v1/comments?user_id=eq.{user_id}")
+            # Delete the user
+            response = self.session.delete(f"{self.base_url}/rest/v1/users?id=eq.{user_id}")
+            return response.status_code < 300
+        except Exception as e:
+            print(f"Delete user error: {e}")
+            return False
+    
+    def delete_review(self, review_id):
+        """Delete a review/rating"""
+        try:
+            response = self.session.delete(f"{self.base_url}/rest/v1/ratings?id=eq.{review_id}")
+            return response.status_code < 300
+        except Exception as e:
+            print(f"Delete review error: {e}")
+            return False
 
 def calculate_rank(xp):
     if xp >= 5000:
@@ -219,124 +588,7 @@ def format_datetime(date_str):
     else:
         return str(date_str)
 
-def import_json_data():
-    """Import data from JSON files if they exist (for Vercel deployment)"""
-    data_dir = 'data_export'
-    if not os.path.exists(data_dir):
-        return False
-    
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    try:
-        # Check if data already imported by looking for a flag
-        cursor.execute("SELECT COUNT(*) FROM tools WHERE name = 'DATA_IMPORT_COMPLETED'")
-        if cursor.fetchone()[0] > 0:
-            print("📦 Data already imported, skipping...")
-            return False
-        
-        # Check if we have significant data already (more than sample data)
-        cursor.execute("SELECT COUNT(*) FROM tools")
-        existing_tools = cursor.fetchone()[0]
-        
-        # Only import if we have very few tools (just sample data)
-        if existing_tools > 10:
-            print("📦 Database already has data, skipping import...")
-            return False
-        
-        print("📦 Importing data from JSON files...")
-        
-        # Import users
-        users_file = os.path.join(data_dir, 'users.json')
-        if os.path.exists(users_file):
-            with open(users_file, 'r') as f:
-                users = json.load(f)
-            
-            for user in users:
-                try:
-                    cursor.execute('''INSERT OR IGNORE INTO users 
-                                    (username, email, password_hash, xp, rank, created_at) 
-                                    VALUES (?, ?, ?, ?, ?, ?)''',
-                                 (user['username'], user['email'], user['password_hash'],
-                                  user['xp'], user['rank'], user['created_at']))
-                except Exception as e:
-                    print(f"Error importing user {user.get('username', 'unknown')}: {e}")
-            
-            print(f"✅ Imported {len(users)} users")
-        
-        # Import tools
-        tools_file = os.path.join(data_dir, 'tools.json')
-        if os.path.exists(tools_file):
-            with open(tools_file, 'r') as f:
-                tools = json.load(f)
-            
-            # Clear sample data first
-            cursor.execute("DELETE FROM tools WHERE name IN ('ChatGPT', 'Claude', 'Midjourney', 'GitHub Copilot', 'Notion AI', 'Jasper')")
-            
-            for tool in tools:
-                try:
-                    cursor.execute('''INSERT OR IGNORE INTO tools 
-                                    (name, description, link, logo_url, category, pricing_model, 
-                                     average_rating, total_ratings, created_at) 
-                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                                 (tool['name'], tool['description'], tool['link'], tool['logo_url'],
-                                  tool['category'], tool['pricing_model'], tool['average_rating'],
-                                  tool['total_ratings'], tool['created_at']))
-                except Exception as e:
-                    print(f"Error importing tool {tool.get('name', 'unknown')}: {e}")
-            
-            print(f"✅ Imported {len(tools)} tools")
-        
-        # Import ratings
-        ratings_file = os.path.join(data_dir, 'ratings.json')
-        if os.path.exists(ratings_file):
-            with open(ratings_file, 'r') as f:
-                ratings = json.load(f)
-            
-            for rating in ratings:
-                try:
-                    cursor.execute('''INSERT OR IGNORE INTO ratings 
-                                    (user_id, tool_id, rating, review, created_at) 
-                                    VALUES (?, ?, ?, ?, ?)''',
-                                 (rating['user_id'], rating['tool_id'], rating['rating'],
-                                  rating['review'], rating['created_at']))
-                except Exception as e:
-                    print(f"Error importing rating: {e}")
-            
-            print(f"✅ Imported {len(ratings)} ratings")
-        
-        # Import comments  
-        comments_file = os.path.join(data_dir, 'comments.json')
-        if os.path.exists(comments_file):
-            with open(comments_file, 'r') as f:
-                comments = json.load(f)
-            
-            for comment in comments:
-                try:
-                    cursor.execute('''INSERT OR IGNORE INTO comments 
-                                    (user_id, tool_id, parent_id, comment, upvotes, downvotes, created_at) 
-                                    VALUES (?, ?, ?, ?, ?, ?, ?)''',
-                                 (comment['user_id'], comment['tool_id'], comment.get('parent_id'),
-                                  comment['comment'], comment['upvotes'], comment['downvotes'], 
-                                  comment['created_at']))
-                except Exception as e:
-                    print(f"Error importing comment: {e}")
-            
-            print(f"✅ Imported {len(comments)} comments")
-        
-        # Add import completion flag
-        cursor.execute("INSERT INTO tools (name, description, link, logo_url, category, pricing_model) VALUES ('DATA_IMPORT_COMPLETED', 'Import flag - do not delete', '#', '', 'System', 'Free')")
-        
-        conn.commit()
-        print("🎉 Data import completed successfully!")
-        return True
-        
-    except Exception as e:
-        print(f"❌ Error during import: {e}")
-        conn.rollback()
-        return False
-    finally:
-        conn.close()
+
 
 # Routes
 @app.route('/')
@@ -373,12 +625,15 @@ def register():
             return render_template('register.html')
         
         conn = get_db_connection()
+        print(f"Registration - Using connection type: {type(conn).__name__}")
         
         # Check if user exists
         existing_user = conn.execute(
             'SELECT id FROM users WHERE username = ? OR email = ?', 
             (username, email)
         ).fetchone()
+        
+        print(f"Registration - Existing user check result: {existing_user}")
         
         if existing_user:
             flash('Username or email already exists', 'error')
@@ -387,6 +642,7 @@ def register():
         
         # Create user
         password_hash = generate_password_hash(password)
+        print(f"Registration - About to insert user: {username}")
         conn.execute(
             'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
             (username, email, password_hash)
@@ -394,6 +650,7 @@ def register():
         conn.commit()
         conn.close()
         
+        print(f"Registration - User {username} created successfully")
         flash('Registration successful! Please log in.', 'success')
         return redirect(url_for('login'))
     
@@ -984,20 +1241,32 @@ def admin_delete_tool(tool_id):
     
     try:
         conn = get_db_connection()
-        # Check if tool exists
-        tool = conn.execute('SELECT * FROM tools WHERE id = ?', (tool_id,)).fetchone()
-        if not tool:
-            return jsonify({'success': False, 'message': 'Tool not found'}), 404
+          # Handle Supabase differently
+        if isinstance(conn, SupabaseConnection):
+            # Check if tool exists
+            tool_check = conn.get_tool_by_id(tool_id)
+            if not tool_check.fetchone():
+                return jsonify({'success': False, 'message': 'Tool not found'}), 404
+            
+            # Delete using Supabase HTTP method
+            success = conn.delete_tool(tool_id)
+            if not success:
+                return jsonify({'success': False, 'message': 'Failed to delete tool'}), 500
+        else:
+            # SQLite logic
+            tool = conn.execute('SELECT * FROM tools WHERE id = ?', (tool_id,)).fetchone()
+            if not tool:
+                return jsonify({'success': False, 'message': 'Tool not found'}), 404
+            
+            # Delete related ratings first
+            conn.execute('DELETE FROM ratings WHERE tool_id = ?', (tool_id,))
+            # Delete related comments
+            conn.execute('DELETE FROM comments WHERE tool_id = ?', (tool_id,))
+            # Delete the tool
+            conn.execute('DELETE FROM tools WHERE id = ?', (tool_id,))
+            conn.commit()
         
-        # Delete related ratings first
-        conn.execute('DELETE FROM ratings WHERE tool_id = ?', (tool_id,))
-        # Delete related comments
-        conn.execute('DELETE FROM comments WHERE tool_id = ?', (tool_id,))
-        # Delete the tool
-        conn.execute('DELETE FROM tools WHERE id = ?', (tool_id,))
-        conn.commit()
         conn.close()
-        
         return jsonify({'success': True, 'message': 'Tool deleted successfully'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
@@ -1008,10 +1277,17 @@ def admin_edit_tool(tool_id):
         return redirect(url_for('admin_login'))
     
     conn = get_db_connection()
-    tool = conn.execute('SELECT * FROM tools WHERE id = ?', (tool_id,)).fetchone()
+    
+    # Handle Supabase differently for getting tool
+    if isinstance(conn, SupabaseConnection):
+        tool_result = conn.execute('SELECT * FROM tools WHERE id = ?', (tool_id,))
+        tool = tool_result.fetchone()
+    else:
+        tool = conn.execute('SELECT * FROM tools WHERE id = ?', (tool_id,)).fetchone()
     
     if not tool:
         flash('Tool not found', 'error')
+        conn.close()
         return redirect(url_for('admin_dashboard'))
     
     if request.method == 'POST':
@@ -1031,12 +1307,13 @@ def admin_edit_tool(tool_id):
             ''', (name, description, link, logo_url, category, pricing_model, tool_id))
             conn.commit()
             flash('Tool updated successfully!', 'success')
+            conn.close()
             return redirect(url_for('admin_dashboard'))
         except Exception as e:
             flash(f'Error updating tool: {str(e)}', 'error')
-        finally:
             conn.close()
     
+    conn.close()
     return render_template('admin/edit_tool.html', tool=tool)
 
 @app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
@@ -1046,20 +1323,37 @@ def admin_delete_user(user_id):
     
     try:
         conn = get_db_connection()
-        # Check if user exists
-        user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
-        if not user:
-            return jsonify({'success': False, 'message': 'User not found'}), 404
         
-        # Delete related ratings
-        conn.execute('DELETE FROM ratings WHERE user_id = ?', (user_id,))
-        # Delete related comments
-        conn.execute('DELETE FROM comments WHERE user_id = ?', (user_id,))
-        # Delete the user
-        conn.execute('DELETE FROM users WHERE id = ?', (user_id,))
-        conn.commit()
+        # Handle Supabase differently
+        if isinstance(conn, SupabaseConnection):
+            # Check if user exists
+            user_result = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,))
+            user = user_result.fetchone()
+            if not user:
+                conn.close()
+                return jsonify({'success': False, 'message': 'User not found'}), 404
+            
+            # Delete using Supabase method
+            success = conn.delete_user(user_id)
+            if not success:
+                conn.close()
+                return jsonify({'success': False, 'message': 'Failed to delete user'}), 500
+        else:
+            # SQLite logic
+            user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+            if not user:
+                conn.close()
+                return jsonify({'success': False, 'message': 'User not found'}), 404
+            
+            # Delete related ratings
+            conn.execute('DELETE FROM ratings WHERE user_id = ?', (user_id,))
+            # Delete related comments
+            conn.execute('DELETE FROM comments WHERE user_id = ?', (user_id,))
+            # Delete the user
+            conn.execute('DELETE FROM users WHERE id = ?', (user_id,))
+            conn.commit()
+        
         conn.close()
-        
         return jsonify({'success': True, 'message': 'User deleted successfully'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
@@ -1071,16 +1365,33 @@ def admin_delete_review(review_id):
     
     try:
         conn = get_db_connection()
-        # Check if review exists
-        review = conn.execute('SELECT * FROM ratings WHERE id = ?', (review_id,)).fetchone()
-        if not review:
-            return jsonify({'success': False, 'message': 'Review not found'}), 404
         
-        # Delete the review
-        conn.execute('DELETE FROM ratings WHERE id = ?', (review_id,))
-        conn.commit()
+        # Handle Supabase differently
+        if isinstance(conn, SupabaseConnection):
+            # Check if review exists
+            review_result = conn.execute('SELECT * FROM ratings WHERE id = ?', (review_id,))
+            review = review_result.fetchone()
+            if not review:
+                conn.close()
+                return jsonify({'success': False, 'message': 'Review not found'}), 404
+            
+            # Delete using Supabase method
+            success = conn.delete_review(review_id)
+            if not success:
+                conn.close()
+                return jsonify({'success': False, 'message': 'Failed to delete review'}), 500
+        else:
+            # SQLite logic
+            review = conn.execute('SELECT * FROM ratings WHERE id = ?', (review_id,)).fetchone()
+            if not review:
+                conn.close()
+                return jsonify({'success': False, 'message': 'Review not found'}), 404
+            
+            # Delete the review
+            conn.execute('DELETE FROM ratings WHERE id = ?', (review_id,))
+            conn.commit()
+        
         conn.close()
-        
         return jsonify({'success': True, 'message': 'Review deleted successfully'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
@@ -1092,10 +1403,19 @@ def admin_toggle_user(user_id):
     
     try:
         conn = get_db_connection()
-        user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+        
+        # Handle Supabase differently
+        if isinstance(conn, SupabaseConnection):
+            user_result = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,))
+            user = user_result.fetchone()
+        else:
+            user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+        
         if not user:
+            conn.close()
             return jsonify({'success': False, 'message': 'User not found'}), 404
         
+        conn.close()
         # For now, we'll just return success - you can implement user status toggling later
         # This could involve adding an 'active' field to the users table
         return jsonify({'success': True, 'message': 'User status updated'})
@@ -1131,6 +1451,39 @@ def contact():
 def privacy():
     return render_template('privacy.html')
 
+@app.route('/debug')
+def debug_info():
+    """Debug endpoint to check database connection"""
+    import sys
+    debug_info = {
+        'python_version': sys.version,
+        'environment': 'vercel' if os.environ.get('VERCEL') else 'local',
+        'supabase_url_exists': bool(os.environ.get('SUPABASE_URL')),
+        'supabase_key_exists': bool(os.environ.get('SUPABASE_KEY')),
+        'supabase_url_value': os.environ.get('SUPABASE_URL', 'NOT_SET')[:50] + '...' if os.environ.get('SUPABASE_URL') else 'NOT_SET',
+    }
+    
+    # Test database connection
+    try:
+        conn = get_db_connection()
+        if isinstance(conn, SupabaseConnection):
+            debug_info['database_type'] = 'Supabase'
+            debug_info['supabase_connection'] = 'SUCCESS'
+        else:
+            debug_info['database_type'] = 'SQLite'
+            debug_info['sqlite_path'] = get_db_path()
+        conn.close()
+    except Exception as e:
+        debug_info['database_connection_error'] = str(e)
+      # Test Supabase import
+    try:
+        import requests
+        debug_info['requests_import'] = 'SUCCESS'
+    except ImportError as e:
+        debug_info['requests_import_error'] = str(e)
+    
+    return jsonify(debug_info)
+
 if __name__ == '__main__':
     # Initialize database
     init_db()
@@ -1147,5 +1500,3 @@ if os.environ.get('VERCEL'):
     # Ensure upload directory exists in temp
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-    # Import data from JSON files if they exist (for Vercel deployment)
-    import_json_data()
