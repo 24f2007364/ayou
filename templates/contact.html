@@ -1,0 +1,329 @@
+{% extends "layout.html" %}
+
+{% block title %}Contact - Ayou{% endblock %}
+
+{% block content %}
+<div class="contact-hero">
+    <div class="container">
+        <div class="row">            <div class="col-lg-8 mx-auto text-center">
+                <div class="mb-4">
+                    <i class="bi bi-envelope-heart text-primary" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                </div>
+                <h1 class="display-4 fw-bold mb-4">Get in Touch</h1>
+                <p class="lead text-muted mb-4">
+                    Have questions, suggestions, or want to collaborate? I'd love to hear from you! 
+                    Whether you're interested in AI tools, data analytics, or just want to connect, feel free to reach out.
+                </p>
+                <div class="d-flex justify-content-center gap-4 mb-4">
+                    <div class="contact-feature">
+                        <i class="bi bi-lightning-charge text-warning"></i>
+                        <span>Quick Response</span>
+                    </div>
+                    <div class="contact-feature">
+                        <i class="bi bi-shield-check text-success"></i>
+                        <span>Secure & Private</span>
+                    </div>
+                    <div class="contact-feature">
+                        <i class="bi bi-people text-info"></i>
+                        <span>Community Focused</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="contact-content py-5">
+    <div class="container">
+        <div class="row g-5">
+            <!-- Contact Form -->
+            <div class="col-lg-8">
+                <div class="contact-form-card">                    <div class="card-header">
+                        <h2 class="mb-3">
+                            <i class="bi bi-chat-square-text text-primary me-2"></i>
+                            Send me a Message
+                        </h2>
+                        <p class="text-muted mb-0">
+                            Fill out the form below and I'll get back to you as soon as possible.
+                        </p>
+                    </div>
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            <div class="alert-container">
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                        <i class="bi bi-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' }}"></i>
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" class="contact-form">                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name" class="form-label">
+                                        <i class="bi bi-person"></i> Full Name *
+                                    </label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="email" class="form-label">
+                                        <i class="bi bi-envelope"></i> Email Address *
+                                    </label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="company" class="form-label">
+                                        <i class="bi bi-building"></i> Company (Optional)
+                                    </label>
+                                    <input type="text" class="form-control" id="company" name="company">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="subject" class="form-label">
+                                        <i class="bi bi-tag"></i> Subject *
+                                    </label>
+                                    <select class="form-control" id="subject" name="subject" required>
+                                        <option value="">Select a topic</option>
+                                        <option value="general">💬 General Inquiry</option>
+                                        <option value="support">🔧 Technical Support</option>
+                                        <option value="partnership">🤝 Partnership</option>
+                                        <option value="tool-submission">🚀 Tool Submission</option>
+                                        <option value="feedback">💡 Feedback</option>
+                                        <option value="press">📰 Press Inquiry</option>
+                                        <option value="other">❓ Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="message" class="form-label">
+                                <i class="bi bi-chat-text"></i> Message *
+                            </label>
+                            <textarea class="form-control" id="message" name="message" rows="6" required 
+                                      placeholder="Tell us more about your inquiry..."></textarea>
+                            <small class="form-text text-muted">Minimum 10 characters</small>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="newsletter" name="newsletter" value="1">
+                                <label class="form-check-label" for="newsletter">
+                                    Subscribe to our newsletter for AI tool updates and community news
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-send"></i>
+                                Send Message
+                            </button>
+                            <button type="reset" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-clockwise"></i>
+                                Reset Form
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>            <!-- Contact Info -->
+            <div class="col-lg-4">                <div class="contact-info-card">
+                    <div class="contact-info-header mb-4">
+                        <div class="text-center mb-3">
+                            <i class="bi bi-headset" style="font-size: 3rem; color: rgba(255, 255, 255, 0.9);"></i>
+                        </div>
+                        <h3><i class="bi bi-chat-heart me-2"></i>Let's Connect</h3>
+                        <p>Choose the method that works best for you</p>
+                        <div class="response-badge">
+                            <i class="bi bi-clock-history me-1"></i>
+                            Typically responds within 24 hours
+                        </div>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-info-item">
+                        <div class="contact-icon">
+                            <i class="bi bi-envelope-fill"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h5>Email Me</h5>
+                            <p><a href="mailto:iamsayanchowdhury2000@gmail.com">iamsayanchowdhury2000@gmail.com</a></p>
+                            <small>Best for detailed discussions and collaborations</small>
+                        </div>
+                    </div>
+
+                    <div class="contact-info-item">
+                        <div class="contact-icon">
+                            <i class="bi bi-linkedin"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h5>LinkedIn</h5>
+                            <p><a href="https://linkedin.com/in/sayanchowdhury" target="_blank">Connect on LinkedIn</a></p>
+                            <small>Professional networking and quick messages</small>
+                        </div>
+                    </div>
+
+                    <div class="contact-info-item">
+                        <div class="contact-icon">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h5>Location</h5>
+                            <p>India 🇮🇳</p>
+                            <small>Available for remote collaborations worldwide</small>
+                        </div>
+                    </div>
+
+                    <div class="contact-info-item">
+                        <div class="contact-icon">
+                            <i class="bi bi-clock-fill"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h5>Response Time</h5>
+                            <p>24-48 hours</p>
+                            <small>Usually much faster during business hours</small>
+                        </div>
+                    </div>
+
+                    <div class="social-links">
+                        <a href="https://linkedin.com/in/sayanchowdhury" class="social-link" title="LinkedIn">
+                            <i class="bi bi-linkedin"></i>
+                        </a>
+                        <a href="mailto:iamsayanchowdhury2000@gmail.com" class="social-link" title="Email">
+                            <i class="bi bi-envelope-fill"></i>
+                        </a>
+                        <a href="#" class="social-link" title="GitHub">
+                            <i class="bi bi-github"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick FAQ -->
+                <div class="contact-faq mt-4">
+                    <div class="faq-section">
+                        <h4 class="mb-3">🤔 Quick Answers</h4>
+                        
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFaq('faq1')">
+                                How do I submit a new AI tool?
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <div class="faq-answer" id="faq1">
+                                You can submit tools through the contact form by selecting "Tool Submission" 
+                                as the subject, or email me directly with tool details and I'll review it for inclusion.
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFaq('faq2')">
+                                Can I collaborate with Ayou?
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <div class="faq-answer" id="faq2">
+                                Absolutely! I'm always interested in collaborations, partnerships, and interesting projects. 
+                                Select "Partnership" in the form or reach out via email or LinkedIn.
+                            </div>
+                        </div>
+
+                        <div class="faq-item">
+                            <button class="faq-question" onclick="toggleFaq('faq3')">
+                                What's your background?
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <div class="faq-answer" id="faq3">
+                                I'm a Data Analytics Engineer with a passion for AI tools and making technology 
+                                accessible. I created Ayou to share amazing AI tools with the community.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>        </div>
+    </div>
+</section>
+
+<script>
+function toggleFaq(faqId) {
+    const answer = document.getElementById(faqId);
+    const question = answer.previousElementSibling;
+    const icon = question.querySelector('i');
+    
+    // Close all other FAQs
+    document.querySelectorAll('.faq-answer').forEach(faq => {
+        if (faq.id !== faqId && faq.classList.contains('show')) {
+            faq.classList.remove('show');
+            faq.previousElementSibling.querySelector('i').style.transform = 'rotate(0deg)';
+        }
+    });
+    
+    // Toggle current FAQ
+    answer.classList.toggle('show');
+    if (answer.classList.contains('show')) {
+        icon.style.transform = 'rotate(180deg)';
+    } else {
+        icon.style.transform = 'rotate(0deg)';
+    }
+}
+</script>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Form validation
+    document.querySelector('.contact-form').addEventListener('submit', function(e) {
+        const message = document.getElementById('message');
+        if (message.value.trim().length < 10) {
+            e.preventDefault();
+            alert('Please provide a message with at least 10 characters.');
+            message.focus();
+            return false;
+        }
+    });
+
+    // Character counter for message
+    document.getElementById('message').addEventListener('input', function(e) {
+        const length = e.target.value.length;
+        const minLength = 10;
+        const helpText = e.target.parentNode.querySelector('.form-text');
+        
+        if (length < minLength) {
+            helpText.textContent = `Minimum 10 characters (${length}/${minLength})`;
+            helpText.className = 'form-text text-warning';
+        } else {
+            helpText.textContent = `${length} characters`;
+            helpText.className = 'form-text text-muted';
+        }
+    });
+
+    // Auto-dismiss alerts
+    setTimeout(() => {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            if (alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }
+        });
+    }, 5000);
+
+    // Form reset confirmation
+    document.querySelector('button[type="reset"]').addEventListener('click', function(e) {
+        if (!confirm('Are you sure you want to clear all form data?')) {
+            e.preventDefault();
+        }
+    });
+</script>
+{% endblock %}

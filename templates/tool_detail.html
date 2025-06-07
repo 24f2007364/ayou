@@ -1,0 +1,1132 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ tool.name }} - Ayou AI Marketplace{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Hero Section with Tool Overview -->
+    <div class="tool-hero-section bg-gradient-primary text-white py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-2 col-md-3 mb-4 mb-md-0">
+                    <div class="tool-logo-container">                        <img src="{{ tool.logo_url or '/static/images/default-tool.png' }}" 
+                             alt="{{ tool.name }}" class="tool-detail-logo">
+                    </div>
+                </div>
+                <div class="col-lg-7 col-md-6">
+                    <h1 class="tool-title mb-2">{{ tool.name }}</h1>
+                    <p class="tool-category mb-3">
+                        <span class="badge bg-light text-dark me-2">{{ tool.category }}</span>
+                        <span class="badge bg-success">{{ tool.pricing_model }}</span>
+                    </p>
+                    <div class="tool-rating-overview mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="stars me-3">
+                                {% for i in range(1, 6) %}
+                                    <i class="bi bi-star{% if tool.average_rating and i <= tool.average_rating %}-fill text-warning{% endif %}"></i>
+                                {% endfor %}
+                            </div>
+                            <span class="rating-score me-2">{{ "%.1f"|format(tool.average_rating or 0) }}</span>
+                            <span class="rating-count text-light">({{ tool.total_ratings or 0 }} reviews)</span>
+                        </div>
+                    </div>
+                    <p class="tool-description-brief">{{ (tool.description or '')[:150] }}{% if tool.description and tool.description|length > 150 %}...{% endif %}</p>
+                </div>
+                <div class="col-lg-3 col-md-3">
+                    <div class="tool-actions">
+                        <a href="{{ tool.link }}" target="_blank" class="btn btn-light btn-lg w-100 mb-3">
+                            <i class="bi bi-box-arrow-up-right me-2"></i>Try Now
+                        </a>
+                        <div class="tool-stats-quick">
+                            <div class="stat-item">
+                                <i class="bi bi-people"></i>
+                                <span>{{ "{:,}".format((tool.total_ratings or 0) * 10) }}+ users</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="bi bi-calendar"></i>
+                                <span>Added {{ tool.created_at[:10] if tool.created_at else 'Unknown' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="container py-5">
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <!-- About Section -->
+                <div class="content-section mb-5">
+                    <h3 class="section-title">About {{ tool.name }}</h3>
+                    <div class="tool-description-full">
+                        <p>{{ tool.description }}</p>
+                        <div class="tool-features mt-4">
+                            <h5>Key Features:</h5>
+                            <ul class="feature-list">
+                                <li><i class="bi bi-check-circle text-success me-2"></i>AI-powered capabilities</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>User-friendly interface</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>{{ tool.pricing_model }} pricing</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Professional grade quality</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rating & Reviews Summary -->
+                <div class="content-section mb-5">
+                    <h3 class="section-title">Ratings & Reviews</h3>
+                    <div class="rating-summary">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="overall-rating text-center">
+                                    <div class="rating-score-large">{{ "%.1f"|format(tool.average_rating or 0) }}</div>
+                                    <div class="stars-large mb-2">
+                                        {% for i in range(1, 6) %}
+                                            <i class="bi bi-star{% if tool.average_rating and i <= tool.average_rating %}-fill text-warning{% endif %}"></i>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="rating-count">{{ tool.total_ratings or 0 }} reviews</div>
+                                </div>
+                            </div>                            <div class="col-md-8">
+                                <div class="rating-breakdown">
+                                    {% for i in range(5, 0, -1) %}
+                                    <div class="rating-bar-item d-flex align-items-center mb-2">
+                                        <span class="rating-number me-2">{{ i }}</span>
+                                        <i class="bi bi-star-fill text-warning me-2"></i>
+                                        <div class="rating-progress flex-grow-1 me-3">
+                                            <div class="rating-progress-bar" 
+                                                 style="width: {{ (ratings|selectattr('rating', 'eq', i)|list|length / (ratings|length if ratings else 1) * 100) if ratings else 0 }}%"></div>
+                                        </div>
+                                        <span class="rating-percentage">{{ (ratings|selectattr('rating', 'eq', i)|list|length / (ratings|length if ratings else 1) * 100)|round(1) if ratings else 0 }}%</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Individual Reviews -->
+                {% if ratings %}
+                <div class="content-section mb-5">
+                    <h4 class="section-subtitle">Recent Reviews</h4>
+                    <div class="reviews-list">
+                        {% for rating in ratings[:5] %}
+                        <div class="review-item">
+                            <div class="review-header d-flex align-items-center mb-2">
+                                <div class="user-avatar me-3">
+                                    <span>{{ rating.username[0].upper() }}</span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="reviewer-name">{{ rating.username }}</div>
+                                    <div class="review-meta">
+                                        <div class="stars me-2">
+                                            {% for i in range(1, 6) %}
+                                                <i class="bi bi-star{% if i <= rating.rating %}-fill text-warning{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                        <span class="review-date">{{ rating.created_at | format_date }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if rating.review %}
+                            <div class="review-content">
+                                <p>{{ rating.review }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Discussion Section - Facebook-like -->
+                <div class="content-section">
+                    <div class="discussion-header d-flex align-items-center justify-content-between mb-4">
+                        <h3 class="section-title mb-0">Community Discussion</h3>
+                        <span class="discussion-count">{{ comments|length }} discussions</span>
+                    </div>
+
+                    <!-- New Discussion Form -->
+                    {% if session.user_id %}
+                    <div class="new-discussion-form mb-4">
+                        <div class="d-flex align-items-start">
+                            <div class="user-avatar me-3">
+                                <span>{{ session.username[0].upper() if session.username else 'U' }}</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <form id="commentForm" class="comment-form">
+                                    <div class="form-group mb-3">
+                                        <textarea id="commentText" name="comment" class="form-control discussion-input" 
+                                                  placeholder="Share your thoughts, ask questions, or start a discussion about {{ tool.name }}..." 
+                                                  rows="3" required></textarea>
+                                    </div>                                    <div class="form-actions">
+                                        <button type="button" class="btn btn-primary" onclick="testCommentAjax()">
+                                            <i class="bi bi-chat-dots me-2"></i>Post Discussion
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="login-prompt mb-4">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <a href="{{ url_for('login') }}" class="alert-link">Sign in</a> to join the discussion and share your thoughts!
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Discussion Thread -->
+                    <div class="discussion-thread" id="comments-list">
+                        {% if comments %}
+                            {% for comment in comments %}
+                            <div class="discussion-item" data-comment-id="{{ comment.id }}">
+                                <!-- Main Comment -->
+                                <div class="comment-main">
+                                    <div class="d-flex align-items-start">
+                                        <div class="user-avatar me-3">
+                                            <span>{{ comment.username[0].upper() }}</span>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="comment-content">
+                                                <div class="user-info mb-1">
+                                                    <strong class="username">{{ comment.username }}</strong>
+                                                    <span class="badge bg-light text-dark ms-2">{{ comment.rank }}</span>
+                                                    <span class="comment-time text-muted ms-2">{{ comment.created_at | format_date }}</span>
+                                                    {% if comment.is_edited %}
+                                                        <span class="edited-badge text-muted ms-1">(edited)</span>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="comment-text">
+                                                    <p class="mb-2">{{ comment.comment }}</p>
+                                                </div>
+                                                <div class="comment-actions d-flex align-items-center gap-3">
+                                                    <!-- Vote Buttons -->
+                                                    <div class="vote-section d-flex align-items-center">
+                                                        <button class="vote-btn upvote-btn {{ 'active' if comment.user_vote == 'upvote' else '' }}" 
+                                                                data-comment-id="{{ comment.id }}" data-vote-type="upvote"
+                                                                {% if not session.user_id %}disabled title="Login to vote"{% endif %}>
+                                                            <i class="bi bi-arrow-up"></i>
+                                                            <span class="vote-count">{{ comment.upvotes or 0 }}</span>
+                                                        </button>
+                                                        <button class="vote-btn downvote-btn {{ 'active' if comment.user_vote == 'downvote' else '' }}" 
+                                                                data-comment-id="{{ comment.id }}" data-vote-type="downvote"
+                                                                {% if not session.user_id %}disabled title="Login to vote"{% endif %}>
+                                                            <i class="bi bi-arrow-down"></i>
+                                                            <span class="vote-count">{{ comment.downvotes or 0 }}</span>
+                                                        </button>
+                                                    </div>
+                                                    
+                                                    <!-- Action Buttons -->
+                                                    {% if session.user_id %}
+                                                        <button class="action-btn reply-btn" data-comment-id="{{ comment.id }}">
+                                                            <i class="bi bi-reply me-1"></i>Reply
+                                                        </button>
+                                                        {% if session.user_id == comment.user_id %}
+                                                            <button class="action-btn edit-btn" data-comment-id="{{ comment.id }}">
+                                                                <i class="bi bi-pencil me-1"></i>Edit
+                                                            </button>
+                                                            <button class="action-btn delete-btn text-danger" data-comment-id="{{ comment.id }}">
+                                                                <i class="bi bi-trash me-1"></i>Delete
+                                                            </button>
+                                                        {% endif %}
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Reply Form (Hidden by default) -->
+                                {% if session.user_id %}
+                                <div class="reply-form-container" id="reply-form-{{ comment.id }}" style="display: none;">
+                                    <div class="d-flex align-items-start mt-3 ms-5">
+                                        <div class="user-avatar me-3">
+                                            <span>{{ session.username[0].upper() }}</span>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <form class="reply-form" data-parent-id="{{ comment.id }}">
+                                                <div class="form-group mb-2">
+                                                    <textarea name="reply" class="form-control reply-input" 
+                                                              placeholder="Write a reply..." rows="2" required></textarea>
+                                                </div>
+                                                <div class="form-actions">
+                                                    <button type="submit" class="btn btn-primary btn-sm me-2">Reply</button>
+                                                    <button type="button" class="btn btn-secondary btn-sm cancel-reply">Cancel</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Replies -->
+                                {% if comment.replies %}
+                                <div class="replies-container mt-3 ms-5">
+                                    {% for reply in comment.replies %}
+                                    <div class="reply-item" data-comment-id="{{ reply.id }}">
+                                        <div class="d-flex align-items-start">
+                                            <div class="user-avatar me-3">
+                                                <span>{{ reply.username[0].upper() }}</span>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="reply-content">
+                                                    <div class="user-info mb-1">
+                                                        <strong class="username">{{ reply.username }}</strong>
+                                                        <span class="badge bg-light text-dark ms-2">{{ reply.rank }}</span>
+                                                        <span class="comment-time text-muted ms-2">{{ reply.created_at | format_date }}</span>
+                                                        {% if reply.is_edited %}
+                                                            <span class="edited-badge text-muted ms-1">(edited)</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="reply-text">
+                                                        <p class="mb-2">{{ reply.comment }}</p>
+                                                    </div>
+                                                    <div class="reply-actions d-flex align-items-center gap-3">
+                                                        <!-- Vote Buttons for Reply -->
+                                                        <div class="vote-section d-flex align-items-center">
+                                                            <button class="vote-btn upvote-btn {{ 'active' if reply.user_vote == 'upvote' else '' }}" 
+                                                                    data-comment-id="{{ reply.id }}" data-vote-type="upvote"
+                                                                    {% if not session.user_id %}disabled{% endif %}>
+                                                                <i class="bi bi-arrow-up"></i>
+                                                                <span class="vote-count">{{ reply.upvotes or 0 }}</span>
+                                                            </button>
+                                                            <button class="vote-btn downvote-btn {{ 'active' if reply.user_vote == 'downvote' else '' }}" 
+                                                                    data-comment-id="{{ reply.id }}" data-vote-type="downvote"
+                                                                    {% if not session.user_id %}disabled{% endif %}>
+                                                                <i class="bi bi-arrow-down"></i>
+                                                                <span class="vote-count">{{ reply.downvotes or 0 }}</span>
+                                                            </button>
+                                                        </div>
+                                                        
+                                                        {% if session.user_id == reply.user_id %}
+                                                            <button class="action-btn edit-btn" data-comment-id="{{ reply.id }}">
+                                                                <i class="bi bi-pencil me-1"></i>Edit
+                                                            </button>
+                                                            <button class="action-btn delete-btn text-danger" data-comment-id="{{ reply.id }}">
+                                                                <i class="bi bi-trash me-1"></i>Delete
+                                                            </button>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                        <div class="no-discussions text-center py-5">
+                            <i class="bi bi-chat-dots display-4 text-muted mb-3"></i>
+                            <h5 class="text-muted">No discussions yet</h5>
+                            <p class="text-muted">Be the first to start a conversation about {{ tool.name }}!</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="sidebar-content">
+                    <!-- Quick Actions -->
+                    <div class="sidebar-section mb-4">
+                        <h5 class="sidebar-title">Quick Actions</h5>
+                        <div class="quick-actions">
+                            <a href="{{ tool.link }}" target="_blank" class="btn btn-primary w-100 mb-2">
+                                <i class="bi bi-box-arrow-up-right me-2"></i>Launch Tool
+                            </a>                            {% if session.user_id %}
+                            <button class="btn btn-rate-review w-100 mb-2" onclick="showRatingModal()">
+                                <i class="bi bi-star-fill me-2"></i>Rate & Review
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Tool Information -->
+                    <div class="sidebar-section mb-4">
+                        <h5 class="sidebar-title">Tool Information</h5>
+                        <div class="tool-info-list">
+                            <div class="info-item">
+                                <span class="info-label">Category:</span>
+                                <span class="info-value">{{ tool.category }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Pricing:</span>
+                                <span class="info-value">{{ tool.pricing_model }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Added:</span>
+                                <span class="info-value">{{ tool.created_at | format_date }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Users:</span>
+                                <span class="info-value">{{ "{:,}".format((tool.total_ratings or 0) * 10) }}+</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Related Tools -->
+                    {% if related_tools %}
+                    <div class="sidebar-section">
+                        <h5 class="sidebar-title">Related Tools</h5>
+                        <div class="related-tools">
+                            {% for related_tool in related_tools %}
+                            <div class="related-tool-item">
+                                <a href="{{ url_for('tool_detail', tool_id=related_tool.id) }}" class="d-flex align-items-center text-decoration-none">
+                                    <img src="{{ related_tool.logo_url or '/static/images/default-tool.png' }}" 
+                                         alt="{{ related_tool.name }}" class="related-tool-logo me-3">
+                                    <div class="flex-grow-1">
+                                        <div class="related-tool-name">{{ related_tool.name }}</div>
+                                        <div class="related-tool-rating">
+                                            <div class="stars small">
+                                                {% for i in range(1, 6) %}
+                                                    <i class="bi bi-star{% if related_tool.average_rating and i <= related_tool.average_rating %}-fill text-warning{% endif %}"></i>
+                                                {% endfor %}
+                                            </div>
+                                            <span class="rating-text">{{ "%.1f"|format(related_tool.average_rating or 0) }}</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rating Modal -->
+{% if session.user_id %}
+<div class="modal fade" id="ratingModal" tabindex="-1" aria-labelledby="ratingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ratingModalLabel">
+                    <i class="bi bi-star-fill text-warning me-2"></i>Rate {{ tool.name }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>            <div class="modal-body">
+                <form id="ratingForm" data-tool-id="{{ tool.id }}" onsubmit="return false;">                    <div class="mb-4">
+                        <label class="form-label text-center d-block">How would you rate this tool?</label>
+                        <div class="modern-rating-stars" id="ratingStars">
+                            {% for i in range(1, 6) %}
+                            <span class="rating-star" data-rating="{{ i }}" title="{{ i }} Star{{ 's' if i > 1 else '' }}">
+                                <i class="bi bi-star"></i>
+                            </span>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="rating" id="ratingValue" value="{% if user_rating %}{{ user_rating.rating }}{% endif %}">
+                        <div class="text-center mt-2">
+                            <small class="text-muted" id="ratingText">Click to rate</small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reviewText" class="form-label">
+                            <i class="bi bi-chat-text me-2"></i>Your Review <span class="text-muted">(optional)</span>
+                        </label>
+                        <textarea class="form-control" id="reviewText" name="review" rows="4" 
+                                  placeholder="Share your experience with {{ tool.name }}... How did it help you? What makes it special?">{% if user_rating %}{{ user_rating.review }}{% endif %}</textarea>
+                        <div class="form-text">Help others discover great tools by sharing your honest feedback.</div>
+                    </div>
+                </form>
+            </div>            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-primary" onclick="testAjaxOperation()" id="submitRatingBtn">
+                    <i class="bi bi-check-circle me-2"></i>Submit Rating
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+    console.log("Tool ID:", "{{ tool.id if tool.id else 'null' }}");
+// Initialize star rating functionality
+function initializeStarRating() {
+    const ratingStars = document.getElementById('ratingStars');
+    if (!ratingStars) {
+        console.log("Rating stars element not found");
+        return;
+    }
+    
+    const stars = ratingStars.querySelectorAll('.rating-star');
+    const ratingInput = document.getElementById('ratingValue');
+    const ratingText = document.getElementById('ratingText');
+    
+    console.log("Initializing star rating - Stars found:", stars.length, "Rating input:", ratingInput);
+    
+    const ratingTexts = {
+        1: "Poor - Not recommended",
+        2: "Fair - Below expectations", 
+        3: "Good - Meets expectations",
+        4: "Very Good - Exceeds expectations",
+        5: "Excellent - Outstanding tool!"
+    };
+    
+    // Initialize with current rating if any
+    const currentRating = parseInt(ratingInput.value) || 0;
+    console.log("Current rating value:", currentRating);
+    if (currentRating > 0) {
+        updateStarDisplay(currentRating);
+        ratingText.textContent = ratingTexts[currentRating];
+        ratingText.className = "text-success fw-bold";
+    }
+    
+    // Handle star interactions
+    stars.forEach((star, index) => {
+        const rating = index + 1;
+        
+        // Click to select rating
+        star.addEventListener('click', function() {
+            ratingInput.value = rating;
+            updateStarDisplay(rating);
+            ratingText.textContent = ratingTexts[rating];
+            ratingText.className = "text-success fw-bold";
+            
+            // Add click animation
+            this.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 200);
+        });
+        
+        // Hover effects
+        star.addEventListener('mouseenter', function() {
+            updateStarDisplay(rating, true);
+            ratingText.textContent = ratingTexts[rating];
+            ratingText.className = "text-warning fw-bold";
+        });
+    });
+    
+    // Reset on mouse leave
+    ratingStars.addEventListener('mouseleave', function() {
+        const selectedRating = parseInt(ratingInput.value) || 0;
+        updateStarDisplay(selectedRating);
+        if (selectedRating > 0) {
+            ratingText.textContent = ratingTexts[selectedRating];
+            ratingText.className = "text-success fw-bold";
+        } else {
+            ratingText.textContent = "Click to rate";
+            ratingText.className = "text-muted";
+        }
+    });
+    
+    function updateStarDisplay(rating, isHover = false) {
+        stars.forEach((star, index) => {
+            const starIcon = star.querySelector('i');
+            if (index < rating) {
+                starIcon.className = 'bi bi-star-fill';
+                star.style.color = isHover ? '#ffc107' : '#f59e0b';
+            } else {
+                starIcon.className = 'bi bi-star';
+                star.style.color = '#e5e7eb';
+            }
+        });
+    }
+}
+
+function highlightStars(rating) {
+    const ratingStars = document.getElementById('ratingStars');
+    if (!ratingStars) return;
+    
+    const starLabels = ratingStars.querySelectorAll('.star-label');
+    starLabels.forEach((label, index) => {
+        const star = label.querySelector('i');
+        if (index < rating) {
+            star.className = 'bi bi-star-fill text-warning';
+        } else {
+            star.className = 'bi bi-star text-muted';
+        }
+    });
+}
+
+function selectRating(rating) {
+    const ratingStars = document.getElementById('ratingStars');
+    if (!ratingStars) return;
+    
+    const radioInput = ratingStars.querySelector(`input[value="${rating}"]`);
+    if (radioInput) {
+        radioInput.checked = true;
+    }
+    highlightStars(rating);
+}
+
+// Tool Detail Page JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize star rating
+    initializeStarRating();
+    
+    // Prevent form submission and ensure only AJAX is used
+    const ratingForm = document.getElementById('ratingForm');
+    if (ratingForm) {
+        ratingForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log("Form submission prevented - using AJAX instead");
+            return false;
+        });
+    }
+    
+    // Comment form submission
+    const commentForm = document.getElementById('commentForm');
+    if (commentForm) {
+        commentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitComment();
+        });
+    }
+
+    // Vote button handlers
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.vote-btn')) {
+            e.preventDefault();
+            const btn = e.target.closest('.vote-btn');
+            const commentId = btn.dataset.commentId;
+            const voteType = btn.dataset.voteType;
+            voteComment(commentId, voteType, btn);
+        }
+    });
+
+    // Reply button handlers
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.reply-btn')) {
+            e.preventDefault();
+            const btn = e.target.closest('.reply-btn');
+            const commentId = btn.dataset.commentId;
+            toggleReplyForm(commentId);
+        }
+    });
+
+    // Cancel reply handlers
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('cancel-reply')) {
+            e.preventDefault();
+            const replyForm = e.target.closest('.reply-form-container');
+            replyForm.style.display = 'none';
+        }
+    });
+
+    // Reply form submission
+    document.addEventListener('submit', function(e) {
+        if (e.target.classList.contains('reply-form')) {
+            e.preventDefault();
+            submitReply(e.target);
+        }
+    });
+
+    // Edit button handlers
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.edit-btn')) {
+            e.preventDefault();
+            const btn = e.target.closest('.edit-btn');
+            const commentId = btn.dataset.commentId;
+            editComment(commentId);
+        }
+    });
+
+    // Delete button handlers
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.delete-btn')) {
+            e.preventDefault();
+            const btn = e.target.closest('.delete-btn');
+            const commentId = btn.dataset.commentId;
+            if (confirm('Are you sure you want to delete this comment?')) {
+                deleteComment(commentId);
+            }
+        }
+    });
+});
+
+// Submit new comment
+function submitComment() {
+    console.log("=== SUBMIT COMMENT CALLED ===");
+    
+    const form = document.getElementById('commentForm');
+    const textarea = document.getElementById('commentText');
+    const comment = textarea.value.trim();
+    
+    console.log("Comment text:", comment);
+    
+    if (!comment) {
+        alert('Please enter a comment');
+        return;
+    }
+    
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalContent = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Posting...';
+    
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/add_comment', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    
+    xhr.onreadystatechange = function() {
+        console.log("Comment Submit ReadyState:", xhr.readyState, "Status:", xhr.status);
+        
+        if (xhr.readyState === 4) {
+            console.log("Comment Submit Response:", xhr.responseText);
+            
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalContent;
+            
+            if (xhr.status === 200) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        textarea.value = '';
+                        location.reload(); // Reload to show new comment
+                    } else {
+                        alert(response.error || 'Failed to post comment');
+                    }
+                } catch (e) {
+                    console.error("JSON Parse Error:", e);
+                    alert('Error processing response');
+                }
+            } else {
+                alert('Failed to post comment - HTTP ' + xhr.status);
+            }
+        }
+    };
+    
+    const toolId = parseInt(document.getElementById('ratingForm').getAttribute('data-tool-id'));
+    const data = JSON.stringify({
+        tool_id: toolId,
+        comment: comment
+    });
+    
+    console.log("Sending comment data:", data);
+    xhr.send(data);
+}
+
+// Test Comment AJAX Function
+function testCommentAjax() {
+    console.log("=== COMMENT SUBMISSION STARTED ===");
+    
+    const form = document.getElementById('commentForm');
+    const textarea = document.getElementById('commentText');
+    const comment = textarea.value.trim();
+    
+    if (!comment) {
+        alert('Please enter a comment');
+        return;
+    }
+    
+    const submitBtn = form.querySelector('.btn-primary');
+    const originalContent = submitBtn.innerHTML;
+    
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Posting...';
+    
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/add_comment', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    
+    xhr.onreadystatechange = function() {
+        console.log("Comment AJAX ReadyState:", xhr.readyState, "Status:", xhr.status);
+        
+        if (xhr.readyState === 4) {
+            console.log("Comment Response:", xhr.responseText);
+            
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalContent;
+            
+            if (xhr.status === 200) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        textarea.value = '';
+                        location.reload();
+                    } else {
+                        alert(response.error || 'Failed to post comment');
+                    }
+                } catch (e) {
+                    console.error("JSON Parse Error:", e);
+                    alert('Error processing response');
+                }
+            } else {
+                alert('Failed to post comment - HTTP ' + xhr.status);
+            }
+        }
+    };
+    
+    const toolId = parseInt(document.getElementById('ratingForm').getAttribute('data-tool-id'));
+    const data = JSON.stringify({
+        tool_id: toolId,
+        comment: comment
+    });
+    
+    console.log("Sending comment data:", data);
+    xhr.send(data);
+}
+
+// Vote on comment
+function voteComment(commentId, voteType, btnElement) {
+    if (!btnElement.disabled) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/vote_comment', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        // Update vote counts
+                        const commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
+                        const upvoteBtn = commentElement.querySelector('.upvote-btn');
+                        const downvoteBtn = commentElement.querySelector('.downvote-btn');
+                        
+                        upvoteBtn.classList.toggle('active', response.user_vote === 'upvote');
+                        downvoteBtn.classList.toggle('active', response.user_vote === 'downvote');
+                        
+                        upvoteBtn.querySelector('.vote-count').textContent = response.upvotes;
+                        downvoteBtn.querySelector('.vote-count').textContent = response.downvotes;
+                    } else {
+                        alert(response.error || 'Failed to vote');
+                    }
+                } else {
+                    alert('Failed to vote');
+                }
+            }
+        };
+          const data = JSON.stringify({
+            comment_id: commentId,
+            vote_type: voteType
+        });
+        
+        xhr.send(data);
+    }
+}
+
+// Toggle reply form
+function toggleReplyForm(commentId) {
+    const replyForm = document.getElementById(`reply-form-${commentId}`);
+    if (replyForm.style.display === 'none' || !replyForm.style.display) {
+        replyForm.style.display = 'block';
+        replyForm.querySelector('textarea').focus();
+    } else {
+        replyForm.style.display = 'none';
+    }
+}
+
+// Submit reply
+function submitReply(form) {
+    const textarea = form.querySelector('textarea');
+    const reply = textarea.value.trim();    const parentId = form.dataset.parentId;
+    
+    if (!reply) return;
+    
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Replying...';
+    
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/add_comment', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Reply';
+            
+            if (xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                if (response.success) {
+                    textarea.value = '';
+                    form.closest('.reply-form-container').style.display = 'none';
+                    location.reload(); // Reload to show new reply
+                } else {
+                    alert(response.error || 'Failed to post reply');
+                }
+            } else {
+                alert('Failed to post reply');
+            }
+        }
+    };
+    
+    const toolId = parseInt(document.getElementById('ratingForm').getAttribute('data-tool-id'));
+    const data = JSON.stringify({
+        tool_id: toolId,
+        comment: reply,
+        parent_id: parentId
+    });
+    
+    xhr.send(data);
+}
+
+// Edit comment
+function editComment(commentId) {
+    const commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
+    const commentText = commentElement.querySelector('.comment-text p, .reply-text p');
+    const originalText = commentText.textContent;
+    
+    const textarea = document.createElement('textarea');
+    textarea.className = 'form-control';
+    textarea.value = originalText;
+    textarea.rows = 3;
+    
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'btn btn-primary btn-sm me-2';
+    saveBtn.textContent = 'Save';
+    
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn btn-secondary btn-sm';
+    cancelBtn.textContent = 'Cancel';
+    
+    const actionDiv = document.createElement('div');
+    actionDiv.className = 'mt-2';
+    actionDiv.appendChild(saveBtn);
+    actionDiv.appendChild(cancelBtn);
+    
+    commentText.innerHTML = '';
+    commentText.appendChild(textarea);
+    commentText.appendChild(actionDiv);
+    
+    textarea.focus();
+      saveBtn.onclick = function() {
+        const newComment = textarea.value.trim();
+        if (!newComment) return;
+        
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/edit_comment', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert(response.error || 'Failed to edit comment');
+                    }
+                } else {
+                    alert('Failed to edit comment');
+                }
+            }
+        };
+        
+        const data = JSON.stringify({
+            comment_id: commentId,
+            comment: newComment
+        });
+        
+        xhr.send(data);
+    };
+    
+    cancelBtn.onclick = function() {
+        commentText.innerHTML = `<p class="mb-2">${originalText}</p>`;
+    };
+}
+
+// Delete comment
+function deleteComment(commentId) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/delete_comment', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                if (response.success) {
+                    location.reload();
+                } else {
+                    alert(response.error || 'Failed to delete comment');
+                }
+            } else {
+                alert('Failed to delete comment');
+            }
+        }
+    };
+    
+    const data = JSON.stringify({
+        comment_id: commentId
+    });
+    
+    xhr.send(data);
+}
+
+// Show rating modal
+function showRatingModal() {
+    const modal = new bootstrap.Modal(document.getElementById('ratingModal'));
+    modal.show();
+}
+
+// Submit rating using AJAX
+function submitRating() {
+    console.log("submitRating() called - using AJAX");
+    
+    const rating = document.getElementById('ratingValue').value;
+    const review = document.getElementById('reviewText').value;
+    const submitBtn = document.getElementById('submitRatingBtn');
+    const form = document.getElementById('ratingForm');
+    const toolId = parseInt(form.getAttribute('data-tool-id'));
+    
+    console.log("Rating data:", { toolId, rating, review: review.trim() });
+    
+    if (!rating) {
+        alert('Please select a rating before submitting.');
+        return;
+    }
+    
+    // Update button state
+    const originalContent = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Submitting...';
+    
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/rate_tool', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    
+    console.log("Sending AJAX request to /rate_tool");
+    
+    xhr.onreadystatechange = function() {
+        console.log("ReadyState:", xhr.readyState, "Status:", xhr.status);
+        
+        if (xhr.readyState === 4) {
+            console.log("Response Text:", xhr.responseText);
+            console.log("Response Headers:", xhr.getAllResponseHeaders());
+            
+            if (xhr.status === 200) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    console.log("Parsed Response:", response);
+                    
+                    if (response.success) {
+                        submitBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Thank you!';
+                        submitBtn.className = 'btn btn-success';
+                        setTimeout(() => {
+                            bootstrap.Modal.getInstance(document.getElementById('ratingModal')).hide();
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        submitBtn.innerHTML = '<i class="bi bi-exclamation-circle me-2"></i>Server Error';
+                        submitBtn.className = 'btn btn-danger';
+                        alert('Server Error: ' + (response.error || 'Unknown error'));
+                    }
+                } catch (e) {
+                    console.error("JSON Parse Error:", e);
+                    submitBtn.innerHTML = '<i class="bi bi-exclamation-circle me-2"></i>Parse Error';
+                    submitBtn.className = 'btn btn-danger';
+                    alert('JSON Parse Error: ' + e.message);
+                }
+            } else {
+                console.error("HTTP Error:", xhr.status, xhr.statusText);
+                submitBtn.innerHTML = '<i class="bi bi-exclamation-circle me-2"></i>HTTP Error';
+                submitBtn.className = 'btn btn-danger';
+                alert('HTTP Error: ' + xhr.status + ' ' + xhr.statusText);
+            }
+            
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalContent;
+                submitBtn.className = 'btn btn-primary';
+            }, 3000);
+        }
+    };
+    
+    const data = JSON.stringify({
+        tool_id: toolId,
+        rating: parseInt(rating),
+        review: review.trim()
+    });
+    
+    console.log("Sending data:", data);
+    xhr.send(data);
+}
+
+// Test AJAX operation function
+function testAjaxOperation() {
+    const testBtn = document.getElementById('submitRatingBtn');
+    const form = document.getElementById('ratingForm');
+    const toolId = parseInt(form.getAttribute('data-tool-id'));
+    
+    // Get actual form values
+    const rating = document.getElementById('ratingValue').value;
+    const review = document.getElementById('reviewText').value;
+    
+    if (!rating) {
+        alert('Please select a rating before submitting.');
+        return;
+    }
+    
+    // Update button state
+    const originalContent = testBtn.innerHTML;
+    testBtn.disabled = true;
+    testBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Submitting...';
+    
+    console.log("=== AJAX SUBMISSION STARTED ===");
+    console.log("Tool ID:", toolId);
+    console.log("Rating:", rating);
+    console.log("Review:", review);
+    
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/rate_tool', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    
+    xhr.onreadystatechange = function() {
+        console.log("ReadyState:", xhr.readyState, "Status:", xhr.status);
+        
+        if (xhr.readyState === 4) {
+            console.log("Response Text:", xhr.responseText);
+            
+            if (xhr.status === 200) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    console.log("Parsed Response:", response);
+                    
+                    if (response.success) {
+                        testBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Thank you!';
+                        testBtn.className = 'btn btn-success';
+                        setTimeout(() => {
+                            bootstrap.Modal.getInstance(document.getElementById('ratingModal')).hide();
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        alert(response.error || 'Failed to submit rating');
+                        testBtn.disabled = false;
+                        testBtn.innerHTML = originalContent;
+                        testBtn.className = 'btn btn-primary';
+                    }
+                } catch (e) {
+                    console.error("JSON Parse Error:", e);
+                    alert('Error processing response: ' + e.message);
+                    testBtn.disabled = false;
+                    testBtn.innerHTML = originalContent;
+                    testBtn.className = 'btn btn-primary';
+                }            } else {
+                console.error("HTTP Error:", xhr.status, xhr.statusText);
+                alert('Failed to submit rating. Please try again.');
+                testBtn.disabled = false;
+                testBtn.innerHTML = originalContent;
+                testBtn.className = 'btn btn-primary';
+            }
+        }
+    };
+    
+    const data = JSON.stringify({
+        tool_id: toolId,
+        rating: parseInt(rating),
+        review: review.trim()
+    });
+      console.log("Sending data:", data);
+    xhr.send(data);
+}
+</script>
+{% endblock %}

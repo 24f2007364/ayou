@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Tool - Ayou Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body class="admin-body">
+    <!-- Admin Navigation -->
+    <nav class="admin-navbar">
+        <div class="admin-nav-content">            <div class="admin-nav-brand">
+                <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="Ayou" style="width: 24px; height: 24px; object-fit: contain; margin-right: 8px;">
+                <span>Admin Panel</span>
+            </div>
+            <div class="admin-nav-actions">
+                <a href="{{ url_for('index') }}" class="admin-nav-link" title="View Site">
+                    <i class="bi bi-eye"></i>
+                </a>
+                <a href="{{ url_for('admin_logout') }}" class="admin-nav-link" title="Logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-content">
+                <div class="admin-menu">
+                    <a href="{{ url_for('admin_dashboard') }}" class="admin-menu-item">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{{ url_for('admin_add_tool') }}" class="admin-menu-item active">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Add Tool</span>
+                    </a>
+                    <a href="{{ url_for('admin_dashboard') }}#tools" class="admin-menu-item">
+                        <i class="bi bi-tools"></i>
+                        <span>Manage Tools</span>
+                    </a>
+                    <a href="{{ url_for('admin_dashboard') }}#users" class="admin-menu-item">
+                        <i class="bi bi-people"></i>
+                        <span>Users</span>
+                    </a>
+                    <a href="{{ url_for('admin_dashboard') }}#reviews" class="admin-menu-item">
+                        <i class="bi bi-star"></i>
+                        <span>Reviews</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="admin-header">
+                <h1>Add New Tool</h1>
+                <p>Add a new AI tool to the marketplace</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="alert-container">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                <i class="bi bi-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' }}"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <div class="admin-form-container">
+                <form method="POST" enctype="multipart/form-data" class="admin-tool-form">
+                    <div class="row">
+                        <!-- Left Column -->
+                        <div class="col-lg-8">
+                            <div class="admin-form-section">
+                                <h3>Basic Information</h3>
+                                
+                                <div class="form-group">
+                                    <label for="name" class="form-label required">Tool Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" required 
+                                           placeholder="Enter the tool name">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="description" class="form-label required">Description</label>
+                                    <textarea class="form-control" id="description" name="description" rows="4" required
+                                              placeholder="Provide a detailed description of the tool"></textarea>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="category" class="form-label required">Category</label>
+                                            <select class="form-control" id="category" name="category" required>
+                                                <option value="">Select a category</option>
+                                                <option value="Text Generation">Text Generation</option>
+                                                <option value="Image Generation">Image Generation</option>
+                                                <option value="Code Assistant">Code Assistant</option>
+                                                <option value="Data Analysis">Data Analysis</option>
+                                                <option value="Chatbot">Chatbot</option>
+                                                <option value="Audio Processing">Audio Processing</option>
+                                                <option value="Video Processing">Video Processing</option>
+                                                <option value="Language Translation">Language Translation</option>
+                                                <option value="Content Creation">Content Creation</option>
+                                                <option value="Research">Research</option>
+                                                <option value="Productivity">Productivity</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="pricing_model" class="form-label required">Pricing Model</label>
+                                            <select class="form-control" id="pricing_model" name="pricing_model" required>
+                                                <option value="">Select pricing model</option>
+                                                <option value="Free">Free</option>
+                                                <option value="Freemium">Freemium</option>
+                                                <option value="Paid">Paid</option>
+                                                <option value="Subscription">Subscription</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="website_url" class="form-label required">Website URL</label>
+                                    <input type="url" class="form-control" id="website_url" name="website_url" required
+                                           placeholder="https://example.com">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="tags" class="form-label">Tags</label>
+                                    <input type="text" class="form-control" id="tags" name="tags"
+                                           placeholder="AI, Machine Learning, NLP (comma-separated)">
+                                    <small class="form-text text-muted">Separate tags with commas</small>
+                                </div>
+                            </div>
+
+                            <!-- Features Section -->
+                            <div class="admin-form-section">
+                                <h3>Features & Capabilities</h3>
+                                
+                                <div class="form-group">
+                                    <label for="key_features" class="form-label">Key Features</label>
+                                    <textarea class="form-control" id="key_features" name="key_features" rows="4"
+                                              placeholder="List the main features and capabilities of this tool"></textarea>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="api_available" class="form-label">API Available</label>
+                                            <select class="form-control" id="api_available" name="api_available">
+                                                <option value="0">No</option>
+                                                <option value="1">Yes</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="open_source" class="form-label">Open Source</label>
+                                            <select class="form-control" id="open_source" name="open_source">
+                                                <option value="0">No</option>
+                                                <option value="1">Yes</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- AI Prompts Section -->
+                            <div class="admin-form-section">
+                                <h3>AI Prompts for Recommendations</h3>
+                                <p class="text-muted">Add prompts that would match this tool for AI-powered recommendations</p>
+                                
+                                <div class="form-group">
+                                    <label for="ai_prompts" class="form-label">Matching Prompts</label>
+                                    <textarea class="form-control" id="ai_prompts" name="ai_prompts" rows="3"
+                                              placeholder="I need a tool for writing blog posts, Help me generate code, Create images from text descriptions (one per line)"></textarea>
+                                    <small class="form-text text-muted">Enter one prompt per line. These help the AI recommend this tool.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="col-lg-4">
+                            <div class="admin-form-section">
+                                <h3>Tool Image</h3>
+                                
+                                <div class="form-group">
+                                    <label for="image" class="form-label">Upload Image</label>
+                                    <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                                    <small class="form-text text-muted">Recommended: 400x300px, PNG or JPG</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="image_url" class="form-label">Or Image URL</label>
+                                    <input type="url" class="form-control" id="image_url" name="image_url"
+                                           placeholder="https://example.com/image.jpg">
+                                    <small class="form-text text-muted">If no file is uploaded, this URL will be used</small>
+                                </div>
+
+                                <div class="image-preview" id="imagePreview" style="display: none;">
+                                    <img id="previewImg" src="" alt="Preview" class="img-fluid rounded">
+                                </div>
+                            </div>
+
+                            <div class="admin-form-section">
+                                <h3>Additional Information</h3>
+                                
+                                <div class="form-group">
+                                    <label for="github_url" class="form-label">GitHub URL</label>
+                                    <input type="url" class="form-control" id="github_url" name="github_url"
+                                           placeholder="https://github.com/user/repo">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="documentation_url" class="form-label">Documentation URL</label>
+                                    <input type="url" class="form-control" id="documentation_url" name="documentation_url"
+                                           placeholder="https://docs.example.com">
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="featured" name="featured" value="1">
+                                        <label class="form-check-label" for="featured">
+                                            Feature this tool
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="admin-form-actions">
+                                <button type="submit" class="btn btn-primary btn-lg w-100">
+                                    <i class="bi bi-plus-circle"></i>
+                                    Add Tool
+                                </button>
+                                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary w-100 mt-2">
+                                    <i class="bi bi-arrow-left"></i>
+                                    Back to Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Image preview functionality
+        document.getElementById('image').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Image URL preview
+        document.getElementById('image_url').addEventListener('input', function(e) {
+            const url = e.target.value;
+            if (url && !document.getElementById('image').files.length) {
+                document.getElementById('previewImg').src = url;
+                document.getElementById('imagePreview').style.display = 'block';
+            }
+        });
+
+        // Form validation
+        document.querySelector('.admin-tool-form').addEventListener('submit', function(e) {
+            const requiredFields = document.querySelectorAll('[required]');
+            let isValid = true;
+
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                alert('Please fill in all required fields.');
+            }
+        });
+
+        // Auto-dismiss alerts
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                if (alert) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            });
+        }, 5000);
+
+        // Tag input enhancement
+        document.getElementById('tags').addEventListener('input', function(e) {
+            let value = e.target.value;
+            // Auto-format tags
+            value = value.replace(/\s*,\s*/g, ', ').replace(/,+/g, ',');
+            if (value !== e.target.value) {
+                e.target.value = value;
+            }
+        });
+    </script>
+</body>
+</html>

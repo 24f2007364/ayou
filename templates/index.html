@@ -1,0 +1,325 @@
+{% extends "layout.html" %}
+
+{% block title %}Ayou - AI for You, Me and All{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 hero-content">                <h1 class="display-4 fw-bold mb-4">
+                    <span class="text-primary">AI for You, Me and All</span> Discover Amazing Tools
+                </h1>
+                <p class="lead mb-4 text-muted">
+                    Welcome to Ayou! Join our vibrant community of AI enthusiasts. 
+                    Rate, review, and discover cutting-edge AI tools. Earn XP and climb the leaderboard!
+                </p>
+                <div class="d-flex gap-3 mb-4">
+                    <a href="{{ url_for('tools') }}" class="btn btn-primary btn-lg rounded-pill px-4">
+                        <i class="bi bi-grid me-2"></i>Explore Tools
+                    </a>
+                    <a href="{{ url_for('prompt_helper') }}" class="btn btn-outline-primary btn-lg rounded-pill px-4">
+                        <i class="bi bi-lightbulb me-2"></i>Get AI Help
+                    </a>
+                </div>
+                <div class="d-flex align-items-center gap-4 text-muted">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-people-fill text-primary me-2"></i>
+                        <span>Active Community</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-star-fill text-warning me-2"></i>
+                        <span>Verified Reviews</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-trophy-fill text-primary me-2"></i>
+                        <span>Gamified Experience</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="position-relative">
+                    <div class="glass-card p-4 d-inline-block">
+                        <div class="row g-3">
+                            <div class="col-4">                                <div class="stats-card">
+                                    <div class="stats-icon">
+                                        <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="Ayou Logo" class="stats-logo">
+                                    </div>
+                                    <h4 class="fw-bold text-primary mb-0">600+</h4>
+                                    <small class="text-muted">AI Tools</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stats-card">
+                                    <div class="stats-icon">
+                                        <i class="bi bi-people"></i>
+                                    </div>
+                                    <h4 class="fw-bold text-primary mb-0">5K+</h4>
+                                    <small class="text-muted">Users</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stats-card">
+                                    <div class="stats-icon">
+                                        <i class="bi bi-star"></i>
+                                    </div>
+                                    <h4 class="fw-bold text-primary mb-0">10K+</h4>
+                                    <small class="text-muted">Reviews</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Search -->
+<section class="container mb-5">
+    <div class="search-section">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold mb-2">Find Your Perfect AI Tool</h3>
+            <p class="text-muted">Search through hundreds of AI tools or get personalized recommendations</p>
+        </div>
+        <form action="{{ url_for('tools') }}" method="GET" class="row g-3">
+            <div class="col-md-8">
+                <input type="text" name="search" class="form-control search-input" placeholder="What do you want to accomplish? (e.g., 'create images', 'analyze data')" value="{{ request.args.get('search', '') }}">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100 rounded-pill">
+                    <i class="bi bi-search me-2"></i>Search Tools
+                </button>
+            </div>
+        </form>
+        <div class="text-center mt-3">
+            <a href="{{ url_for('prompt_helper') }}" class="text-decoration-none">
+                <i class="bi bi-lightbulb me-1"></i>Or try our AI-powered Prompt Helper
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Top Rated Tools -->
+{% if tools %}
+<section class="container mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-2">🏆 Top Rated AI Tools</h3>
+            <p class="text-muted mb-0">Discover the most loved tools by our community</p>
+        </div>
+        <a href="{{ url_for('tools') }}" class="btn btn-outline-primary rounded-pill">
+            View All Tools <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+    
+    <div class="row g-4">
+        {% for tool in tools %}
+        <div class="col-lg-4 col-md-6">
+            <div class="tool-card h-100">                <div class="d-flex align-items-start mb-3">
+                    <div class="tool-logo me-3">
+                        {% if tool.logo_url %}
+                            <img src="{{ tool.logo_url }}" alt="{{ tool.name }}" class="w-100 h-100 object-fit-cover">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="Ayou" class="w-100 h-100 object-fit-contain">
+                        {% endif %}
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="fw-bold mb-1">{{ tool.name }}</h5>                        <div class="d-flex align-items-center mb-2">
+                            <div class="rating-display me-2">
+                                {% for i in range(5) %}
+                                    {% if tool.average_rating and i < tool.average_rating %}
+                                        <i class="bi bi-star-fill text-warning"></i>
+                                    {% else %}
+                                        <i class="bi bi-star text-muted"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <small class="text-muted ms-1">({{ tool.total_ratings or 0 }})</small>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">{{ tool.category }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <p class="text-muted mb-3">{{ tool.description[:120] }}{% if tool.description|length > 120 %}...{% endif %}</p>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <span class="badge 
+                            {% if tool.pricing_model == 'Free' %}bg-success
+                            {% elif tool.pricing_model == 'Freemium' %}bg-info
+                            {% else %}bg-warning{% endif %} rounded-pill">
+                            {{ tool.pricing_model }}
+                        </span>
+                    </div>                    <div class="d-flex gap-2">                        <a href="{{ tool.link }}" target="_blank" class="btn btn-sm btn-outline-primary btn-visit" data-bs-toggle="tooltip" title="Visit Tool">
+                            <i class="bi bi-box-arrow-up-right"></i><span>Visit</span>
+                        </a>                        <a href="{{ url_for('tool_detail', tool_id=tool.id) }}" class="btn btn-sm btn-primary">
+                            Details <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Community Leaderboard Preview -->
+{% if top_users %}
+<section class="container mb-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="glass-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="fw-bold mb-1">🏅 Community Leaders</h4>
+                        <p class="text-muted mb-0">Top contributors in our AI community</p>
+                    </div>
+                    <a href="{{ url_for('leaderboard') }}" class="btn btn-outline-primary btn-sm rounded-pill">
+                        View Full Leaderboard
+                    </a>
+                </div>
+                
+                <div class="row g-3">
+                    {% for user in top_users %}
+                    <div class="col-md-4">
+                        <div class="leaderboard-item text-center">
+                            <div class="rank-badge 
+                                {% if loop.index == 1 %}gold
+                                {% elif loop.index == 2 %}silver  
+                                {% elif loop.index == 3 %}bronze
+                                {% endif %} mx-auto mb-2">
+                                {{ loop.index }}
+                            </div>
+                            <h6 class="fw-bold mb-1">{{ user.username }}</h6>
+                            <p class="text-muted small mb-1">{{ user.rank }}</p>
+                            <div class="fw-semibold text-primary">{{ user.xp }} XP</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="glass-card p-4 h-100">
+                <h5 class="fw-bold mb-3">🎮 How to Earn XP</h5>
+                <div class="d-flex align-items-center mb-3">                    <div class="stats-icon me-3">
+                        <i class="bi bi-star"></i>
+                    </div>
+                    <div>
+                        <div class="fw-semibold">Rate Tools</div>
+                        <small class="text-muted">+20 XP per rating</small>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center mb-3">                    <div class="stats-icon me-3">
+                        <i class="bi bi-chat"></i>
+                    </div>
+                    <div>
+                        <div class="fw-semibold">Write Reviews</div>
+                        <small class="text-muted">+50 XP per review</small>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center mb-3">                    <div class="stats-icon me-3">
+                        <i class="bi bi-reply"></i>
+                    </div>
+                    <div>
+                        <div class="fw-semibold">Add Comments</div>
+                        <small class="text-muted">+30 XP per comment</small>
+                    </div>
+                </div>
+                {% if not session.user_id %}
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm rounded-pill">
+                        Join Community
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Call to Action -->
+<section class="container mb-5">
+    <div class="glass-card p-5 text-center">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h3 class="fw-bold mb-3">Ready to Explore AI Tools?</h3>
+                <p class="lead text-muted mb-4">
+                    Join our community of AI enthusiasts and discover the tools that will transform your workflow.
+                </p>
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    {% if not session.user_id %}
+                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg rounded-pill px-4">
+                            <i class="bi bi-person-plus me-2"></i>Create Account
+                        </a>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg rounded-pill px-4">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('tools') }}" class="btn btn-primary btn-lg rounded-pill px-4">
+                            <i class="bi bi-grid me-2"></i>Browse All Tools
+                        </a>
+                        <a href="{{ url_for('prompt_helper') }}" class="btn btn-outline-primary btn-lg rounded-pill px-4">
+                            <i class="bi bi-lightbulb me-2"></i>Get AI Recommendations
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add some interactive elements
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate stats on scroll
+        const statsCards = document.querySelectorAll('.stats-card h4');
+        
+        const animateStats = (entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const target = entry.target;
+                    const finalValue = target.textContent;
+                    const numericValue = parseInt(finalValue.replace(/[^\d]/g, ''));
+                    
+                    let currentValue = 0;
+                    const increment = numericValue / 50;
+                    const timer = setInterval(() => {
+                        currentValue += increment;
+                        if (currentValue >= numericValue) {
+                            currentValue = numericValue;
+                            clearInterval(timer);
+                        }
+                        
+                        let displayValue = Math.floor(currentValue);
+                        if (finalValue.includes('K')) {
+                            displayValue = (displayValue / 1000).toFixed(displayValue >= 1000 ? 0 : 1) + 'K';
+                        }
+                        if (finalValue.includes('+')) {
+                            displayValue += '+';
+                        }
+                        
+                        target.textContent = displayValue;
+                    }, 30);
+                    
+                    observer.unobserve(target);
+                }
+            });
+        };
+        
+        const statsObserver = new IntersectionObserver(animateStats, {
+            threshold: 0.5
+        });
+        
+        statsCards.forEach(card => {
+            statsObserver.observe(card);
+        });
+    });
+</script>
+{% endblock %}

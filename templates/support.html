@@ -1,0 +1,328 @@
+{% extends "layout.html" %}
+
+{% block title %}Support Ayou - Help Keep Us Running{% endblock %}
+
+{% block content %}
+<div class="container">    <!-- Hero Section -->
+    <div class="hero-section text-center py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="hero-content animated fade-in">
+                    <div class="support-icon mb-4">
+                        <i class="bi bi-heart-fill text-danger support-hero-icon pulse-heart"></i>
+                    </div>
+                    <h1 class="display-4 fw-bold gradient-text mb-3">
+                        Support <span class="text-primary">Ayou</span>
+                    </h1>
+                    <p class="lead text-muted mb-4 hero-description">
+                        Help keep Ayou running and growing. Your support enables me to maintain and improve this platform for everyone.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>    <!-- Why Support Section -->
+    <section class="py-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="support-main-card glass-card-enhanced p-5 rounded-4">
+                    <h2 class="fw-bold mb-4 text-center gradient-text">Why Your Support Matters</h2>
+                    <p class="text-muted text-center mb-5 support-description">
+                        Running Ayou involves real costs and significant time investment. Here's how your support helps:
+                    </p>
+                    
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="support-reason-card hover-lift">
+                                <div class="support-icon-container mb-3">
+                                    <i class="bi bi-cloud text-primary"></i>
+                                </div>
+                                <h4 class="reason-title">Cloud Infrastructure</h4>
+                                <p class="text-muted reason-description">Server hosting, database management, and cloud storage costs to keep the platform running 24/7.</p>
+                                <div class="cost-badge">
+                                    <small class="text-primary fw-semibold">~$50-100/month</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="support-reason-card hover-lift">
+                                <div class="support-icon-container mb-3">
+                                    <i class="bi bi-globe text-success"></i>
+                                </div>
+                                <h4 class="reason-title">Domain & SSL</h4>
+                                <p class="text-muted reason-description">Domain registration, SSL certificates, and CDN services for fast, secure access worldwide.</p>
+                                <div class="cost-badge">
+                                    <small class="text-success fw-semibold">~$15-30/month</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="support-reason-card hover-lift">
+                                <div class="support-icon-container mb-3">
+                                    <i class="bi bi-database text-warning"></i>
+                                </div>
+                                <h4 class="reason-title">Database & Storage</h4>
+                                <p class="text-muted reason-description">Managed database services, backups, and file storage for user data and AI tool information.</p>
+                                <div class="cost-badge">
+                                    <small class="text-warning fw-semibold">~$25-50/month</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="support-reason-card hover-lift">
+                                <div class="support-icon-container mb-3">
+                                    <i class="bi bi-tools text-info"></i>
+                                </div>
+                                <h4 class="reason-title">Development Tools</h4>
+                                <p class="text-muted reason-description">API services, monitoring tools, analytics, and development environment costs.</p>
+                                <div class="cost-badge">
+                                    <small class="text-info fw-semibold">~$20-40/month</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-5">
+                        <div class="total-cost-badge">
+                            <strong>💰 Total Monthly Costs: $110-220</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>    <!-- Personal Message Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center">
+                    <div class="personal-message-card glass-card-enhanced p-5 rounded-4">
+                        <div class="mb-4">
+                            <div class="avatar-enhanced mx-auto mb-3">
+                                <img src="{{ url_for('static', filename='images/sayan-profile.png') }}" alt="Sayan Chowdhury" class="profile-image-enhanced">
+                            </div>
+                            <h3 class="fw-bold gradient-text">A Personal Message from Sayan</h3>
+                        </div>
+                        <blockquote class="blockquote personal-quote">
+                            <p class="mb-4 text-muted fst-italic quote-text">
+                                "I built Ayou because I believe AI tools should be accessible to everyone. As a Data Analytics Engineer, 
+                                I've seen firsthand how the right AI tool can transform workflows and unlock potential. 
+                                This platform is my way of giving back to the community.
+                                <br><br>
+                                However, keeping Ayou running requires resources. The cloud costs, server maintenance, 
+                                and continuous development take both time and money. Your support, no matter how small, 
+                                helps me dedicate more time to improving the platform and adding new features that benefit everyone.
+                                <br><br>
+                                Thank you for being part of this journey. Together, we're making AI accessible for all."
+                            </p>
+                            <footer class="blockquote-footer quote-footer">
+                                <cite title="Source Title">Sayan Chowdhury, Creator of Ayou</cite>
+                            </footer>
+                        </blockquote>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>    <!-- Support Options Section -->
+    <section class="py-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="fw-bold text-center mb-5 gradient-text">How You Can Help</h2>
+                
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="support-options-card glass-card-enhanced p-5 rounded-4 text-center">
+                            <div class="tier-icon-enhanced mb-4">
+                                <i class="bi bi-cup-hot text-warning pulse-animation"></i>
+                            </div>
+                            <h3 class="fw-bold mb-3 support-title">Buy Me a Coffee</h3>
+                            <p class="text-muted mb-4 support-subtitle">
+                                Show your support and help keep Ayou running! Every contribution, no matter the size, makes a difference.
+                            </p>
+                            
+                            <!-- QR Code -->
+                            <div class="qr-code-enhanced mb-4">
+                                <div class="qr-container">
+                                    <img src="{{ url_for('static', filename='images/bmc_qr.png') }}" 
+                                         alt="Buy Me a Coffee QR Code" 
+                                         class="qr-code-image img-fluid rounded-3 hover-scale">
+                                </div>
+                                <p class="mt-3 text-muted qr-instruction">
+                                    <small><i class="bi bi-phone me-1"></i>Scan the QR code with your phone to support</small>
+                                </p>
+                            </div>
+                            
+                            <!-- Payment Security Info -->
+                            <div class="payment-security-enhanced mb-4">
+                                <div class="d-flex align-items-center justify-content-center mb-3">
+                                    <div class="security-icon me-2">
+                                        <i class="bi bi-shield-check text-success"></i>
+                                    </div>
+                                    <span class="fw-semibold text-success security-text">Secure Payment through Stripe</span>
+                                </div>
+                                <p class="text-muted small security-description">
+                                    Your payment is processed securely through Stripe's industry-leading payment infrastructure. 
+                                    All transactions are encrypted and protected.
+                                </p>
+                            </div>
+                            
+                            <!-- Transparency Promise -->
+                            <div class="transparency-promise-enhanced">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <div class="transparency-icon me-2">
+                                        <i class="bi bi-receipt text-primary"></i>
+                                    </div>
+                                    <span class="fw-semibold transparency-title">Full Transparency</span>
+                                </div>
+                                <p class="text-muted mb-0 small transparency-text">
+                                    We believe in transparency! After your support, we'll send you a detailed bill showing exactly 
+                                    where your money was invested - from server costs to development tools. You'll see the real impact of your contribution.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>    <!-- Alternative Support Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center">
+                    <div class="alternative-support-card glass-card-enhanced p-5 rounded-4">
+                        <h3 class="fw-bold mb-4 gradient-text">Other Ways to Support</h3>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <div class="support-alternative-item hover-lift">
+                                    <div class="alternative-icon-container mb-3">
+                                        <i class="bi bi-share text-primary"></i>
+                                    </div>
+                                    <h5 class="alternative-title">Share Ayou</h5>
+                                    <p class="text-muted alternative-description">Tell others about Ayou and help grow our community</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="support-alternative-item hover-lift">
+                                    <div class="alternative-icon-container mb-3">
+                                        <i class="bi bi-star text-warning"></i>
+                                    </div>
+                                    <h5 class="alternative-title">Rate & Review</h5>
+                                    <p class="text-muted alternative-description">Leave reviews for AI tools and help others discover great tools</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="support-alternative-item hover-lift">
+                                    <div class="alternative-icon-container mb-3">
+                                        <i class="bi bi-chat-dots text-success"></i>
+                                    </div>
+                                    <h5 class="alternative-title">Provide Feedback</h5>
+                                    <p class="text-muted alternative-description">Share ideas and suggestions to make Ayou even better</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+.support-hero-icon {
+    font-size: 4rem;
+}
+
+.support-reason {
+    text-align: center;
+    padding: 1.5rem;
+    border-radius: 12px;
+    transition: var(--smooth-transition);
+}
+
+.support-icon-small {
+    width: 50px;
+    height: 50px;
+    background: var(--light-blue);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin: 0 auto; /* Center the icon */
+}
+
+.support-reason:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--medium-shadow);
+}
+
+.avatar-large {
+    width: 80px;
+    height: 80px;
+    background: var(--primary-gradient);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    overflow: hidden; /* Ensures image fits properly in circle */
+}
+
+.avatar-large .profile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.qr-code {
+    max-width: 250px;
+    height: auto;
+    box-shadow: var(--medium-shadow);
+}
+
+.qr-code-container {
+    margin: 2rem 0;
+}
+
+.payment-security {
+    background: rgba(40, 167, 69, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.transparency-promise {
+    background: var(--light-blue) !important;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.support-tier {
+    transition: var(--smooth-transition);
+}
+
+.support-tier:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--strong-shadow);
+}
+
+.tier-icon i {
+    font-size: 3rem;
+}
+
+.support-alternative {
+    padding: 1rem;
+}
+</style>
+
+<script>
+// QR code functionality - could add features like:
+// - Link to direct payment page
+// - Track support statistics
+// - Show thank you messages
+
+console.log('Support page loaded - QR code ready for scanning!');
+</script>
+{% endblock %}

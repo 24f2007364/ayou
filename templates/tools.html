@@ -1,0 +1,236 @@
+{% extends "layout.html" %}
+
+{% block title %}Explore AI Tools - Ayou{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Page Header -->
+    <div class="hero-section mb-5">
+        <div class="container">
+            <div class="text-center mb-4">
+                <h1 class="display-5 fw-bold mb-3">Explore AI Tools</h1>
+                <p class="lead text-muted">Discover, compare, and review the best AI tools for your needs</p>
+            </div>
+            
+            <!-- Advanced Search -->
+            <div class="search-section">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-6">
+                        <input type="text" name="search" class="form-control search-input" 
+                               placeholder="Search tools by name or description..." 
+                               value="{{ current_search }}">
+                    </div>
+                    <div class="col-md-4">
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                                <option value="{{ category.category }}" 
+                                        {% if current_category == category.category %}selected{% endif %}>
+                                    {{ category.category }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                {% if current_search or current_category %}
+                <div class="mt-3 d-flex align-items-center gap-2">
+                    <small class="text-muted">Active filters:</small>
+                    {% if current_search %}
+                        <span class="badge bg-primary rounded-pill">
+                            Search: "{{ current_search }}"
+                            <a href="{{ url_for('tools', category=current_category) }}" class="text-white ms-1">×</a>
+                        </span>
+                    {% endif %}
+                    {% if current_category %}
+                        <span class="badge bg-primary rounded-pill">
+                            Category: {{ current_category }}
+                            <a href="{{ url_for('tools', search=current_search) }}" class="text-white ms-1">×</a>
+                        </span>
+                    {% endif %}
+                    <a href="{{ url_for('tools') }}" class="btn btn-outline-secondary btn-sm rounded-pill ms-2">
+                        Clear All
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    {% if tools %}
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold mb-0">
+                {% if current_search or current_category %}
+                    Search Results
+                {% else %}
+                    All AI Tools
+                {% endif %}
+                <span class="text-muted fs-6">({{ tools|length }} tools)</span>
+            </h3>
+            <div class="d-flex gap-2">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle btn-sm" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-funnel me-1"></i>Sort by
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#">Highest Rated</a></li>
+                        <li><a class="dropdown-item" href="#">Most Reviewed</a></li>
+                        <li><a class="dropdown-item" href="#">Newest</a></li>
+                        <li><a class="dropdown-item" href="#">Name A-Z</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            {% for tool in tools %}
+            <div class="col-lg-4 col-md-6">
+                <div class="tool-card h-100">
+                    <div class="d-flex align-items-start mb-3">                        <div class="tool-logo me-3">
+                            {% if tool.logo_url %}
+                                <img src="{{ tool.logo_url }}" alt="{{ tool.name }}" class="w-100 h-100 object-fit-cover">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="Ayou" class="w-100 h-100 object-fit-contain">
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="fw-bold mb-1">{{ tool.name }}</h5>
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="rating-display me-2">                                    {% for i in range(5) %}
+                                        {% if tool.average_rating and i < tool.average_rating %}
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                        {% else %}
+                                            <i class="bi bi-star text-muted"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if tool.total_ratings > 0 %}
+                                        <small class="text-muted ms-1">{{ tool.average_rating }}/5 ({{ tool.total_ratings }})</small>
+                                    {% else %}
+                                        <small class="text-muted ms-1">No ratings yet</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">{{ tool.category }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-description mb-3">
+                        <p class="text-muted mb-0" id="desc-{{ tool.id }}">
+                            {% if tool.description|length > 120 %}
+                                {{ tool.description[:120] }}...
+                                <button class="btn btn-link btn-sm p-0 text-decoration-none" 
+                                        onclick="toggleToolDescription({{ tool.id }})" 
+                                        id="toggle-{{ tool.id }}">
+                                    <small>Read more</small>
+                                </button>
+                            {% else %}
+                                {{ tool.description }}
+                            {% endif %}
+                        </p>
+                        <div class="full-description" id="full-{{ tool.id }}" style="display: none;">
+                            <p class="text-muted mb-0">{{ tool.description }}</p>
+                            <button class="btn btn-link btn-sm p-0 text-decoration-none" 
+                                    onclick="toggleToolDescription({{ tool.id }})">
+                                <small>Read less</small>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge 
+                                {% if tool.pricing_model == 'Free' %}bg-success
+                                {% elif tool.pricing_model == 'Freemium' %}bg-info
+                                {% else %}bg-warning{% endif %} rounded-pill">
+                                {{ tool.pricing_model }}
+                            </span>
+                            {% if tool.total_ratings > 0 %}
+                                <small class="text-muted">
+                                    <i class="bi bi-people me-1"></i>{{ tool.total_ratings }} reviews
+                                </small>
+                            {% endif %}
+                        </div>                        <div class="d-flex gap-2">                            <a href="{{ tool.link }}" target="_blank" 
+                               class="btn btn-sm btn-outline-primary btn-visit" 
+                               data-bs-toggle="tooltip" title="Visit {{ tool.name }}">
+                                <i class="bi bi-box-arrow-up-right"></i><span>Visit</span>
+                            </a><a href="{{ url_for('tool_detail', tool_id=tool.id) }}" 
+                               class="btn btn-sm btn-primary">
+                                Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Call to Action -->
+        {% if not session.user_id %}
+        <div class="text-center mt-5">
+            <div class="glass-card p-4 d-inline-block">
+                <h5 class="fw-bold mb-2">Like what you see?</h5>
+                <p class="text-muted mb-3">Join our community to rate tools and earn XP!</p>
+                <a href="{{ url_for('register') }}" class="btn btn-primary rounded-pill me-2">
+                    <i class="bi bi-person-plus me-1"></i>Sign Up
+                </a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-primary rounded-pill">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+    {% else %}
+        <!-- No Results -->
+        <div class="text-center py-5">
+            <div class="display-1 text-muted mb-3">🔍</div>
+            <h3 class="fw-bold mb-3">No tools found</h3>
+            {% if current_search or current_category %}
+                <p class="text-muted mb-4">
+                    Try adjusting your search terms or browse all tools
+                </p>
+                <a href="{{ url_for('tools') }}" class="btn btn-primary rounded-pill">
+                    <i class="bi bi-arrow-left me-2"></i>View All Tools
+                </a>
+            {% else %}
+                <p class="text-muted mb-4">
+                    No AI tools have been added yet. Check back soon!
+                </p>
+                <a href="{{ url_for('index') }}" class="btn btn-primary rounded-pill">
+                    <i class="bi bi-house me-2"></i>Back to Home
+                </a>
+            {% endif %}
+        </div>    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleToolDescription(toolId) {
+    const shortDesc = document.getElementById('desc-' + toolId);
+    const fullDesc = document.getElementById('full-' + toolId);
+    
+    if (fullDesc.style.display === 'none') {
+        shortDesc.style.display = 'none';
+        fullDesc.style.display = 'block';
+    } else {
+        shortDesc.style.display = 'block';
+        fullDesc.style.display = 'none';
+    }
+}
+
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

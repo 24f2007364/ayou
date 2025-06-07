@@ -1,0 +1,262 @@
+{% extends "layout.html" %}
+
+{% block title %}About Ayou - AI for You, Me and All{% endblock %}
+
+{% block content %}
+<div class="about-hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <div class="about-hero-content">
+                    <h1 class="display-4 fw-bold mb-4">
+                        Welcome to <span class="text-primary">Ayou</span>
+                    </h1>
+                    <h2 class="h3 text-primary mb-4">AI for You, Me and All</h2>
+                    <p class="lead mb-4">
+                        Ayou is a revolutionary platform where artificial intelligence meets community. 
+                        I created this space to democratize AI tools and make them accessible to everyone, 
+                        whether you're a seasoned developer, a curious student, or someone just beginning their AI journey.
+                    </p>
+                    <div class="about-stats">
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="stat-item">
+                                    <h3 class="text-primary">500+</h3>
+                                    <p>AI Tools</p>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-item">
+                                    <h3 class="text-primary">∞</h3>
+                                    <p>Possibilities</p>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-item">
+                                    <h3 class="text-primary">1</h3>
+                                    <p>Community</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            <div class="col-lg-6">
+                <div class="about-hero-image">
+                    <div class="floating-elements">
+                        <div class="floating-card">
+                            <i class="bi bi-robot text-primary"></i>
+                            <span>AI Assistant</span>
+                        </div>
+                        <div class="floating-card">
+                            <i class="bi bi-image text-warning"></i>
+                            <span>Image Gen</span>
+                        </div>
+                        <div class="floating-card">
+                            <i class="bi bi-code-slash text-success"></i>
+                            <span>Code Helper</span>
+                        </div>
+                        <div class="floating-card">
+                            <i class="bi bi-chat-dots text-info"></i>
+                            <span>Chatbot</span>
+                        </div>
+                        <!-- Central logo -->
+                        <div class="central-logo">
+                            <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="Ayou">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="about-mission py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="section-title mb-4">My Mission</h2>
+                <p class="lead text-muted mb-5">
+                    To create a bridge between cutting-edge AI technology and everyday users. 
+                    Ayou isn't just a marketplace—it's a community where everyone can discover, 
+                    learn about, and leverage AI tools to enhance their work and creativity.
+                </p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="mission-card">
+                    <div class="mission-icon">
+                        <i class="bi bi-search"></i>
+                    </div>
+                    <h4>Discover</h4>
+                    <p>Find the perfect AI tools for your specific needs with our intelligent search and recommendation system.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="mission-card">
+                    <div class="mission-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <h4>Connect</h4>
+                    <p>Join a vibrant community of AI enthusiasts, developers, and creators sharing knowledge and experiences.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="mission-card">
+                    <div class="mission-icon">
+                        <i class="bi bi-rocket"></i>
+                    </div>
+                    <h4>Innovate</h4>
+                    <p>Accelerate your projects and bring ideas to life with cutting-edge AI technologies and tools.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="about-story py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 mx-auto">
+                <div class="story-content text-center">
+                    <h2 class="section-title mb-4">My Story</h2>
+                    <p class="mb-4">
+                        As a Data Analytics Engineer, I've witnessed firsthand the incredible potential of AI 
+                        and the challenges people face when trying to navigate the vast landscape of available tools. 
+                        Every day, I work with data, uncovering patterns and insights that drive decisions and innovation.
+                    </p>
+                    <p class="mb-4">
+                        The idea for Ayou came from a simple observation: while AI tools are becoming more powerful 
+                        and accessible, finding the right tool for a specific task remains a significant challenge. 
+                        I wanted to create a platform that not only showcases these amazing tools but also builds 
+                        a community around them.
+                    </p>
+                    <p class="mb-4">
+                        With my background in data analytics and a passion for making technology accessible, 
+                        I built Ayou to be more than just a directory—it's a place where curiosity meets capability, 
+                        where beginners can learn alongside experts, and where the power of AI truly becomes 
+                        available for you, me, and all.
+                    </p>
+                    <p class="mb-0 fw-bold text-primary">
+                        Welcome to Ayou. Let's explore the future of AI together!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="about-values py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center mb-5">
+                <h2 class="section-title mb-4">My Values</h2>
+                <p class="text-muted">
+                    These core principles guide everything I do and shape our community culture.
+                </p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h4>Transparency</h4>
+                    <p>Honest reviews, clear information, and open communication about AI tools and their capabilities.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="bi bi-heart"></i>
+                    </div>
+                    <h4>Community</h4>
+                    <p>Building a platform that thrives on collective knowledge, mutual support, and shared passion for AI innovation.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="bi bi-lightbulb"></i>
+                    </div>
+                    <h4>Innovation</h4>
+                    <p>Continuously evolving the platform to provide better ways to discover and evaluate AI tools.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="bi bi-globe"></i>
+                    </div>
+                    <h4>Accessibility</h4>
+                    <p>AI should be accessible to everyone, regardless of technical background or geographic location.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="about-team py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center mb-5">
+                <h2 class="section-title mb-4">Meet the Creator</h2>
+                <p class="text-muted">
+                    The passionate mind behind Ayou, dedicated to making AI accessible to everyone.
+                </p>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="team-card">                    <div class="team-avatar">
+                        <div class="avatar-placeholder">
+                            <img src="{{ url_for('static', filename='images/sayan-profile.png') }}" alt="Sayan Chowdhury" class="profile-image-team">
+                        </div>
+                    </div>
+                    <div class="team-info">
+                        <h4>Sayan Chowdhury</h4>
+                        <p class="team-role">Data Analytics Engineer & Creator</p>
+                        <p class="team-bio">
+                            Passionate data analytics engineer with expertise in turning complex data into actionable insights. 
+                            Creator of Ayou, dedicated to democratizing AI tools and building inclusive technology communities.
+                        </p>
+                        <div class="team-social">
+                            <a href="https://linkedin.com/in/sayanchowdhury" class="social-link" title="LinkedIn Profile">
+                                <i class="bi bi-linkedin"></i>
+                            </a>
+                            <a href="mailto:iamsayanchowdhury2000@gmail.com" class="social-link" title="Email">
+                                <i class="bi bi-envelope"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="about-cta py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="section-title mb-4">Join the Ayou Community</h2>
+                <p class="lead text-muted mb-4">
+                    Be part of the AI revolution. Discover tools, share knowledge, and connect with like-minded innovators.
+                    Because AI is truly for you, me, and all of us.
+                </p>
+                <div class="cta-buttons">
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-3">
+                        <i class="bi bi-person-plus"></i>
+                        Join Community
+                    </a>
+                    <a href="{{ url_for('tools') }}" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-search"></i>
+                        Explore Tools
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

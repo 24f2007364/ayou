@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Ayou</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body class="admin-body">
+    <!-- Admin Navigation -->
+    <nav class="admin-navbar">
+        <div class="admin-nav-content">            <div class="admin-nav-brand">
+                <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="Ayou" style="width: 24px; height: 24px; object-fit: contain; margin-right: 8px;">
+                <span>Admin Panel</span>
+            </div>
+            <div class="admin-nav-actions">
+                <a href="{{ url_for('index') }}" class="admin-nav-link" title="View Site">
+                    <i class="bi bi-eye"></i>
+                </a>
+                <a href="{{ url_for('admin_logout') }}" class="admin-nav-link" title="Logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-content">
+                <div class="admin-menu">
+                    <a href="{{ url_for('admin_dashboard') }}" class="admin-menu-item active">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{{ url_for('admin_add_tool') }}" class="admin-menu-item">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Add Tool</span>
+                    </a>
+                    <a href="{{ url_for('admin_dashboard') }}#tools" class="admin-menu-item">
+                        <i class="bi bi-tools"></i>
+                        <span>Manage Tools</span>
+                    </a>
+                    <a href="{{ url_for('admin_dashboard') }}#users" class="admin-menu-item">
+                        <i class="bi bi-people"></i>
+                        <span>Users</span>
+                    </a>
+                    <a href="{{ url_for('admin_dashboard') }}#reviews" class="admin-menu-item">
+                        <i class="bi bi-star"></i>
+                        <span>Reviews</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="admin-header">
+                <h1>Dashboard Overview</h1>
+                <p>Manage your Ayou platform from here</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="alert-container">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                <i class="bi bi-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' }}"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Stats Cards -->
+            <div class="admin-stats-grid">
+                <div class="admin-stat-card">
+                    <div class="admin-stat-icon bg-primary">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                    <div class="admin-stat-content">
+                        <h3>{{ stats.total_tools }}</h3>
+                        <p>Total Tools</p>
+                    </div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-icon bg-success">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="admin-stat-content">
+                        <h3>{{ stats.total_users }}</h3>
+                        <p>Total Users</p>
+                    </div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-icon bg-warning">
+                        <i class="bi bi-star"></i>
+                    </div>
+                    <div class="admin-stat-content">
+                        <h3>{{ stats.total_reviews }}</h3>
+                        <p>Total Reviews</p>
+                    </div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-icon bg-info">
+                        <i class="bi bi-eye"></i>
+                    </div>
+                    <div class="admin-stat-content">
+                        <h3>{{ stats.total_views }}</h3>
+                        <p>Total Views</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Tools Section -->
+            <div class="admin-section" id="tools">
+                <div class="admin-section-header">
+                    <h2>Recent Tools</h2>
+                    <a href="{{ url_for('admin_add_tool') }}" class="btn btn-primary">
+                        <i class="bi bi-plus"></i>
+                        Add New Tool
+                    </a>
+                </div>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Tool</th>
+                                <th>Category</th>
+                                <th>Rating</th>
+                                <th>Views</th>
+                                <th>Added</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tool in recent_tools %}
+                            <tr>
+                                <td>
+                                    <div class="admin-tool-info">
+                                        <img src="{{ tool.image_url or url_for('static', filename='uploads/default-tool.svg') }}" 
+                                             alt="{{ tool.name }}" class="admin-tool-thumb">
+                                        <div>
+                                            <strong>{{ tool.name }}</strong>
+                                            <small>{{ tool.description[:50] }}...</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-secondary">{{ tool.category }}</span></td>
+                                <td>
+                                    <div class="admin-rating">
+                                        <i class="bi bi-star-fill text-warning"></i>
+                                        {{ "%.1f"|format(tool.rating) }}
+                                    </div>
+                                </td>
+                                <td>{{ tool.views }}</td>
+                                <td>{{ tool.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <div class="admin-actions">
+                                        <a href="{{ url_for('tool_detail', id=tool.id) }}" 
+                                           class="btn btn-sm btn-outline-primary" title="View">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-outline-danger" 
+                                                onclick="deleteTool({{ tool.id }})" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Users Section -->
+            <div class="admin-section" id="users">
+                <div class="admin-section-header">
+                    <h2>Recent Users</h2>
+                </div>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Rank</th>
+                                <th>XP</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in recent_users %}
+                            <tr>
+                                <td>
+                                    <div class="admin-user-info">
+                                        <div class="admin-user-avatar">{{ user.username[0].upper() }}</div>
+                                        <strong>{{ user.username }}</strong>
+                                    </div>
+                                </td>
+                                <td>{{ user.email }}</td>
+                                <td><span class="badge bg-info">{{ user.rank }}</span></td>
+                                <td>{{ user.xp }}</td>
+                                <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <div class="admin-actions">
+                                        <button class="btn btn-sm btn-outline-warning" 
+                                                onclick="toggleUserStatus({{ user.id }})" title="Toggle Status">
+                                            <i class="bi bi-person-check"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Reviews Section -->
+            <div class="admin-section" id="reviews">
+                <div class="admin-section-header">
+                    <h2>Recent Reviews</h2>
+                </div>
+                <div class="admin-reviews-grid">
+                    {% for review in recent_reviews %}
+                    <div class="admin-review-card">
+                        <div class="admin-review-header">
+                            <div class="admin-review-user">
+                                <div class="admin-user-avatar small">{{ review.username[0].upper() }}</div>
+                                <span>{{ review.username }}</span>
+                            </div>
+                            <div class="admin-review-rating">
+                                {% for i in range(5) %}
+                                    <i class="bi bi-star{{ '-fill' if i < review.rating else '' }} text-warning"></i>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="admin-review-content">
+                            <p>{{ review.content[:100] }}...</p>
+                            <small class="text-muted">
+                                For: <a href="{{ url_for('tool_detail', id=review.tool_id) }}">{{ review.tool_name }}</a>
+                            </small>
+                        </div>
+                        <div class="admin-review-actions">
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="deleteReview({{ review.id }})" title="Delete Review">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>        // Delete Tool Function
+        function deleteTool(toolId) {
+            if (confirm('Are you sure you want to delete this tool?')) {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', `/admin/delete_tool/${toolId}`, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            const data = JSON.parse(xhr.responseText);
+                            if (data.success) {
+                                location.reload();
+                            } else {
+                                alert('Error deleting tool');
+                            }
+                        } else {
+                            alert('Error deleting tool');
+                        }
+                    }
+                };
+                
+                xhr.send();
+            }
+        }        // Delete Review Function
+        function deleteReview(reviewId) {
+            if (confirm('Are you sure you want to delete this review?')) {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', `/admin/delete_review/${reviewId}`, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            const data = JSON.parse(xhr.responseText);
+                            if (data.success) {
+                                location.reload();
+                            } else {
+                                alert('Error deleting review');
+                            }
+                        } else {
+                            alert('Error deleting review');
+                        }
+                    }
+                };
+                
+                xhr.send();
+            }
+        }        // Toggle User Status Function
+        function toggleUserStatus(userId) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', `/admin/toggle_user/${userId}`, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert('Error updating user status');
+                        }
+                    } else {
+                        alert('Error updating user status');
+                    }
+                }
+            };
+            
+            xhr.send();
+        }
+
+        // Auto-dismiss alerts
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                if (alert) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            });
+        }, 5000);
+
+        // Active menu item highlighting
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const menuItems = document.querySelectorAll('.admin-menu-item');
+            
+            menuItems.forEach(item => {
+                if (item.getAttribute('href') === currentPath) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,441 @@
+{% extends "layout.html" %}
+
+{% block title %}Privacy Policy - Ayou{% endblock %}
+
+{% block content %}
+<div class="privacy-hero">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-4 fw-bold mb-4">Privacy Policy</h1>
+                <p class="lead text-muted mb-4">
+                    Your privacy is important to us. This policy explains how we collect, 
+                    use, and protect your personal information.
+                </p>
+                <div class="privacy-meta">
+                    <span class="badge bg-primary">Last Updated: May 2, 2025</span>
+                    <span class="badge bg-secondary">Version 2.1</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="privacy-content py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="privacy-nav sticky-top">
+                    <h5>Table of Contents</h5>
+                    <nav class="nav flex-column">
+                        <a class="nav-link" href="#information-collection">Information We Collect</a>
+                        <a class="nav-link" href="#information-use">How We Use Information</a>
+                        <a class="nav-link" href="#information-sharing">Information Sharing</a>
+                        <a class="nav-link" href="#data-security">Data Security</a>
+                        <a class="nav-link" href="#cookies">Cookies & Tracking</a>
+                        <a class="nav-link" href="#user-rights">Your Rights</a>
+                        <a class="nav-link" href="#data-retention">Data Retention</a>
+                        <a class="nav-link" href="#children">Children's Privacy</a>
+                        <a class="nav-link" href="#international">International Users</a>
+                        <a class="nav-link" href="#changes">Policy Changes</a>
+                        <a class="nav-link" href="#contact">Contact Us</a>
+                    </nav>
+                </div>
+            </div>
+            <div class="col-lg-9">
+                <div class="privacy-sections">
+                    <!-- Information Collection -->
+                    <section id="information-collection" class="privacy-section">
+                        <h2>Information We Collect</h2>
+                        <p>
+                            We collect information you provide directly to us, information we obtain automatically 
+                            when you use our services, and information from third-party sources.
+                        </p>
+
+                        <h4>Information You Provide</h4>
+                        <ul>
+                            <li><strong>Account Information:</strong> Username, email address, and password when you register</li>
+                            <li><strong>Profile Information:</strong> Optional profile details like bio, location, and profile picture</li>
+                            <li><strong>Content:</strong> Reviews, comments, ratings, and other content you submit</li>
+                            <li><strong>Communications:</strong> Messages you send us through contact forms or support channels</li>
+                            <li><strong>Payment Information:</strong> If applicable, payment details processed by secure third-party providers</li>
+                        </ul>
+
+                        <h4>Information We Collect Automatically</h4>
+                        <ul>
+                            <li><strong>Usage Data:</strong> Pages visited, features used, search queries, and interaction patterns</li>
+                            <li><strong>Device Information:</strong> Browser type, operating system, IP address, and device identifiers</li>
+                            <li><strong>Log Data:</strong> Access times, error logs, and performance metrics</li>
+                            <li><strong>Location Data:</strong> General location based on IP address (not precise geolocation)</li>
+                        </ul>
+                    </section>
+
+                    <!-- Information Use -->
+                    <section id="information-use" class="privacy-section">
+                        <h2>How We Use Your Information</h2>
+                        <p>We use the information we collect for the following purposes:</p>
+
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="use-case-card">
+                                    <div class="use-case-icon">
+                                        <i class="bi bi-gear"></i>
+                                    </div>
+                                    <h4>Service Operation</h4>
+                                    <ul>
+                                        <li>Provide and maintain our platform</li>
+                                        <li>Process your account registration</li>
+                                        <li>Enable user interactions and features</li>
+                                        <li>Provide customer support</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="use-case-card">
+                                    <div class="use-case-icon">
+                                        <i class="bi bi-graph-up"></i>
+                                    </div>
+                                    <h4>Improvement & Analytics</h4>
+                                    <ul>
+                                        <li>Analyze usage patterns and trends</li>
+                                        <li>Improve our services and features</li>
+                                        <li>Develop new functionality</li>
+                                        <li>Monitor platform performance</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="use-case-card">
+                                    <div class="use-case-icon">
+                                        <i class="bi bi-person-check"></i>
+                                    </div>
+                                    <h4>Personalization</h4>
+                                    <ul>
+                                        <li>Customize your experience</li>
+                                        <li>Provide personalized recommendations</li>
+                                        <li>Show relevant content and tools</li>
+                                        <li>Remember your preferences</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="use-case-card">
+                                    <div class="use-case-icon">
+                                        <i class="bi bi-shield-check"></i>
+                                    </div>
+                                    <h4>Security & Compliance</h4>
+                                    <ul>
+                                        <li>Detect and prevent fraud</li>
+                                        <li>Enforce our terms of service</li>
+                                        <li>Comply with legal obligations</li>
+                                        <li>Protect platform integrity</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Information Sharing -->
+                    <section id="information-sharing" class="privacy-section">
+                        <h2>Information Sharing</h2>
+                        <p>
+                            We do not sell your personal information. We may share your information in the following circumstances:
+                        </p>
+
+                        <div class="sharing-scenarios">
+                            <div class="scenario">
+                                <h4><i class="bi bi-people"></i> Public Information</h4>
+                                <p>
+                                    Your username, reviews, ratings, and comments are visible to other users. 
+                                    Profile information you choose to make public is also visible.
+                                </p>
+                            </div>
+                            <div class="scenario">
+                                <h4><i class="bi bi-tools"></i> Service Providers</h4>
+                                <p>
+                                    We share information with third-party service providers who help us operate 
+                                    our platform (hosting, analytics, email services, etc.).
+                                </p>
+                            </div>
+                            <div class="scenario">
+                                <h4><i class="bi bi-shield"></i> Legal Requirements</h4>
+                                <p>
+                                    We may disclose information if required by law, legal process, or to protect 
+                                    our rights, property, or safety.
+                                </p>
+                            </div>
+                            <div class="scenario">
+                                <h4><i class="bi bi-building"></i> Business Transfers</h4>
+                                <p>
+                                    If we're involved in a merger, acquisition, or sale, your information may be 
+                                    transferred as part of that transaction.
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Data Security -->
+                    <section id="data-security" class="privacy-section">
+                        <h2>Data Security</h2>
+                        <p>
+                            We implement appropriate technical and organizational measures to protect your personal information:
+                        </p>
+
+                        <div class="security-measures">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="security-item">
+                                        <i class="bi bi-lock"></i>
+                                        <span>SSL/TLS encryption for data transmission</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="security-item">
+                                        <i class="bi bi-key"></i>
+                                        <span>Password hashing and secure storage</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="security-item">
+                                        <i class="bi bi-server"></i>
+                                        <span>Secure hosting infrastructure</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="security-item">
+                                        <i class="bi bi-eye-slash"></i>
+                                        <span>Access controls and monitoring</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="security-item">
+                                        <i class="bi bi-shield-check"></i>
+                                        <span>Regular security audits</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="security-item">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                        <span>Automated backups and recovery</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Cookies -->
+                    <section id="cookies" class="privacy-section">
+                        <h2>Cookies & Tracking Technologies</h2>
+                        <p>
+                            We use cookies and similar technologies to enhance your experience and analyze usage:
+                        </p>
+
+                        <div class="cookie-types">
+                            <div class="cookie-type">
+                                <h4>Essential Cookies</h4>
+                                <p>Required for the platform to function properly (login, security, preferences)</p>
+                            </div>
+                            <div class="cookie-type">
+                                <h4>Analytics Cookies</h4>
+                                <p>Help us understand how users interact with our platform</p>
+                            </div>
+                            <div class="cookie-type">
+                                <h4>Functional Cookies</h4>
+                                <p>Remember your choices and provide enhanced features</p>
+                            </div>
+                        </div>
+
+                        <div class="cookie-control">
+                            <h4>Cookie Controls</h4>
+                            <p>
+                                You can control cookies through your browser settings. However, disabling certain 
+                                cookies may affect platform functionality.
+                            </p>
+                        </div>
+                    </section>
+
+                    <!-- User Rights -->
+                    <section id="user-rights" class="privacy-section">
+                        <h2>Your Rights</h2>
+                        <p>You have the following rights regarding your personal information:</p>
+
+                        <div class="rights-grid">
+                            <div class="right-item">
+                                <h4><i class="bi bi-eye"></i> Access</h4>
+                                <p>Request access to your personal information</p>
+                            </div>
+                            <div class="right-item">
+                                <h4><i class="bi bi-pencil"></i> Correction</h4>
+                                <p>Update or correct inaccurate information</p>
+                            </div>
+                            <div class="right-item">
+                                <h4><i class="bi bi-trash"></i> Deletion</h4>
+                                <p>Request deletion of your personal information</p>
+                            </div>
+                            <div class="right-item">
+                                <h4><i class="bi bi-download"></i> Portability</h4>
+                                <p>Export your data in a portable format</p>
+                            </div>
+                            <div class="right-item">
+                                <h4><i class="bi bi-hand-index"></i> Object</h4>
+                                <p>Object to certain processing of your data</p>
+                            </div>
+                            <div class="right-item">
+                                <h4><i class="bi bi-pause"></i> Restrict</h4>
+                                <p>Request restriction of processing</p>
+                            </div>
+                        </div>
+
+                        <div class="rights-exercise">
+                            <h4>How to Exercise Your Rights</h4>
+                            <p>
+                                To exercise any of these rights, please contact us at 
+                                <a href="mailto:privacy@aimarketplace.com">privacy@aimarketplace.com</a> 
+                                or use the contact form on our website.
+                            </p>
+                        </div>
+                    </section>
+
+                    <!-- Data Retention -->
+                    <section id="data-retention" class="privacy-section">
+                        <h2>Data Retention</h2>
+                        <p>
+                            We retain your personal information for as long as necessary to provide our services 
+                            and comply with legal obligations:
+                        </p>
+                        <ul>
+                            <li><strong>Account Data:</strong> Retained while your account is active</li>
+                            <li><strong>Usage Data:</strong> Typically retained for 24 months</li>
+                            <li><strong>Support Communications:</strong> Retained for 3 years</li>
+                            <li><strong>Legal Compliance:</strong> As required by applicable laws</li>
+                        </ul>
+                    </section>
+
+                    <!-- Children's Privacy -->
+                    <section id="children" class="privacy-section">
+                        <h2>Children's Privacy</h2>
+                        <p>
+                            Our platform is not intended for children under 13 years of age. We do not knowingly 
+                            collect personal information from children under 13. If you believe we have collected 
+                            information from a child under 13, please contact us immediately.
+                        </p>
+                    </section>
+
+                    <!-- International Users -->
+                    <section id="international" class="privacy-section">
+                        <h2>International Users</h2>
+                        <p>
+                            Our platform is operated from the United States. If you are located outside the US, 
+                            your information may be transferred to and processed in the US. We implement appropriate 
+                            safeguards for international data transfers.
+                        </p>
+                    </section>
+
+                    <!-- Policy Changes -->
+                    <section id="changes" class="privacy-section">
+                        <h2>Changes to This Policy</h2>
+                        <p>
+                            We may update this privacy policy from time to time. We will notify you of significant 
+                            changes by posting the new policy on our website and updating the "Last Updated" date. 
+                            Your continued use of our platform after changes take effect constitutes acceptance of 
+                            the new policy.
+                        </p>
+                    </section>
+
+                    <!-- Contact -->
+                    <section id="contact" class="privacy-section">
+                        <h2>Contact Us</h2>
+                        <p>
+                            If you have questions about this privacy policy or our privacy practices, 
+                            please contact us:
+                        </p>                        <div class="contact-details">
+                            <div class="contact-method">
+                                <i class="bi bi-envelope"></i>
+                                <span>Email: <a href="mailto:iamsayanchowdhury2000@gmail.com">iamsayanchowdhury2000@gmail.com</a></span>
+                            </div>
+                            <div class="contact-method">
+                                <i class="bi bi-linkedin"></i>
+                                <span>LinkedIn: <a href="https://linkedin.com/in/sayanchowdhury" target="_blank" rel="noopener">linkedin.com/in/sayanchowdhury</a></span>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Smooth scrolling for navigation links
+    document.querySelectorAll('.privacy-nav .nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetSection = document.getElementById(targetId);
+            
+            if (targetSection) {
+                targetSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+                
+                // Update active link
+                document.querySelectorAll('.privacy-nav .nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            }
+        });
+    });
+
+    // Highlight current section in navigation
+    window.addEventListener('scroll', function() {
+        const sections = document.querySelectorAll('.privacy-section');
+        const navLinks = document.querySelectorAll('.privacy-nav .nav-link');
+        
+        let currentSection = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop - 100;
+            const sectionHeight = section.offsetHeight;
+            
+            if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
+                currentSection = section.getAttribute('id');
+            }
+        });
+        
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === '#' + currentSection) {
+                link.classList.add('active');
+            }
+        });
+    });
+
+    // Reading progress indicator
+    window.addEventListener('scroll', function() {
+        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrolled = (winScroll / height) * 100;
+        
+        // Create progress bar if it doesn't exist
+        let progressBar = document.querySelector('.reading-progress');
+        if (!progressBar) {
+            progressBar = document.createElement('div');
+            progressBar.className = 'reading-progress';
+            progressBar.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: ${scrolled}%;
+                height: 3px;
+                background: #2563eb;
+                z-index: 9999;
+                transition: width 0.1s ease;
+            `;
+            document.body.appendChild(progressBar);
+        } else {
+            progressBar.style.width = scrolled + '%';
+        }
+    });
+</script>
+{% endblock %}

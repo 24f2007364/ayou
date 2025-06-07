@@ -1,0 +1,416 @@
+{% extends "layout.html" %}
+
+{% block title %}Leaderboard - Ayou{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="hero-section mb-5">
+        <div class="container">
+            <div class="text-center">
+                <div class="display-4 text-primary mb-3">
+                    <i class="bi bi-trophy"></i>
+                </div>
+                <h1 class="display-5 fw-bold mb-3">Community Leaderboard</h1>
+                <p class="lead text-muted mb-4">
+                    Celebrating our most active AI enthusiasts. Earn XP by rating tools, 
+                    writing reviews, and participating in discussions.
+                </p>
+            </div>
+        </div>
+    </div>    <div class="row g-4">
+        <!-- Leaderboard -->
+        <div class="col-lg-8">
+            <div class="leaderboard-main-card glass-card-enhanced p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold mb-0 gradient-text">🏆 Top Contributors</h3>
+                    <div class="d-flex align-items-center text-muted update-indicator">
+                        <i class="bi bi-arrow-clockwise me-1 rotating-icon"></i>
+                        <small>Updated daily</small>
+                    </div>
+                </div>
+                
+                {% if users %}                    <!-- Top 3 Podium -->
+                    {% if users|length >= 3 %}
+                    <div class="podium-container mb-5">
+                        <div class="row">
+                            <div class="col-md-4 order-md-2">
+                                <!-- 1st Place -->
+                                <div class="podium-position first-place text-center">
+                                    <div class="position-relative d-inline-block mb-3">
+                                        <div class="rank-badge-large gold mx-auto floating-animation" style="width: 90px; height: 90px; font-size: 36px;">
+                                            <i class="bi bi-crown"></i>
+                                        </div>
+                                        <div class="champion-crown position-absolute top-0 start-100 translate-middle">
+                                            <span class="badge bg-warning rounded-pill pulse-animation">🥇</span>
+                                        </div>
+                                        <div class="winner-glow"></div>
+                                    </div>
+                                    <h4 class="fw-bold mb-1 champion-name">{{ users[0].username }}</h4>
+                                    <p class="text-muted mb-2 rank-title">{{ users[0].rank }}</p>
+                                    <div class="fw-bold text-primary fs-3 xp-display shimmer-effect">{{ users[0].xp }} XP</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 order-md-1">
+                                <!-- 2nd Place -->
+                                <div class="podium-position second-place text-center" style="margin-top: 2rem;">
+                                    <div class="rank-badge-large silver mx-auto hover-scale" style="width: 75px; height: 75px; font-size: 32px;">
+                                        2
+                                    </div>
+                                    <h5 class="fw-bold mb-1 mt-3">{{ users[1].username }}</h5>
+                                    <p class="text-muted mb-2">{{ users[1].rank }}</p>
+                                    <div class="fw-bold text-primary fs-5">{{ users[1].xp }} XP</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 order-md-3">
+                                <!-- 3rd Place -->
+                                <div class="podium-position third-place text-center" style="margin-top: 2rem;">
+                                    <div class="rank-badge-large bronze mx-auto hover-scale" style="width: 75px; height: 75px; font-size: 32px;">
+                                        3
+                                    </div>
+                                    <h5 class="fw-bold mb-1 mt-3">{{ users[2].username }}</h5>
+                                    <p class="text-muted mb-2">{{ users[2].rank }}</p>
+                                    <div class="fw-bold text-primary fs-5">{{ users[2].xp }} XP</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                      <!-- Rest of the leaderboard -->
+                    <div class="leaderboard-list">
+                        {% for user in users %}
+                            {% if loop.index > 3 %}
+                            <div class="leaderboard-item-enhanced d-flex align-items-center justify-content-between fade-in-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="rank-badge-small me-3 pulse-on-hover">{{ loop.index }}</div>
+                                    <div class="user-info">
+                                        <h6 class="fw-bold mb-1 user-name">{{ user.username }}</h6>
+                                        <small class="text-muted rank-subtitle">{{ user.rank }}</small>
+                                    </div>
+                                </div>
+                                <div class="text-end user-stats">
+                                    <div class="fw-bold text-primary xp-number">{{ user.xp }} XP</div>
+                                    <small class="text-muted progress-text">
+                                        {{ ((user.xp % 1000) / 1000 * 100)|round }}% to next rank
+                                    </small>
+                                    <div class="mini-progress-bar">
+                                        <div class="mini-progress-fill" style="width: {{ ((user.xp % 1000) / 1000 * 100)|round }}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% elif loop.index <= 3 %}
+                            <!-- Top 3 in list format for mobile -->
+                            <div class="leaderboard-item d-flex align-items-center justify-content-between d-md-none">
+                                <div class="d-flex align-items-center">
+                                    <div class="rank-badge 
+                                        {% if loop.index == 1 %}gold
+                                        {% elif loop.index == 2 %}silver
+                                        {% elif loop.index == 3 %}bronze{% endif %} me-3">
+                                        {{ loop.index }}
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-1">{{ user.username }}</h6>
+                                        <small class="text-muted">{{ user.rank }}</small>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold text-primary">{{ user.xp }} XP</div>
+                                    {% if loop.index == 1 %}
+                                        <span class="badge bg-warning rounded-pill">👑 Champion</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="display-1 text-muted mb-3">🏆</div>
+                        <h4 class="fw-bold mb-3">No rankings yet</h4>
+                        <p class="text-muted mb-4">Be the first to earn XP and claim the top spot!</p>
+                        {% if not session.user_id %}
+                            <a href="{{ url_for('register') }}" class="btn btn-primary rounded-pill">
+                                <i class="bi bi-person-plus me-2"></i>Join the Competition
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">            <!-- Your Rank (if logged in) -->
+            {% if session.user_id %}
+            <div class="user-stats-card glass-card-enhanced p-4 mb-4">
+                <h5 class="fw-bold mb-3 gradient-text">👤 Your Stats</h5>
+                <div class="text-center">
+                    <div class="user-avatar-large mx-auto mb-3 pulse-animation" style="width: 72px; height: 72px; font-size: 28px;">
+                        {{ session.username[0].upper() }}
+                    </div>
+                    <h6 class="fw-bold username-display">{{ session.username }}</h6>
+                    <p class="text-muted rank-display">{{ session.rank }}</p>
+                    <div class="fw-bold text-primary fs-4 mb-3 xp-loading shimmer-loading">Loading... XP</div>
+                    <div class="progress-container mb-2">
+                        <div class="progress enhanced-progress" style="height: 10px;">
+                            <div class="progress-bar bg-gradient-primary progress-animated" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <small class="text-muted progress-label">Progress to next rank</small>
+                </div>
+            </div>
+            {% endif %}            <!-- XP Guide -->
+            <div class="xp-guide-card glass-card-enhanced p-4 mb-4">
+                <h5 class="fw-bold mb-3 gradient-text">💎 How to Earn XP</h5>
+                <div class="xp-activities">
+                    <div class="xp-activity-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="activity-icon me-3">
+                                <i class="bi bi-star text-warning"></i>
+                            </div>
+                            <span class="activity-text">Rate a tool</span>
+                        </div>
+                        <span class="badge bg-gradient-primary rounded-pill xp-badge">+20 XP</span>
+                    </div>
+                    <div class="xp-activity-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="activity-icon me-3">
+                                <i class="bi bi-chat-dots text-success"></i>
+                            </div>
+                            <span class="activity-text">Write a review</span>
+                        </div>
+                        <span class="badge bg-gradient-primary rounded-pill xp-badge">+50 XP</span>
+                    </div>
+                    <div class="xp-activity-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="activity-icon me-3">
+                                <i class="bi bi-reply text-info"></i>
+                            </div>
+                            <span class="activity-text">Add a comment</span>
+                        </div>
+                        <span class="badge bg-gradient-primary rounded-pill xp-badge">+30 XP</span>
+                    </div>
+                    <div class="xp-activity-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="activity-icon me-3">
+                                <i class="bi bi-hand-thumbs-up text-primary"></i>
+                            </div>
+                            <span class="activity-text">Receive upvote</span>
+                        </div>
+                        <span class="badge bg-gradient-primary rounded-pill xp-badge">+10 XP</span>
+                    </div>
+                </div>
+                
+                {% if not session.user_id %}
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-enhanced rounded-pill">
+                        ✨ Start Earning XP
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Rank System -->
+            <div class="glass-card p-4 mb-4">
+                <h5 class="fw-bold mb-3">🎖️ Rank System</h5>
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item bg-transparent border-0 px-0 py-2">
+                        <div class="d-flex justify-content-between">
+                            <span>🧩 AI Rookie</span>
+                            <small class="text-muted">0-999 XP</small>
+                        </div>
+                    </div>
+                    <div class="list-group-item bg-transparent border-0 px-0 py-2">
+                        <div class="d-flex justify-content-between">
+                            <span>🤖 AI Explorer</span>
+                            <small class="text-muted">1000-1999 XP</small>
+                        </div>
+                    </div>
+                    <div class="list-group-item bg-transparent border-0 px-0 py-2">
+                        <div class="d-flex justify-content-between">
+                            <span>🧠 AI Pro</span>
+                            <small class="text-muted">2000-2999 XP</small>
+                        </div>
+                    </div>
+                    <div class="list-group-item bg-transparent border-0 px-0 py-2">
+                        <div class="d-flex justify-content-between">
+                            <span>🔮 AI Master</span>
+                            <small class="text-muted">3000-3999 XP</small>
+                        </div>
+                    </div>
+                    <div class="list-group-item bg-transparent border-0 px-0 py-2">
+                        <div class="d-flex justify-content-between">
+                            <span>🧠 AI Leader</span>
+                            <small class="text-muted">4000-4999 XP</small>
+                        </div>
+                    </div>
+                    <div class="list-group-item bg-transparent border-0 px-0 py-2">
+                        <div class="d-flex justify-content-between">
+                            <span>🚀 AI Supreme Leader</span>
+                            <small class="text-muted">5000+ XP</small>
+                        </div>
+                    </div>
+                </div>
+            </div>            <!-- Quick Actions -->
+            <div class="quick-actions-card glass-card-enhanced p-4">
+                <h5 class="fw-bold mb-3 gradient-text">⚡ Quick Actions</h5>
+                <div class="d-grid gap-3">
+                    <a href="{{ url_for('tools') }}" class="btn btn-outline-primary btn-enhanced hover-lift">
+                        <i class="bi bi-grid me-2"></i>Rate Some Tools
+                    </a>
+                    <a href="{{ url_for('prompt_helper') }}" class="btn btn-outline-secondary btn-enhanced hover-lift">
+                        <i class="bi bi-lightbulb me-2"></i>Get AI Help
+                    </a>
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-info btn-enhanced hover-lift">
+                        <i class="bi bi-house me-2"></i>Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate rank progression
+    {% if session.user_id %}
+    // This would normally fetch user's current XP from the server
+    // For now, we'll simulate it
+    setTimeout(() => {
+        const xpElement = document.querySelector('.xp-loading');
+        const progressBar = document.querySelector('.progress-animated');
+        
+        if (xpElement && progressBar) {
+            // Simulate loading user XP (you'd get this from your backend)
+            const userXP = 750; // Example XP
+            const nextRankXP = 1000;
+            const progress = (userXP % 1000) / 10; // Progress to next rank
+            
+            // Remove shimmer loading effect
+            xpElement.classList.remove('shimmer-loading');
+            xpElement.textContent = userXP + ' XP';
+            
+            // Animate progress bar
+            setTimeout(() => {
+                progressBar.style.width = progress + '%';
+            }, 500);
+        }
+    }, 1500);
+    {% endif %}
+    
+    // Add scroll animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('fade-in-item');
+                
+                // Animate rank badges with bounce effect
+                if (entry.target.classList.contains('rank-badge-large')) {
+                    setTimeout(() => {
+                        entry.target.style.transform = 'scale(1.1)';
+                        setTimeout(() => {
+                            entry.target.style.transform = 'scale(1)';
+                        }, 200);
+                    }, 300);
+                }
+                
+                // Animate leaderboard items sequentially
+                if (entry.target.classList.contains('leaderboard-item-enhanced')) {
+                    const items = document.querySelectorAll('.leaderboard-item-enhanced');
+                    items.forEach((item, index) => {
+                        setTimeout(() => {
+                            item.style.opacity = '1';
+                            item.style.transform = 'translateX(0)';
+                        }, index * 100);
+                    });
+                }
+            }
+        });
+    }, observerOptions);
+    
+    // Observe all animated elements
+    document.querySelectorAll('.leaderboard-item-enhanced, .rank-badge-large, .glass-card-enhanced').forEach(item => {
+        observer.observe(item);
+    });
+    
+    // Add hover sound effects (optional)
+    document.querySelectorAll('.hover-lift, .pulse-on-hover').forEach(element => {
+        element.addEventListener('mouseenter', function() {
+            // You could add subtle sound effects here
+            this.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        });
+    });
+    
+    // Animate XP badges on hover
+    document.querySelectorAll('.xp-badge').forEach(badge => {
+        badge.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.1)';
+            this.style.boxShadow = '0 4px 15px rgba(37, 99, 235, 0.4)';
+        });
+        
+        badge.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+            this.style.boxShadow = '';
+        });
+    });
+    
+    // Enhanced mini progress bar animations
+    document.querySelectorAll('.mini-progress-fill').forEach(progressFill => {
+        const width = progressFill.style.width;
+        progressFill.style.width = '0%';
+        
+        setTimeout(() => {
+            progressFill.style.width = width;
+        }, 1000);
+    });
+    
+    // Add particle effect for top 3 (optional enhancement)
+    function createParticles(element) {
+        if (!element.querySelector('.particles')) {
+            const particles = document.createElement('div');
+            particles.className = 'particles';
+            particles.innerHTML = '✨'.repeat(3);
+            particles.style.cssText = `
+                position: absolute;
+                top: -10px;
+                left: 50%;
+                transform: translateX(-50%);
+                pointer-events: none;
+                animation: sparkle 2s infinite;
+                z-index: 1;
+            `;
+            element.style.position = 'relative';
+            element.appendChild(particles);
+        }
+    }
+    
+    // Add sparkle effect to champion
+    const championElement = document.querySelector('.first-place');
+    if (championElement) {
+        setTimeout(() => {
+            createParticles(championElement);
+        }, 2000);
+    }
+});
+
+// Add sparkle keyframes
+const sparkleCSS = `
+@keyframes sparkle {
+    0%, 100% { opacity: 0; transform: translateX(-50%) translateY(0) scale(0.5); }
+    50% { opacity: 1; transform: translateX(-50%) translateY(-20px) scale(1); }
+}
+`;
+
+const style = document.createElement('style');
+style.textContent = sparkleCSS;
+document.head.appendChild(style);
+</script>
+{% endblock %}
