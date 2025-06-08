@@ -1,15 +1,24 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from functools import wraps
 import sqlite3
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 import tempfile
 import json
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
+
+# Session configuration for better security
+app.config.update(
+    SESSION_COOKIE_SECURE=True if os.environ.get('VERCEL') else False,  # HTTPS only in production
+    SESSION_COOKIE_HTTPONLY=True,  # Prevent XSS
+    SESSION_COOKIE_SAMESITE='Lax',  # CSRF protection
+    PERMANENT_SESSION_LIFETIME=timedelta(days=30)  # Session expires in 30 days
+)
 
 # Use temporary directory for uploads in serverless environment
 app.config['UPLOAD_FOLDER'] = tempfile.mkdtemp()
@@ -94,13 +103,41 @@ class SupabaseConnection:
         """Execute SQL-like operations via Supabase REST API"""
         sql_lower = sql.lower().strip()
         
-        try:
-            # SELECT COUNT(*) queries
+        try:            # SELECT COUNT(*) queries
             if 'select count(*) from tools' in sql_lower:
                 if 'data_import_completed' in sql_lower:
                     response = self.session.get(f"{self.base_url}/rest/v1/tools?name=eq.DATA_IMPORT_COMPLETED&select=id")
                 else:
                     response = self.session.get(f"{self.base_url}/rest/v1/tools?select=id")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    self._result = [(len(data),)]
+                else:                    self._result = [(0,)]
+            
+            elif 'select count(*) from comments' in sql_lower:
+                response = self.session.get(f"{self.base_url}/rest/v1/comments?select=id")
+                if response.status_code == 200:
+                    data = response.json()
+                    self._result = [(len(data),)]
+                else:
+                    self._result = [(0,)]
+            
+            elif 'select count(*) from users' in sql_lower:
+                response = self.session.get(f"{self.base_url}/rest/v1/users?select=id")
+                if response.status_code == 200:
+                    data = response.json()
+                    self._result = [(len(data),)]
+                else:
+                    self._result = [(0,)]
+            
+            elif 'select count(*) from ratings' in sql_lower:
+                if 'where review is not null and review !=' in sql_lower:
+                    # Count ratings with non-empty reviews
+                    response = self.session.get(f"{self.base_url}/rest/v1/ratings?review=not.is.null&review=neq.&select=id")
+                else:
+                    # Count all ratings
+                    response = self.session.get(f"{self.base_url}/rest/v1/ratings?select=id")
                 
                 if response.status_code == 200:
                     data = response.json()
@@ -168,6 +205,15 @@ class SupabaseConnection:
             
             elif 'select username, xp, rank from users' in sql_lower and 'order by xp desc limit 3' in sql_lower:
                 response = self.session.get(f"{self.base_url}/rest/v1/users?select=username,xp,rank&order=xp.desc&limit=3")
+                self._result = response.json() if response.status_code == 200 else []
+            
+            elif 'select username, xp, rank from users' in sql_lower and 'order by xp desc limit 50' in sql_lower:
+                response = self.session.get(f"{self.base_url}/rest/v1/users?select=username,xp,rank&order=xp.desc&limit=50")
+                self._result = response.json() if response.status_code == 200 else []
+            
+            elif 'select username, xp, rank from users where id' in sql_lower and params:
+                user_id = params[0]
+                response = self.session.get(f"{self.base_url}/rest/v1/users?id=eq.{user_id}&select=username,xp,rank")
                 self._result = response.json() if response.status_code == 200 else []
             
             # TOOL OPERATIONS
@@ -368,30 +414,36 @@ class SupabaseConnection:
                 # Simple rating lookup by ID
                 rating_id = params[0]
                 response = self.session.get(f"{self.base_url}/rest/v1/ratings?id=eq.{rating_id}")
-                self._result = response.json() if response.status_code == 200 else []
-            
-            # CONTACT MESSAGES
-            elif 'insert into contact_messages' in sql_lower and params:
+                self._result = response.json() if response.status_code == 200 else []            # COMMENTS
+            elif 'insert into comments' in sql_lower and params:
                 user_id, tool_id, comment, parent_id = params[:4]
                 comment_data = {
                     'user_id': user_id,
                     'tool_id': tool_id,
                     'comment': comment,
-                    'parent_id': parent_id
+                    'parent_id': parent_id if parent_id is not None else None
                 }
                 response = self.session.post(f"{self.base_url}/rest/v1/comments", json=comment_data)
                 if response.status_code in [200, 201]:
-                    self._result = response.json()
-                    if self._result:
-                        self.lastrowid = self._result[0].get('id')
+                    result = response.json()
+                    if result and len(result) > 0:
+                        self._result = result
+                        self.lastrowid = result[0].get('id')
+                        print(f"Comment inserted successfully with ID: {self.lastrowid}")
+                    else:
+                        self._result = []
+                        self.lastrowid = None
+                        print("Comment insert returned empty result")
                 else:
+                    print(f"Comment insert failed: {response.status_code} - {response.text}")
                     self._result = []
+                    self.lastrowid = None
             
-            elif ('select c.*, u.username, u.rank' in sql_lower and 
+            elif ('select c.*, u.username, u.rank' in sql_lower and
                   'from comments c' in sql_lower and 'join users u' in sql_lower and
                   'where c.tool_id' in sql_lower and 'and c.parent_id is null' in sql_lower and params):
                 # Main comments (not replies)
-                user_id_for_votes, tool_id = params[:2]
+                user_id_for_reactions, tool_id = params[:2]
                 response = self.session.get(f"{self.base_url}/rest/v1/comments?tool_id=eq.{tool_id}&parent_id=is.null&select=*,users(username,rank)&order=created_at.asc")
                 if response.status_code == 200:
                     comments = response.json()
@@ -399,7 +451,15 @@ class SupabaseConnection:
                         if comment.get('users'):
                             comment['username'] = comment['users']['username']
                             comment['rank'] = comment['users']['rank']
-                        comment['user_vote'] = ''  # TODO: Implement vote lookup
+                          # Get user's reaction for this comment                        if user_id_for_reactions and user_id_for_reactions != -1:
+                            reaction_response = self.session.get(f"{self.base_url}/rest/v1/comment_reactions?user_id=eq.{user_id_for_reactions}&comment_id=eq.{comment['id']}&select=reaction_type")
+                            if reaction_response.status_code == 200:
+                                reactions = reaction_response.json()
+                                comment['user_reaction'] = reactions[0]['reaction_type'] if reactions else ''
+                            else:
+                                comment['user_reaction'] = ''
+                        else:
+                            comment['user_reaction'] = ''
                     self._result = comments
                 else:
                     self._result = []
@@ -407,7 +467,7 @@ class SupabaseConnection:
             elif ('select c.*, u.username, u.rank' in sql_lower and 
                   'where c.parent_id =' in sql_lower and params):
                 # Replies to comments
-                user_id_for_votes, parent_id = params[:2]
+                user_id_for_reactions, parent_id = params[:2]
                 response = self.session.get(f"{self.base_url}/rest/v1/comments?parent_id=eq.{parent_id}&select=*,users(username,rank)&order=created_at.asc")
                 if response.status_code == 200:
                     replies = response.json()
@@ -415,26 +475,79 @@ class SupabaseConnection:
                         if reply.get('users'):
                             reply['username'] = reply['users']['username']
                             reply['rank'] = reply['users']['rank']
-                        reply['user_vote'] = ''  # TODO: Implement vote lookup
+                          # Get user's reaction for this reply                        if user_id_for_reactions and user_id_for_reactions != -1:
+                            reaction_response = self.session.get(f"{self.base_url}/rest/v1/comment_reactions?user_id=eq.{user_id_for_reactions}&comment_id=eq.{reply['id']}&select=reaction_type")
+                            if reaction_response.status_code == 200:
+                                reactions = reaction_response.json()
+                                reply['user_reaction'] = reactions[0]['reaction_type'] if reactions else ''
+                            else:
+                                reply['user_reaction'] = ''
+                        else:
+                            reply['user_reaction'] = ''
                     self._result = replies
                 else:
                     self._result = []
             
-            elif 'select c.*, u.username, u.rank from comments c' in sql_lower and 'where c.id =' in sql_lower and params:
-                # Get single comment with user info
+            elif ('select c.*, u.username, u.rank' in sql_lower and 
+                  'from comments c' in sql_lower and 
+                  'join users u on c.user_id = u.id' in sql_lower and 
+                  'where c.id =' in sql_lower and params):
+                # Get single comment with user info (broader pattern match)
                 comment_id = params[0]
                 response = self.session.get(f"{self.base_url}/rest/v1/comments?id=eq.{comment_id}&select=*,users(username,rank)")
-                if response.status_code == 200 and response.json():
-                    comment = response.json()[0]
-                    if comment.get('users'):
-                        comment['username'] = comment['users']['username']
-                        comment['rank'] = comment['users']['rank']
-                    self._result = [comment]
+                if response.status_code == 200:
+                    comments = response.json()
+                    if comments and len(comments) > 0:
+                        comment = comments[0]
+                        # Flatten user data
+                        if comment.get('users'):
+                            comment['username'] = comment['users']['username']
+                            comment['rank'] = comment['users']['rank']
+                        self._result = [comment]
+                    else:
+                        print(f"No comment found with ID: {comment_id}")
+                        self._result = []
                 else:
+                    print(f"Comment fetch failed: {response.status_code} - {response.text}")
                     self._result = []
             
-            # CONTACT MESSAGES
-            elif 'insert into contact_messages' in sql_lower and params:
+            elif 'select c.*, u.username, u.rank from comments c' in sql_lower and 'where c.id =' in sql_lower and params:
+                # Get single comment with user info (legacy pattern)
+                comment_id = params[0]
+                response = self.session.get(f"{self.base_url}/rest/v1/comments?id=eq.{comment_id}&select=*,users(username,rank)")
+                if response.status_code == 200:
+                    comments = response.json()
+                    if comments and len(comments) > 0:
+                        comment = comments[0]
+                        # Flatten user data
+                        if comment.get('users'):
+                            comment['username'] = comment['users']['username']
+                            comment['rank'] = comment['users']['rank']
+                        self._result = [comment]
+                    else:
+                        print(f"No comment found with ID: {comment_id}")
+                        self._result = []
+                else:
+                    print(f"Comment fetch failed: {response.status_code} - {response.text}")
+                    self._result = []
+            
+            elif 'select user_id from comments where id' in sql_lower and params:
+                # Get comment owner (for edit/delete authorization)
+                comment_id = params[0]
+                response = self.session.get(f"{self.base_url}/rest/v1/comments?id=eq.{comment_id}&select=user_id")
+                if response.status_code == 200:
+                    comments = response.json()
+                    if comments and len(comments) > 0:
+                        self._result = [{'user_id': comments[0]['user_id']}]
+                    else:
+                        print(f"No comment found with ID: {comment_id}")
+                        self._result = []
+                else:
+                    print(f"Comment owner fetch failed: {response.status_code} - {response.text}")
+                    self._result = []
+            
+            # CONTACT MESSAGES (actual contact form)
+            elif 'insert into contact_messages' in sql_lower and len(params) == 3:
                 name, email, message = params[:3]
                 contact_data = {
                     'name': name,
@@ -442,19 +555,168 @@ class SupabaseConnection:
                     'message': message
                 }
                 response = self.session.post(f"{self.base_url}/rest/v1/contact_messages", json=contact_data)
+                self._result = []            
+            elif 'select id from comments where parent_id =' in sql_lower and params:
+                # Get reply IDs for a parent comment
+                parent_id = params[0]
+                response = self.session.get(f"{self.base_url}/rest/v1/comments?parent_id=eq.{parent_id}&select=id")
+                if response.status_code == 200:
+                    replies = response.json()
+                    self._result = [{'id': reply['id']} for reply in replies]
+                else:
+                    print(f"Failed to get replies: {response.status_code} - {response.text}")
+                    self._result = []
+            
+            elif 'delete from comments where parent_id =' in sql_lower and params:
+                # Delete all replies of a comment
+                parent_id = params[0]
+                print(f"Deleting replies for parent comment {parent_id}")
+                response = self.session.delete(f"{self.base_url}/rest/v1/comments?parent_id=eq.{parent_id}")
+                print(f"Delete replies response: {response.status_code} - {response.text}")
                 self._result = []
             
-            # COMMENT VOTES (basic implementation)
-            elif 'select vote_type from comment_votes' in sql_lower and params:
-                # Comment voting - simplified for now
+            # COMMENT DELETION            elif 'delete from comments where id =' in sql_lower and 'or parent_id =' in sql_lower and params:
+                # Delete comment and its replies
+                comment_id = params[0]  # Both params should be the same comment_id
+                # Delete replies first
+                response = self.session.delete(f"{self.base_url}/rest/v1/comments?parent_id=eq.{comment_id}")
+                # Delete the main comment
+                response = self.session.delete(f"{self.base_url}/rest/v1/comments?id=eq.{comment_id}")
+                self._result = []
+            elif 'delete from comments where id =' in sql_lower and params and 'or parent_id' not in sql_lower:
+                # Delete single comment (CASCADE will handle replies and reactions)
+                comment_id = params[0]
+                print(f"Attempting to delete comment {comment_id}")
+                response = self.session.delete(f"{self.base_url}/rest/v1/comments?id=eq.{comment_id}")
+                print(f"Delete comment response: {response.status_code} - {response.text}")
+                if response.status_code not in [200, 204]:
+                    print(f"Delete failed with status {response.status_code}: {response.text}")
                 self._result = []
             
-            elif 'delete from comment_votes' in sql_lower or 'update comment_votes' in sql_lower or 'insert into comment_votes' in sql_lower:
-                # Comment voting operations - simplified for now
+            elif 'delete from comment_reactions where comment_id =' in sql_lower and params:
+                # Delete comment reactions
+                comment_id = params[0]
+                response = self.session.delete(f"{self.base_url}/rest/v1/comment_reactions?comment_id=eq.{comment_id}")
                 self._result = []
             
-            elif 'update comments set' in sql_lower:
-                # Comment vote count updates - simplified for now
+            elif 'update comments set comment =' in sql_lower and params:
+                # Update comment content
+                new_comment, comment_id = params[:2]
+                comment_data = {
+                    'comment': new_comment,
+                    'is_edited': True
+                }
+                response = self.session.patch(f"{self.base_url}/rest/v1/comments?id=eq.{comment_id}", json=comment_data)
+                if response.status_code in [200, 204]:
+                    print(f"Comment {comment_id} updated successfully")
+                else:
+                    print(f"Comment update failed: {response.status_code} - {response.text}")
+                self._result = []            
+            # COMMENT REACTIONS (detailed implementation)
+            elif 'select reaction_type from comment_reactions' in sql_lower and 'where user_id =' in sql_lower and 'and comment_id =' in sql_lower and params:
+                # Get user's reaction on a comment
+                user_id, comment_id = params[:2]
+                response = self.session.get(f"{self.base_url}/rest/v1/comment_reactions?user_id=eq.{user_id}&comment_id=eq.{comment_id}&select=reaction_type")
+                if response.status_code == 200:
+                    reactions = response.json()
+                    if reactions:
+                        self._result = [{'reaction_type': reactions[0]['reaction_type']}]
+                    else:
+                        self._result = []
+                else:
+                    self._result = []
+            
+            elif 'delete from comment_reactions where user_id =' in sql_lower and 'and comment_id =' in sql_lower and params:
+                # Delete user's reaction on a comment
+                user_id, comment_id = params[:2]
+                response = self.session.delete(f"{self.base_url}/rest/v1/comment_reactions?user_id=eq.{user_id}&comment_id=eq.{comment_id}")
+                self._result = []
+            
+            elif 'update comment_reactions set reaction_type =' in sql_lower and params:
+                # Update user's reaction type
+                reaction_type, user_id, comment_id = params[:3]
+                reaction_data = {'reaction_type': reaction_type}
+                response = self.session.patch(f"{self.base_url}/rest/v1/comment_reactions?user_id=eq.{user_id}&comment_id=eq.{comment_id}", json=reaction_data)
+                self._result = []
+            
+            elif 'insert into comment_reactions' in sql_lower and params:
+                # Insert new reaction
+                user_id, comment_id, reaction_type = params[:3]
+                reaction_data = {
+                    'user_id': user_id,
+                    'comment_id': comment_id,
+                    'reaction_type': reaction_type
+                }
+                response = self.session.post(f"{self.base_url}/rest/v1/comment_reactions", json=reaction_data)
+                if response.status_code in [200, 201]:
+                    print(f"Reaction inserted successfully: user {user_id}, comment {comment_id}, reaction {reaction_type}")
+                elif response.status_code == 409:
+                    print(f"Reaction already exists for user {user_id} on comment {comment_id}")
+                else:
+                    print(f"Reaction insert failed: {response.status_code} - {response.text}")
+                self._result = []
+            
+            elif 'select like_count, love_count, angry_count, laugh_count from comments where id =' in sql_lower and params:
+                # Get comment reaction counts
+                comment_id = params[0]
+                response = self.session.get(f"{self.base_url}/rest/v1/comments?id=eq.{comment_id}&select=like_count,love_count,angry_count,laugh_count")
+                if response.status_code == 200:
+                    comments = response.json()
+                    if comments:
+                        comment = comments[0]
+                        self._result = [{
+                            'like_count': comment.get('like_count', 0), 
+                            'love_count': comment.get('love_count', 0),
+                            'angry_count': comment.get('angry_count', 0),
+                            'laugh_count': comment.get('laugh_count', 0)
+                        }]
+                    else:
+                        self._result = []
+                else:
+                    self._result = []
+            
+            elif any(f'update comments set {reaction}_count =' in sql_lower for reaction in ['like', 'love', 'angry', 'laugh']):
+                # Update comment reaction counts
+                comment_id = None
+                
+                # Extract comment_id from params (usually last parameter)
+                if params:
+                    comment_id = params[-1]
+                
+                if comment_id:
+                    # First, get current counts
+                    response = self.session.get(f"{self.base_url}/rest/v1/comments?id=eq.{comment_id}&select=like_count,love_count,angry_count,laugh_count")
+                    if response.status_code == 200:
+                        comments = response.json()
+                        if comments:
+                            current_counts = comments[0]
+                            
+                            # Determine which reaction count to update and how
+                            update_data = {}
+                            
+                            if 'like_count = like_count + 1' in sql_lower:
+                                update_data['like_count'] = current_counts.get('like_count', 0) + 1
+                            elif 'like_count = like_count - 1' in sql_lower:
+                                update_data['like_count'] = max(0, current_counts.get('like_count', 0) - 1)
+                            elif 'love_count = love_count + 1' in sql_lower:
+                                update_data['love_count'] = current_counts.get('love_count', 0) + 1
+                            elif 'love_count = love_count - 1' in sql_lower:
+                                update_data['love_count'] = max(0, current_counts.get('love_count', 0) - 1)
+                            elif 'angry_count = angry_count + 1' in sql_lower:
+                                update_data['angry_count'] = current_counts.get('angry_count', 0) + 1
+                            elif 'angry_count = angry_count - 1' in sql_lower:
+                                update_data['angry_count'] = max(0, current_counts.get('angry_count', 0) - 1)
+                            elif 'laugh_count = laugh_count + 1' in sql_lower:
+                                update_data['laugh_count'] = current_counts.get('laugh_count', 0) + 1
+                            elif 'laugh_count = laugh_count - 1' in sql_lower:
+                                update_data['laugh_count'] = max(0, current_counts.get('laugh_count', 0) - 1)
+                            
+                            if update_data:
+                                update_response = self.session.patch(f"{self.base_url}/rest/v1/comments?id=eq.{comment_id}", json=update_data)
+                                print(f"Reaction count update response: {update_response.status_code}")
+                                if update_response.status_code != 204:
+                                    print(f"Failed to update reaction count: {update_response.text}")
+                
                 self._result = []
             
             else:
@@ -544,9 +806,9 @@ class SupabaseConnection:
 
 def calculate_rank(xp):
     if xp >= 5000:
-        return '🚀 AI Supreme Leader'
+        return '👑 AI Supreme Leader'
     elif xp >= 4000:
-        return '🧠 AI Leader'
+        return '⭐ AI Leader'
     elif xp >= 3000:
         return '🔮 AI Master'
     elif xp >= 2000:
@@ -588,7 +850,119 @@ def format_datetime(date_str):
     else:
         return str(date_str)
 
+# ============================================================================
+# SESSION MANAGEMENT HELPERS
+# ============================================================================
 
+def login_required(f):
+    """Decorator to require login for protected routes"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not is_logged_in():
+            if request.is_json:
+                return jsonify({'error': 'Authentication required', 'redirect': url_for('login')}), 401
+            flash('Please log in to access this page.', 'warning')
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_required(f):
+    """Decorator to require admin privileges"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not is_admin():
+            if request.is_json:
+                return jsonify({'error': 'Admin privileges required'}), 403
+            flash('Admin privileges required.', 'error')
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def is_logged_in():
+    """Check if user is logged in"""
+    return 'user_id' in session and session['user_id'] is not None
+
+def is_admin():
+    """Check if current user is admin"""
+    return is_logged_in() and session.get('admin', False)
+
+def get_current_user():
+    """Get current user info from session"""
+    if not is_logged_in():
+        return None
+    
+    return {
+        'id': session.get('user_id'),
+        'username': session.get('username'),
+        'rank': session.get('rank'),
+        'xp': session.get('xp', 0),
+        'is_admin': session.get('admin', False)
+    }
+
+def login_user(user_data):
+    """Helper to log in a user and set session data"""
+    session.permanent = True  # Make session permanent (respects PERMANENT_SESSION_LIFETIME)
+    session['user_id'] = user_data['id']
+    session['username'] = user_data['username']
+    session['rank'] = user_data.get('rank', 'Beginner')
+    session['xp'] = user_data.get('xp', 0)
+    session['admin'] = user_data.get('admin', False)
+    session['last_activity'] = datetime.now().isoformat()
+
+def logout_user():
+    """Helper to log out user and clear session"""
+    session.clear()
+    flash('You have been logged out successfully.', 'info')
+
+def update_session_activity():
+    """Update last activity timestamp"""
+    if is_logged_in():
+        session['last_activity'] = datetime.now().isoformat()
+
+def check_session_timeout():
+    """Check if session has timed out (optional additional security)"""
+    if is_logged_in() and 'last_activity' in session:
+        last_activity = datetime.fromisoformat(session['last_activity'])
+        if datetime.now() - last_activity > timedelta(hours=24):
+            logout_user()
+            return False
+    return True
+
+def update_user_session_data(user_id):
+    """Update session data from database (call after XP changes, etc.)"""
+    if not is_logged_in() or session['user_id'] != user_id:
+        return
+    
+    conn = get_db_connection()
+    user = conn.execute(
+        'SELECT username, xp, rank FROM users WHERE id = ?',
+        (user_id,)
+    ).fetchone()
+    
+    if user:
+        session['username'] = user['username']
+        session['xp'] = user['xp']
+        session['rank'] = user['rank']
+    
+    conn.close()
+
+# Template context processor to make user data available in all templates
+@app.context_processor
+def inject_user():
+    """Make current user data available in all templates"""
+    return {
+        'current_user': get_current_user(),
+        'is_logged_in': is_logged_in(),
+        'is_admin': is_admin()
+    }
+
+# Before request handler to check session and update activity
+@app.before_request
+def before_request():
+    """Run before each request to check session validity"""
+    if not check_session_timeout():
+        return redirect(url_for('login'))
+    update_session_activity()
 
 # Routes
 @app.route('/')
@@ -670,9 +1044,7 @@ def login():
         conn.close()
         
         if user and check_password_hash(user['password_hash'], password):
-            session['user_id'] = user['id']
-            session['username'] = user['username']
-            session['rank'] = user['rank']
+            login_user(user)
             flash('Login successful!', 'success')
             return redirect(url_for('index'))
         else:
@@ -682,7 +1054,7 @@ def login():
 
 @app.route('/logout')
 def logout():
-    session.clear()
+    logout_user()
     flash('You have been logged out', 'info')
     return redirect(url_for('index'))
 
@@ -728,34 +1100,31 @@ def tool_detail(tool_id):
         JOIN users u ON r.user_id = u.id
         WHERE r.tool_id = ?
         ORDER BY r.created_at DESC
-    ''', (tool_id,)).fetchall()
-      # Get comments with user votes and replies structure
+    ''', (tool_id,)).fetchall()      # Get comments with user reactions and replies structure
     comments_query = '''
         SELECT c.*, u.username, u.rank,
-               COALESCE(cv.vote_type, '') as user_vote
+               COALESCE(cr.reaction_type, '') as user_reaction
         FROM comments c
         JOIN users u ON c.user_id = u.id
-        LEFT JOIN comment_votes cv ON c.id = cv.comment_id AND cv.user_id = ?
+        LEFT JOIN comment_reactions cr ON c.id = cr.comment_id AND cr.user_id = ?
         WHERE c.tool_id = ? AND c.parent_id IS NULL
-        ORDER BY c.created_at ASC
-    '''
-    
-    user_id_for_votes = session.get('user_id', -1)  # Use -1 if not logged in
-    comments = conn.execute(comments_query, (user_id_for_votes, tool_id)).fetchall()
-      # Convert comments to list of dictionaries and get replies
+        ORDER BY c.created_at ASC    '''
+    user_id_for_reactions = session.get('user_id', -1)  # Use -1 if not logged in
+    comments = conn.execute(comments_query, (user_id_for_reactions, tool_id)).fetchall()
+    # Convert comments to list of dictionaries and get replies
     comments_list = []
     for comment in comments:
         comment_dict = dict(comment)
         replies_query = '''
             SELECT c.*, u.username, u.rank,
-                   COALESCE(cv.vote_type, '') as user_vote
+                   COALESCE(cr.reaction_type, '') as user_reaction
             FROM comments c
             JOIN users u ON c.user_id = u.id
-            LEFT JOIN comment_votes cv ON c.id = cv.comment_id AND cv.user_id = ?
+            LEFT JOIN comment_reactions cr ON c.id = cr.comment_id AND cr.user_id = ?
             WHERE c.parent_id = ?
             ORDER BY c.created_at ASC
         '''
-        replies = conn.execute(replies_query, (user_id_for_votes, comment_dict['id'])).fetchall()
+        replies = conn.execute(replies_query, (user_id_for_reactions, comment_dict['id'])).fetchall()
         comment_dict['replies'] = [dict(reply) for reply in replies]
         comments_list.append(comment_dict)
     
@@ -778,10 +1147,8 @@ def tool_detail(tool_id):
                          related_tools=related_tools)
 
 @app.route('/rate_tool', methods=['POST'])
+@login_required
 def rate_tool():
-    if 'user_id' not in session:
-        return jsonify({'error': 'Please log in to rate tools'}), 401
-    
     # Only handle JSON requests now
     if not request.is_json:
         return jsonify({'error': 'Content-Type must be application/json'}), 400
@@ -842,16 +1209,20 @@ def rate_tool():
     return jsonify({'success': True})
 
 @app.route('/add_comment', methods=['POST'])
+@login_required
 def add_comment():
-    if 'user_id' not in session:
-        return jsonify({'error': 'Please log in to comment'}), 401
-    
     tool_id = request.json.get('tool_id')
     comment = request.json.get('comment')
     parent_id = request.json.get('parent_id')  # For replies
     
+    # Handle parent_id - convert empty string or undefined to None
+    if parent_id == '' or parent_id == 'null':
+        parent_id = None
+    
     if not tool_id or not comment:
         return jsonify({'error': 'Invalid comment data'}), 400
+    
+    print(f"Creating comment: tool_id={tool_id}, parent_id={parent_id}, user_id={session['user_id']}")
     
     conn = get_db_connection()
     
@@ -861,6 +1232,12 @@ def add_comment():
         (session['user_id'], tool_id, comment, parent_id)
     )
     comment_id = cursor.lastrowid
+    
+    if comment_id is None:
+        conn.close()
+        return jsonify({'error': 'Failed to create comment'}), 500
+    
+    print(f"Comment created with ID: {comment_id}")
     
     # Award XP for commenting
     update_user_xp(session['user_id'], 30, conn)
@@ -873,6 +1250,10 @@ def add_comment():
         WHERE c.id = ?
     ''', (comment_id,)).fetchone()
     
+    if new_comment is None:
+        conn.close()
+        return jsonify({'error': 'Failed to retrieve created comment'}), 500
+    
     conn.commit()
     conn.close()
     
@@ -883,96 +1264,106 @@ def add_comment():
             'username': new_comment['username'],
             'rank': new_comment['rank'],
             'comment': new_comment['comment'],
-            'created_at': new_comment['created_at'],
-            'upvotes': new_comment['upvotes'],
-            'downvotes': new_comment['downvotes'],
+            'created_at': new_comment['created_at'],            'like_count': new_comment['like_count'],
+            'love_count': new_comment['love_count'],
+            'angry_count': new_comment['angry_count'],
+            'laugh_count': new_comment['laugh_count'],
             'parent_id': new_comment['parent_id']
         }
     })
 
-@app.route('/vote_comment', methods=['POST'])
-def vote_comment():
-    if 'user_id' not in session:
-        return jsonify({'error': 'Please log in to vote'}), 401
+@app.route('/react_comment', methods=['POST'])
+@login_required
+def react_comment():
+    print("=== REACT COMMENT ROUTE CALLED ===")
     
     comment_id = request.json.get('comment_id')
-    vote_type = request.json.get('vote_type')  # 'upvote' or 'downvote'
+    reaction_type = request.json.get('reaction_type')  # 'like', 'love', 'angry', 'laugh'
     
-    if not comment_id or vote_type not in ['upvote', 'downvote']:
-        return jsonify({'error': 'Invalid vote data'}), 400
+    print(f"Reaction request: user_id={session['user_id']}, comment_id={comment_id}, reaction_type={reaction_type}")
+    
+    if not comment_id or reaction_type not in ['like', 'love', 'angry', 'laugh']:
+        print("Invalid reaction data")
+        return jsonify({'error': 'Invalid reaction data'}), 400
     
     conn = get_db_connection()
     
-    # Check if user already voted on this comment
-    existing_vote = conn.execute(
-        'SELECT vote_type FROM comment_votes WHERE user_id = ? AND comment_id = ?',
-        (session['user_id'], comment_id)
-    ).fetchone()
-    
-    if existing_vote:
-        if existing_vote['vote_type'] == vote_type:
-            # Remove vote if clicking same button
-            conn.execute(
-                'DELETE FROM comment_votes WHERE user_id = ? AND comment_id = ?',
-                (session['user_id'], comment_id)
-            )
-            
-            # Update comment vote count
-            if vote_type == 'upvote':
-                conn.execute('UPDATE comments SET upvotes = upvotes - 1 WHERE id = ?', (comment_id,))
-            else:
-                conn.execute('UPDATE comments SET downvotes = downvotes - 1 WHERE id = ?', (comment_id,))
-        else:
-            # Change vote type
-            conn.execute(
-                'UPDATE comment_votes SET vote_type = ? WHERE user_id = ? AND comment_id = ?',
-                (vote_type, session['user_id'], comment_id)
-            )
-            
-            # Update comment vote counts
-            if vote_type == 'upvote':
-                conn.execute('UPDATE comments SET upvotes = upvotes + 1, downvotes = downvotes - 1 WHERE id = ?', (comment_id,))
-            else:
-                conn.execute('UPDATE comments SET downvotes = downvotes + 1, upvotes = upvotes - 1 WHERE id = ?', (comment_id,))
-    else:
-        # New vote
-        conn.execute(
-            'INSERT INTO comment_votes (user_id, comment_id, vote_type) VALUES (?, ?, ?)',
-            (session['user_id'], comment_id, vote_type)
-        )
+    try:
+        # Check if user already reacted to this comment
+        existing_reaction = conn.execute(
+            'SELECT reaction_type FROM comment_reactions WHERE user_id = ? AND comment_id = ?',
+            (session['user_id'], comment_id)
+        ).fetchone()
         
-        # Update comment vote count
-        if vote_type == 'upvote':
-            conn.execute('UPDATE comments SET upvotes = upvotes + 1 WHERE id = ?', (comment_id,))
+        print(f"Existing reaction: {existing_reaction}")
+        
+        if existing_reaction:
+            if existing_reaction['reaction_type'] == reaction_type:
+                print("Removing existing reaction (same type)")
+                # Remove reaction if clicking same button
+                conn.execute(
+                    'DELETE FROM comment_reactions WHERE user_id = ? AND comment_id = ?',
+                    (session['user_id'], comment_id)
+                )
+                
+                # Update comment reaction count
+                conn.execute(f'UPDATE comments SET {reaction_type}_count = {reaction_type}_count - 1 WHERE id = ?', (comment_id,))
+            else:
+                print("Changing reaction type")
+                # Change reaction type - first decrease old count, then increase new count
+                old_reaction = existing_reaction['reaction_type']
+                conn.execute(f'UPDATE comments SET {old_reaction}_count = {old_reaction}_count - 1 WHERE id = ?', (comment_id,))
+                conn.execute(f'UPDATE comments SET {reaction_type}_count = {reaction_type}_count + 1 WHERE id = ?', (comment_id,))
+                
+                # Update the reaction
+                conn.execute(
+                    'UPDATE comment_reactions SET reaction_type = ? WHERE user_id = ? AND comment_id = ?',
+                    (reaction_type, session['user_id'], comment_id)
+                )
         else:
-            conn.execute('UPDATE comments SET downvotes = downvotes + 1 WHERE id = ?', (comment_id,))
-      # Get updated vote counts and user's current vote
-    comment_votes = conn.execute(
-        'SELECT upvotes, downvotes FROM comments WHERE id = ?',
-        (comment_id,)
-    ).fetchone()
-    
-    # Get user's current vote
-    user_current_vote = conn.execute(
-        'SELECT vote_type FROM comment_votes WHERE user_id = ? AND comment_id = ?',
-        (session['user_id'], comment_id)
-    ).fetchone()
-    
-    conn.commit()
-    conn.close()
-    
-    return jsonify({
-        'success': True,
-        'upvotes': comment_votes['upvotes'],
-        'downvotes': comment_votes['downvotes'],
-        'user_vote': user_current_vote['vote_type'] if user_current_vote else None
-    })
+            print("Adding new reaction")
+            # New reaction
+            conn.execute(
+                'INSERT INTO comment_reactions (user_id, comment_id, reaction_type) VALUES (?, ?, ?)',
+                (session['user_id'], comment_id, reaction_type)
+            )
+            
+            # Update comment reaction count
+            conn.execute(f'UPDATE comments SET {reaction_type}_count = {reaction_type}_count + 1 WHERE id = ?', (comment_id,))
+        
+        # Get updated reaction counts
+        comment_reactions = conn.execute(
+            'SELECT like_count, love_count, angry_count, laugh_count FROM comments WHERE id = ?',
+            (comment_id,)
+        ).fetchone()
+        
+        # Get user's current reaction
+        user_current_reaction = conn.execute(
+            'SELECT reaction_type FROM comment_reactions WHERE user_id = ? AND comment_id = ?',
+            (session['user_id'], comment_id)
+        ).fetchone()
+        
+        result = {
+            'success': True,
+            'like_count': comment_reactions['like_count'] if comment_reactions else 0,
+            'love_count': comment_reactions['love_count'] if comment_reactions else 0,
+            'angry_count': comment_reactions['angry_count'] if comment_reactions else 0,
+            'laugh_count': comment_reactions['laugh_count'] if comment_reactions else 0,
+            'user_reaction': user_current_reaction['reaction_type'] if user_current_reaction else None
+        }
+        
+        print(f"Reaction result: {result}")
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"Reaction error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Failed to process reaction'}), 500
 
 @app.route('/edit_comment', methods=['POST'])
+@login_required
 def edit_comment():
-    if 'user_id' not in session:
-        return jsonify({'error': 'Please log in to edit comments'}), 401
-    
     comment_id = request.json.get('comment_id')
     new_comment = request.json.get('comment')
     
@@ -981,34 +1372,37 @@ def edit_comment():
     
     conn = get_db_connection()
     
-    # Check if user owns the comment
-    comment_owner = conn.execute(
-        'SELECT user_id FROM comments WHERE id = ?',
-        (comment_id,)
-    ).fetchone()
-    
-    if not comment_owner or comment_owner['user_id'] != session['user_id']:
+    try:
+        # Check if user owns the comment
+        comment_owner = conn.execute(
+            'SELECT user_id FROM comments WHERE id = ?',
+            (comment_id,)
+        ).fetchone()
+        
+        if not comment_owner or comment_owner['user_id'] != session['user_id']:
+            return jsonify({'error': 'You can only edit your own comments'}), 403
+        
+        # Update comment
+        conn.execute(
+            'UPDATE comments SET comment = ?, updated_at = CURRENT_TIMESTAMP, is_edited = TRUE WHERE id = ?',
+            (new_comment, comment_id)
+        )
+        
+        conn.commit()
+        print(f"Comment {comment_id} updated successfully: {new_comment[:50]}...")
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        print(f"Edit comment error: {e}")
+        return jsonify({'error': 'Failed to update comment'}), 500
+    finally:
         conn.close()
-        return jsonify({'error': 'You can only edit your own comments'}), 403
-    
-    # Update comment
-    conn.execute(
-        'UPDATE comments SET comment = ?, updated_at = CURRENT_TIMESTAMP, is_edited = TRUE WHERE id = ?',
-        (new_comment, comment_id)
-    )
-    
-    conn.commit()
-    conn.close()
-    
-    return jsonify({'success': True})
 
 @app.route('/delete_comment', methods=['POST'])
+@login_required
 def delete_comment():
-    if 'user_id' not in session:
-        return jsonify({'error': 'Please log in to delete comments'}), 401
-    
-    comment_id = request.json.get('comment_id')
-    
+    comment_id = request.json.get('comment_id')    
     if not comment_id:
         return jsonify({'error': 'Invalid comment ID'}), 400
     
@@ -1023,12 +1417,25 @@ def delete_comment():
     if not comment_owner or comment_owner['user_id'] != session['user_id']:
         conn.close()
         return jsonify({'error': 'You can only delete your own comments'}), 403
+      # Delete comment and handle cascading manually
+    # First, get all reply IDs
+    replies = conn.execute(
+        'SELECT id FROM comments WHERE parent_id = ?',
+        (comment_id,)
+    ).fetchall()
     
-    # Delete comment (this will also delete replies due to cascade)
-    conn.execute('DELETE FROM comments WHERE id = ? OR parent_id = ?', (comment_id, comment_id))
-    conn.execute('DELETE FROM comment_votes WHERE comment_id = ?', (comment_id,))
+    # Delete reactions for the main comment and all replies
+    all_comment_ids = [comment_id] + [reply['id'] for reply in replies]
+    for cid in all_comment_ids:
+        conn.execute('DELETE FROM comment_reactions WHERE comment_id = ?', (cid,))
     
-    conn.commit()
+    # Delete all replies
+    if replies:
+        conn.execute('DELETE FROM comments WHERE parent_id = ?', (comment_id,))
+    
+    # Delete the main comment
+    conn.execute('DELETE FROM comments WHERE id = ?', (comment_id,))
+    
     conn.close()
     
     return jsonify({'success': True})
@@ -1122,9 +1529,19 @@ def leaderboard():
         SELECT username, xp, rank FROM users 
         ORDER BY xp DESC LIMIT 50
     ''').fetchall()
+    
+    # Get current user's data if logged in
+    current_user = None
+    if 'user_id' in session:
+        current_user_data = conn.execute('''
+            SELECT username, xp, rank FROM users WHERE id = ?
+        ''', (session['user_id'],)).fetchone()
+        if current_user_data:
+            current_user = dict(current_user_data)
+    
     conn.close()
     
-    return render_template('leaderboard.html', users=users)
+    return render_template('leaderboard.html', users=users, current_user=current_user)
 
 @app.route('/support')
 def support():
@@ -1142,7 +1559,13 @@ def admin_login():
         admin_password = os.environ.get('ADMIN_PASSWORD', 'admin123')
         
         if username == admin_username and password == admin_password:
+            # Set admin session
             session['admin'] = True
+            session['username'] = username
+            session['user_id'] = -1  # Special ID for admin
+            session['rank'] = 'Super Admin'
+            session['xp'] = 999999
+            session.permanent = True
             flash('Welcome to Admin Dashboard!', 'success')
             return redirect(url_for('admin_dashboard'))
         else:
@@ -1152,9 +1575,8 @@ def admin_login():
     return render_template('admin/login.html')
 
 @app.route('/admin/dashboard')
+@admin_required
 def admin_dashboard():
-    if not session.get('admin'):
-        return redirect(url_for('admin_login'))
     
     conn = get_db_connection()
     
@@ -1204,9 +1626,8 @@ def admin_dashboard():
                          tools=tools, users=users, reviews=reviews, stats=stats, page=page)
 
 @app.route('/admin/add-tool', methods=['GET', 'POST'])
+@admin_required
 def admin_add_tool():
-    if not session.get('admin'):
-        return redirect(url_for('admin_login'))
     if request.method == 'POST':
         name = request.form['name']
         description = request.form['description']
@@ -1230,14 +1651,13 @@ def admin_add_tool():
 
 @app.route('/admin/logout')
 def admin_logout():
-    session.pop('admin', None)
+    logout_user()
     return redirect(url_for('index'))
 
 # Admin CRUD operations
 @app.route('/admin/delete_tool/<int:tool_id>', methods=['POST'])
+@admin_required
 def admin_delete_tool(tool_id):
-    if not session.get('admin'):
-        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
     
     try:
         conn = get_db_connection()
@@ -1272,9 +1692,8 @@ def admin_delete_tool(tool_id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/admin/edit_tool/<int:tool_id>', methods=['GET', 'POST'])
+@admin_required
 def admin_edit_tool(tool_id):
-    if not session.get('admin'):
-        return redirect(url_for('admin_login'))
     
     conn = get_db_connection()
     
@@ -1317,9 +1736,9 @@ def admin_edit_tool(tool_id):
     return render_template('admin/edit_tool.html', tool=tool)
 
 @app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
+@admin_required
 def admin_delete_user(user_id):
-    if not session.get('admin'):
-        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
     
     try:
         conn = get_db_connection()
@@ -1359,9 +1778,8 @@ def admin_delete_user(user_id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/admin/delete_review/<int:review_id>', methods=['POST'])
+@admin_required
 def admin_delete_review(review_id):
-    if not session.get('admin'):
-        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
     
     try:
         conn = get_db_connection()
@@ -1397,9 +1815,8 @@ def admin_delete_review(review_id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/admin/toggle_user/<int:user_id>', methods=['POST'])
+@admin_required
 def admin_toggle_user(user_id):
-    if not session.get('admin'):
-        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
     
     try:
         conn = get_db_connection()
@@ -1499,4 +1916,6 @@ if os.environ.get('VERCEL'):
 if os.environ.get('VERCEL'):
     # Ensure upload directory exists in temp
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+# ============================================================================
 

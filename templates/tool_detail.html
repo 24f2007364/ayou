@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}{{ tool.name }} - Ayou AI Marketplace{% endblock %}
+{% block title %}{{ tool.name }} - AI Exchange AI Marketplace{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-0">
@@ -114,14 +114,13 @@
                 <div class="content-section mb-5">
                     <h4 class="section-subtitle">Recent Reviews</h4>
                     <div class="reviews-list">
-                        {% for rating in ratings[:5] %}
-                        <div class="review-item">
+                        {% for rating in ratings[:5] %}                        <div class="review-item">
                             <div class="review-header d-flex align-items-center mb-2">
-                                <div class="user-avatar me-3">
+                                <div class="user-avatar me-3" data-username="{{ rating.username }}">
                                     <span>{{ rating.username[0].upper() }}</span>
                                 </div>
                                 <div class="flex-grow-1">
-                                    <div class="reviewer-name">{{ rating.username }}</div>
+                                    <div class="reviewer-name username">{{ rating.username }}</div>
                                     <div class="review-meta">
                                         <div class="stars me-2">
                                             {% for i in range(1, 6) %}
@@ -151,13 +150,13 @@
                     </div>
 
                     <!-- New Discussion Form -->
-                    {% if session.user_id %}
-                    <div class="new-discussion-form mb-4">
+                    {% if session.user_id %}                    <div class="new-discussion-form mb-4">
                         <div class="d-flex align-items-start">
-                            <div class="user-avatar me-3">
+                            <div class="user-avatar me-3" data-username="{{ session.username if session.username else 'User' }}">
                                 <span>{{ session.username[0].upper() if session.username else 'U' }}</span>
                             </div>
                             <div class="flex-grow-1">
+                                <div class="username" style="display: none;">{{ session.username if session.username else 'User' }}</div>
                                 <form id="commentForm" class="comment-form">
                                     <div class="form-group mb-3">
                                         <textarea id="commentText" name="comment" class="form-control discussion-input" 
@@ -188,8 +187,7 @@
                             <div class="discussion-item" data-comment-id="{{ comment.id }}">
                                 <!-- Main Comment -->
                                 <div class="comment-main">
-                                    <div class="d-flex align-items-start">
-                                        <div class="user-avatar me-3">
+                                    <div class="d-flex align-items-start">                                        <div class="user-avatar me-3" data-username="{{ comment.username }}">
                                             <span>{{ comment.username[0].upper() }}</span>
                                         </div>
                                         <div class="flex-grow-1">
@@ -201,24 +199,35 @@
                                                     {% if comment.is_edited %}
                                                         <span class="edited-badge text-muted ms-1">(edited)</span>
                                                     {% endif %}
-                                                </div>
-                                                <div class="comment-text">
+                                                </div>                                                <div class="comment-text">
                                                     <p class="mb-2">{{ comment.comment }}</p>
                                                 </div>
                                                 <div class="comment-actions d-flex align-items-center gap-3">
-                                                    <!-- Vote Buttons -->
-                                                    <div class="vote-section d-flex align-items-center">
-                                                        <button class="vote-btn upvote-btn {{ 'active' if comment.user_vote == 'upvote' else '' }}" 
-                                                                data-comment-id="{{ comment.id }}" data-vote-type="upvote"
-                                                                {% if not session.user_id %}disabled title="Login to vote"{% endif %}>
-                                                            <i class="bi bi-arrow-up"></i>
-                                                            <span class="vote-count">{{ comment.upvotes or 0 }}</span>
+                                                    <!-- Reaction Buttons -->
+                                                    <div class="reaction-section d-flex align-items-center gap-2">
+                                                        <button class="reaction-btn like-btn {{ 'active' if comment.user_reaction == 'like' else '' }}" 
+                                                                data-comment-id="{{ comment.id }}" data-reaction-type="like"
+                                                                {% if not session.user_id %}disabled title="Login to react"{% endif %}>
+                                                            <i class="bi bi-hand-thumbs-up"></i>
+                                                            <span class="reaction-count">{{ comment.like_count or 0 }}</span>
                                                         </button>
-                                                        <button class="vote-btn downvote-btn {{ 'active' if comment.user_vote == 'downvote' else '' }}" 
-                                                                data-comment-id="{{ comment.id }}" data-vote-type="downvote"
-                                                                {% if not session.user_id %}disabled title="Login to vote"{% endif %}>
-                                                            <i class="bi bi-arrow-down"></i>
-                                                            <span class="vote-count">{{ comment.downvotes or 0 }}</span>
+                                                        <button class="reaction-btn love-btn {{ 'active' if comment.user_reaction == 'love' else '' }}" 
+                                                                data-comment-id="{{ comment.id }}" data-reaction-type="love"
+                                                                {% if not session.user_id %}disabled title="Login to react"{% endif %}>
+                                                            <i class="bi bi-heart-fill"></i>
+                                                            <span class="reaction-count">{{ comment.love_count or 0 }}</span>
+                                                        </button>
+                                                        <button class="reaction-btn angry-btn {{ 'active' if comment.user_reaction == 'angry' else '' }}" 
+                                                                data-comment-id="{{ comment.id }}" data-reaction-type="angry"
+                                                                {% if not session.user_id %}disabled title="Login to react"{% endif %}>
+                                                            <i class="bi bi-emoji-angry"></i>
+                                                            <span class="reaction-count">{{ comment.angry_count or 0 }}</span>
+                                                        </button>
+                                                        <button class="reaction-btn laugh-btn {{ 'active' if comment.user_reaction == 'laugh' else '' }}" 
+                                                                data-comment-id="{{ comment.id }}" data-reaction-type="laugh"
+                                                                {% if not session.user_id %}disabled title="Login to react"{% endif %}>
+                                                            <i class="bi bi-emoji-laughing"></i>
+                                                            <span class="reaction-count">{{ comment.laugh_count or 0 }}</span>
                                                         </button>
                                                     </div>
                                                     
@@ -243,13 +252,13 @@
                                 </div>
 
                                 <!-- Reply Form (Hidden by default) -->
-                                {% if session.user_id %}
-                                <div class="reply-form-container" id="reply-form-{{ comment.id }}" style="display: none;">
+                                {% if session.user_id %}                                <div class="reply-form-container" id="reply-form-{{ comment.id }}" style="display: none;">
                                     <div class="d-flex align-items-start mt-3 ms-5">
-                                        <div class="user-avatar me-3">
+                                        <div class="user-avatar me-3" data-username="{{ session.username }}">
                                             <span>{{ session.username[0].upper() }}</span>
                                         </div>
                                         <div class="flex-grow-1">
+                                            <div class="username" style="display: none;">{{ session.username }}</div>
                                             <form class="reply-form" data-parent-id="{{ comment.id }}">
                                                 <div class="form-group mb-2">
                                                     <textarea name="reply" class="form-control reply-input" 
@@ -270,8 +279,7 @@
                                 <div class="replies-container mt-3 ms-5">
                                     {% for reply in comment.replies %}
                                     <div class="reply-item" data-comment-id="{{ reply.id }}">
-                                        <div class="d-flex align-items-start">
-                                            <div class="user-avatar me-3">
+                                        <div class="d-flex align-items-start">                                            <div class="user-avatar me-3" data-username="{{ reply.username }}">
                                                 <span>{{ reply.username[0].upper() }}</span>
                                             </div>
                                             <div class="flex-grow-1">
@@ -286,21 +294,32 @@
                                                     </div>
                                                     <div class="reply-text">
                                                         <p class="mb-2">{{ reply.comment }}</p>
-                                                    </div>
-                                                    <div class="reply-actions d-flex align-items-center gap-3">
-                                                        <!-- Vote Buttons for Reply -->
-                                                        <div class="vote-section d-flex align-items-center">
-                                                            <button class="vote-btn upvote-btn {{ 'active' if reply.user_vote == 'upvote' else '' }}" 
-                                                                    data-comment-id="{{ reply.id }}" data-vote-type="upvote"
-                                                                    {% if not session.user_id %}disabled{% endif %}>
-                                                                <i class="bi bi-arrow-up"></i>
-                                                                <span class="vote-count">{{ reply.upvotes or 0 }}</span>
+                                                    </div>                                                    <div class="reply-actions d-flex align-items-center gap-3">
+                                                        <!-- Reaction Buttons for Reply -->
+                                                        <div class="reaction-section d-flex align-items-center gap-2">
+                                                            <button class="reaction-btn like-btn {{ 'active' if reply.user_reaction == 'like' else '' }}" 
+                                                                    data-comment-id="{{ reply.id }}" data-reaction-type="like"
+                                                                    {% if not session.user_id %}disabled title="Login to react"{% endif %}>
+                                                                <i class="bi bi-hand-thumbs-up"></i>
+                                                                <span class="reaction-count">{{ reply.like_count or 0 }}</span>
                                                             </button>
-                                                            <button class="vote-btn downvote-btn {{ 'active' if reply.user_vote == 'downvote' else '' }}" 
-                                                                    data-comment-id="{{ reply.id }}" data-vote-type="downvote"
-                                                                    {% if not session.user_id %}disabled{% endif %}>
-                                                                <i class="bi bi-arrow-down"></i>
-                                                                <span class="vote-count">{{ reply.downvotes or 0 }}</span>
+                                                            <button class="reaction-btn love-btn {{ 'active' if reply.user_reaction == 'love' else '' }}" 
+                                                                    data-comment-id="{{ reply.id }}" data-reaction-type="love"
+                                                                    {% if not session.user_id %}disabled title="Login to react"{% endif %}>
+                                                                <i class="bi bi-heart-fill"></i>
+                                                                <span class="reaction-count">{{ reply.love_count or 0 }}</span>
+                                                            </button>
+                                                            <button class="reaction-btn angry-btn {{ 'active' if reply.user_reaction == 'angry' else '' }}" 
+                                                                    data-comment-id="{{ reply.id }}" data-reaction-type="angry"
+                                                                    {% if not session.user_id %}disabled title="Login to react"{% endif %}>
+                                                                <i class="bi bi-emoji-angry"></i>
+                                                                <span class="reaction-count">{{ reply.angry_count or 0 }}</span>
+                                                            </button>
+                                                            <button class="reaction-btn laugh-btn {{ 'active' if reply.user_reaction == 'laugh' else '' }}" 
+                                                                    data-comment-id="{{ reply.id }}" data-reaction-type="laugh"
+                                                                    {% if not session.user_id %}disabled title="Login to react"{% endif %}>
+                                                                <i class="bi bi-emoji-laughing"></i>
+                                                                <span class="reaction-count">{{ reply.laugh_count or 0 }}</span>
                                                             </button>
                                                         </div>
                                                         
@@ -586,17 +605,29 @@ document.addEventListener('DOMContentLoaded', function() {
         commentForm.addEventListener('submit', function(e) {
             e.preventDefault();
             submitComment();
-        });
-    }
-
-    // Vote button handlers
+        });    }    // Reaction button handlers
     document.addEventListener('click', function(e) {
-        if (e.target.closest('.vote-btn')) {
+        if (e.target.closest('.reaction-btn')) {
             e.preventDefault();
-            const btn = e.target.closest('.vote-btn');
+            const btn = e.target.closest('.reaction-btn');
+            
+            // Check if button is disabled
+            if (btn.disabled) {
+                console.log('Button is disabled');
+                return;
+            }
+            
             const commentId = btn.dataset.commentId;
-            const voteType = btn.dataset.voteType;
-            voteComment(commentId, voteType, btn);
+            const reactionType = btn.dataset.reactionType;
+            
+            console.log('Reaction button clicked:', { commentId, reactionType, btn });
+            
+            if (!commentId || !reactionType) {
+                console.error('Missing reaction data:', { commentId, reactionType });
+                return;
+            }
+            
+            reactToComment(commentId, reactionType, btn);
         }
     });
 
@@ -773,43 +804,85 @@ function testCommentAjax() {
     xhr.send(data);
 }
 
-// Vote on comment
-function voteComment(commentId, voteType, btnElement) {
-    if (!btnElement.disabled) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/vote_comment', true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-                if (xhr.status === 200) {
+// React to comment
+function reactToComment(commentId, reactionType, btnElement) {
+    console.log('reactToComment called:', { commentId, reactionType, btnElement });
+    
+    // Disable the clicked button temporarily
+    btnElement.disabled = true;
+    
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/react_comment', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            console.log('Reaction response:', xhr.status, xhr.responseText);
+            
+            // Re-enable button
+            btnElement.disabled = false;
+            
+            if (xhr.status === 200) {
+                try {
                     const response = JSON.parse(xhr.responseText);
+                    console.log('Parsed response:', response);
+                    
                     if (response.success) {
-                        // Update vote counts
-                        const commentElement = document.querySelector(`[data-comment-id="${commentId}"]`);
-                        const upvoteBtn = commentElement.querySelector('.upvote-btn');
-                        const downvoteBtn = commentElement.querySelector('.downvote-btn');
-                        
-                        upvoteBtn.classList.toggle('active', response.user_vote === 'upvote');
-                        downvoteBtn.classList.toggle('active', response.user_vote === 'downvote');
-                        
-                        upvoteBtn.querySelector('.vote-count').textContent = response.upvotes;
-                        downvoteBtn.querySelector('.vote-count').textContent = response.downvotes;
+                        // Find the reaction section containing all buttons
+                        const reactionSection = btnElement.closest('.reaction-section');
+                        if (reactionSection) {
+                            const likeBtn = reactionSection.querySelector('.like-btn');
+                            const loveBtn = reactionSection.querySelector('.love-btn');
+                            const angryBtn = reactionSection.querySelector('.angry-btn');
+                            const laughBtn = reactionSection.querySelector('.laugh-btn');
+                            
+                            if (likeBtn && loveBtn && angryBtn && laughBtn) {
+                                // Update active states - remove active from all
+                                [likeBtn, loveBtn, angryBtn, laughBtn].forEach(btn => btn.classList.remove('active'));
+                                
+                                // Add active to the user's current reaction
+                                if (response.user_reaction) {
+                                    const activeBtn = reactionSection.querySelector(`.${response.user_reaction}-btn`);
+                                    if (activeBtn) {
+                                        activeBtn.classList.add('active');
+                                    }
+                                }
+                                
+                                // Update reaction counts
+                                likeBtn.querySelector('.reaction-count').textContent = response.like_count;
+                                loveBtn.querySelector('.reaction-count').textContent = response.love_count;
+                                angryBtn.querySelector('.reaction-count').textContent = response.angry_count;
+                                laughBtn.querySelector('.reaction-count').textContent = response.laugh_count;
+                                
+                                console.log('UI updated successfully');
+                            } else {
+                                console.error('Could not find reaction buttons');
+                            }
+                        } else {
+                            console.error('Could not find reaction section');
+                        }
                     } else {
-                        alert(response.error || 'Failed to vote');
+                        console.error('Reaction failed:', response.error);
+                        alert(response.error || 'Failed to react');
                     }
-                } else {
-                    alert('Failed to vote');
+                } catch (e) {
+                    console.error('JSON parse error:', e);
+                    alert('Error processing response');
                 }
+            } else {
+                console.error('HTTP error:', xhr.status);
+                alert('Failed to react - HTTP ' + xhr.status);
             }
-        };
-          const data = JSON.stringify({
-            comment_id: commentId,
-            vote_type: voteType
-        });
-        
-        xhr.send(data);
-    }
+        }
+    };
+    
+    const data = JSON.stringify({
+        comment_id: commentId,
+        reaction_type: reactionType
+    });
+    
+    console.log('Sending reaction data:', data);
+    xhr.send(data);
 }
 
 // Toggle reply form

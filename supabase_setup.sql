@@ -39,12 +39,16 @@ CREATE TABLE IF NOT EXISTS ratings (
 -- Comments table
 CREATE TABLE IF NOT EXISTS comments (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id),
-    tool_id INTEGER REFERENCES tools(id),
-    parent_id INTEGER REFERENCES comments(id),
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    tool_id INTEGER REFERENCES tools(id) ON DELETE CASCADE,
+    parent_id INTEGER REFERENCES comments(id) ON DELETE CASCADE,
     comment TEXT NOT NULL,
-    upvotes INTEGER DEFAULT 0,
-    downvotes INTEGER DEFAULT 0,
+    like_count INTEGER DEFAULT 0,
+    love_count INTEGER DEFAULT 0,
+    angry_count INTEGER DEFAULT 0,
+    laugh_count INTEGER DEFAULT 0,
+    is_edited BOOLEAN DEFAULT FALSE,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -57,12 +61,12 @@ CREATE TABLE IF NOT EXISTS contact_messages (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Comment votes table
-CREATE TABLE IF NOT EXISTS comment_votes (
+-- Comment reactions table (replacing comment_votes)
+CREATE TABLE IF NOT EXISTS comment_reactions (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id),
-    comment_id INTEGER REFERENCES comments(id),
-    vote INTEGER NOT NULL CHECK (vote IN (-1, 1)),
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    comment_id INTEGER REFERENCES comments(id) ON DELETE CASCADE,
+    reaction_type VARCHAR(10) NOT NULL CHECK (reaction_type IN ('like', 'love', 'angry', 'laugh')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, comment_id)
 );
@@ -73,7 +77,7 @@ ALTER TABLE tools ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ratings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contact_messages ENABLE ROW LEVEL SECURITY;
-ALTER TABLE comment_votes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE comment_reactions ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for public read access (adjust as needed)
 CREATE POLICY "Allow public read access on tools" ON tools FOR SELECT USING (true);
@@ -87,4 +91,5 @@ CREATE POLICY "Allow all operations on ratings" ON ratings USING (true);
 CREATE POLICY "Allow all operations on comments" ON comments USING (true);
 CREATE POLICY "Allow all operations on users" ON users USING (true);
 CREATE POLICY "Allow all operations on contact_messages" ON contact_messages USING (true);
-CREATE POLICY "Allow all operations on comment_votes" ON comment_votes USING (true);
+-- RLS Policies for comment_reactions
+CREATE POLICY "Allow all operations on comment_reactions" ON comment_reactions USING (true);

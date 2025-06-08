@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Ayou - AI for You, Me and All{% endblock %}</title>    <!-- Bootstrap 5 CSS -->
+    <title>{% block title %}AI Exchange - AI for You, Me and All{% endblock %}</title>    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons - Primary CDN with integrity -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" integrity="sha512-dPXYcDub/aeb08c63jRq/k6GaKccl256JQy/AnOq7CAnEZ9FzSL9wSbcZkMp4R26qAlAi/E4WJUcLjRlSHng1A==" crossorigin="anonymous">
@@ -20,7 +20,7 @@
 <body>    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNavbar">
         <div class="container">            <a class="navbar-brand fw-bold fs-3" href="{{ url_for('index') }}">
-                <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="Ayou Logo" class="navbar-logo me-2">
+                <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="AI Exchange Logo" class="navbar-logo me-2">
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -56,12 +56,11 @@
                 </ul>
                 
                 <ul class="navbar-nav">
-                    {% if session.user_id %}
-                        <li class="nav-item dropdown">
+                    {% if session.user_id %}                        <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
-                                <div class="user-avatar me-2">{{ session.username[0].upper() }}</div>
+                                <div class="user-avatar me-2" data-username="{{ session.username }}">{{ session.username[0].upper() }}</div>
                                 <div class="d-flex flex-column align-items-start">
-                                    <span class="fw-semibold">{{ session.username }}</span>
+                                    <span class="fw-semibold username">{{ session.username }}</span>
                                     <small class="text-muted">{{ session.rank }}</small>
                                 </div>
                             </a>
@@ -112,14 +111,14 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">                    <div class="d-flex align-items-center mb-3">
-                        <img src="{{ url_for('static', filename='images/logo-withbg.png') }}" alt="Ayou Logo" class="footer-logo me-2">
+                        <img src="{{ url_for('static', filename='images/logo-withbg.png') }}" alt="AI Exchange Logo" class="footer-logo me-2">
                         <div>
-                            <h5 class="mb-0 fw-bold">Ayou</h5>
+                            <h5 class="mb-0 fw-bold">AI Exchange</h5>
                             <small class="text-muted">Your AI Tools Marketplace</small>
                         </div>
                     </div>
                     <p class="text-muted small">
-                        Discover, rate, and review the best AI tools with Ayou - AI for you, me and all. Build your expertise and climb the leaderboard.
+                        Discover, rate, and review the best AI tools with AI Exchange - AI for you, me and all. Build your expertise and climb the leaderboard.
                     </p>
                 </div>
                 <div class="col-md-6">
@@ -145,7 +144,7 @@
             </div>
             <hr class="my-4">
             <div class="text-center text-muted small">
-                <p class="mb-0">&copy; 2025 Ayou. Built with 💙 for the AI community.</p>
+                <p class="mb-0">&copy; 2025 AI Exchange. Built with 💙 for the AI community.</p>
             </div>
         </div>
     </footer>

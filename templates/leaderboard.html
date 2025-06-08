@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Leaderboard - Ayou{% endblock %}
+{% block title %}Leaderboard - AI Exchange{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -37,9 +37,8 @@
                             <div class="col-md-4 order-md-2">
                                 <!-- 1st Place -->
                                 <div class="podium-position first-place text-center">
-                                    <div class="position-relative d-inline-block mb-3">
-                                        <div class="rank-badge-large gold mx-auto floating-animation" style="width: 90px; height: 90px; font-size: 36px;">
-                                            <i class="bi bi-crown"></i>
+                                    <div class="position-relative d-inline-block mb-3">                                        <div class="rank-badge-large gold mx-auto floating-animation" style="width: 90px; height: 90px; font-size: 36px;">
+                                            1
                                         </div>
                                         <div class="champion-crown position-absolute top-0 start-100 translate-middle">
                                             <span class="badge bg-warning rounded-pill pulse-animation">🥇</span>
@@ -144,12 +143,11 @@
         <div class="col-lg-4">            <!-- Your Rank (if logged in) -->
             {% if session.user_id %}
             <div class="user-stats-card glass-card-enhanced p-4 mb-4">
-                <h5 class="fw-bold mb-3 gradient-text">👤 Your Stats</h5>
-                <div class="text-center">
-                    <div class="user-avatar-large mx-auto mb-3 pulse-animation" style="width: 72px; height: 72px; font-size: 28px;">
+                <h5 class="fw-bold mb-3 gradient-text">👤 Your Stats</h5>                <div class="text-center">
+                    <div class="user-avatar-large mx-auto mb-3 pulse-animation" style="width: 72px; height: 72px; font-size: 28px;" data-username="{{ session.username }}">
                         {{ session.username[0].upper() }}
                     </div>
-                    <h6 class="fw-bold username-display">{{ session.username }}</h6>
+                    <h6 class="fw-bold username-display username">{{ session.username }}</h6>
                     <p class="text-muted rank-display">{{ session.rank }}</p>
                     <div class="fw-bold text-primary fs-4 mb-3 xp-loading shimmer-loading">Loading... XP</div>
                     <div class="progress-container mb-2">
@@ -241,13 +239,13 @@
                     </div>
                     <div class="list-group-item bg-transparent border-0 px-0 py-2">
                         <div class="d-flex justify-content-between">
-                            <span>🧠 AI Leader</span>
+                            <span>⭐ AI Leader</span>
                             <small class="text-muted">4000-4999 XP</small>
                         </div>
                     </div>
                     <div class="list-group-item bg-transparent border-0 px-0 py-2">
                         <div class="d-flex justify-content-between">
-                            <span>🚀 AI Supreme Leader</span>
+                            <span>👑 AI Supreme Leader</span>
                             <small class="text-muted">5000+ XP</small>
                         </div>
                     </div>
@@ -284,8 +282,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const progressBar = document.querySelector('.progress-animated');
         
         if (xpElement && progressBar) {
-            // Simulate loading user XP (you'd get this from your backend)
-            const userXP = 750; // Example XP
+            {% if current_user %}
+            // Get user XP from backend data
+            const userXP = {{ current_user.xp }};
+            {% else %}
+            // Default XP for non-logged in users
+            const userXP = 0;
+            {% endif %}
             const nextRankXP = 1000;
             const progress = (userXP % 1000) / 10; // Progress to next rank
             

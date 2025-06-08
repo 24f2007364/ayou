@@ -1,5 +1,70 @@
-// Ayou - Main JavaScript
+// AI Exchange - Main JavaScript
 document.addEventListener('DOMContentLoaded', function() {
+    // Generate consistent avatar colors based on username
+    function generateAvatarColor(username) {
+        let hash = 0;
+        for (let i = 0; i < username.length; i++) {
+            hash = ((hash << 5) - hash + username.charCodeAt(i)) & 0xffffffff;
+        }
+        // Use absolute value and modulo to get a number between 1-18
+        return Math.abs(hash) % 18 + 1;
+    }    // Apply avatar colors to all avatars
+    function initializeAvatars() {
+        const avatars = document.querySelectorAll('.user-avatar, .user-avatar-large, .user-avatar-enhanced, .avatar-circle');
+        avatars.forEach(avatar => {
+            // First try data-username attribute
+            let username = avatar.getAttribute('data-username');
+            
+            // If not found, look for username in nearby elements
+            if (!username) {
+                const usernameElement = avatar.closest('.d-flex, .comment-main')?.querySelector('.username, .comment-author');
+                username = usernameElement ? usernameElement.textContent.trim() : null;
+            }
+            
+            if (username && username !== 'User') {
+                const colorClass = `color-${generateAvatarColor(username)}`;
+                avatar.classList.add(colorClass);
+            }
+        });
+    }
+
+    // Initialize avatars on page load
+    initializeAvatars();
+
+    // Re-initialize avatars when new comments are added
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                // Check if new avatars were added
+                mutation.addedNodes.forEach(function(node) {                    if (node.nodeType === 1) { // Element node
+                        const newAvatars = node.querySelectorAll ? node.querySelectorAll('.user-avatar, .user-avatar-large, .user-avatar-enhanced, .avatar-circle') : [];
+                        newAvatars.forEach(avatar => {
+                            // First try data-username attribute
+                            let username = avatar.getAttribute('data-username');
+                            
+                            // If not found, look for username in nearby elements
+                            if (!username) {
+                                const usernameElement = avatar.closest('.d-flex, .comment-main')?.querySelector('.username, .comment-author');
+                                username = usernameElement ? usernameElement.textContent.trim() : null;
+                            }
+                            
+                            if (username && username !== 'User') {
+                                const colorClass = `color-${generateAvatarColor(username)}`;
+                                avatar.classList.add(colorClass);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    });
+
+    // Start observing
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+
     // Initialize tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -339,7 +404,7 @@ function displayResults(suggestions, roadmap) {
                                 <div class="tool-logo-enhanced me-3">
                                     ${tool.logo_url ? 
                                         `<img src="${tool.logo_url}" alt="${tool.name}" class="tool-logo-image" loading="lazy">` :
-                                        `<img src="/static/images/logo-nobg.png" alt="Ayou AI" class="tool-logo-image default-logo" loading="lazy">`
+                                        `<img src="/static/images/logo-nobg.png" alt="AI Exchange AI" class="tool-logo-image default-logo" loading="lazy">`
                                     }
                                     <div class="logo-overlay"></div>
                                 </div>
@@ -411,7 +476,7 @@ function displayResults(suggestions, roadmap) {
                                                 <div class="step-tool-logo me-3">
                                                     ${tool.logo_url ? 
                                                         `<img src="${tool.logo_url}" alt="${tool.name}" class="step-tool-image">` :
-                                                        `<img src="/static/images/logo-nobg.png" alt="Ayou" class="step-tool-image default-logo">`
+                                                        `<img src="/static/images/logo-nobg.png" alt="AI Exchange" class="step-tool-image default-logo">`
                                                     }
                                                 </div>
                                                 <div class="flex-grow-1">

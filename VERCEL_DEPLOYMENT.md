@@ -1,6 +1,6 @@
 # Vercel Deployment Instructions
 
-## 🚀 Deploy Your Ayou Platform to Vercel
+## 🚀 Deploy Your AI Exchange Platform to Vercel
 
 ### Prerequisites
 1. A Vercel account (free at [vercel.com](https://vercel.com))

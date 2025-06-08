@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Ayou - AI for You, Me and All{% endblock %}
+{% block title %}AI Exchange - AI for You, Me and All{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
@@ -11,7 +11,7 @@
                     <span class="text-primary">AI for You, Me and All</span> Discover Amazing Tools
                 </h1>
                 <p class="lead mb-4 text-muted">
-                    Welcome to Ayou! Join our vibrant community of AI enthusiasts. 
+                    Welcome to AI Exchange! Join our vibrant community of AI enthusiasts. 
                     Rate, review, and discover cutting-edge AI tools. Earn XP and climb the leaderboard!
                 </p>
                 <div class="d-flex gap-3 mb-4">
@@ -43,7 +43,7 @@
                         <div class="row g-3">
                             <div class="col-4">                                <div class="stats-card">
                                     <div class="stats-icon">
-                                        <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="Ayou Logo" class="stats-logo">
+                                        <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="AI Exchange Logo" class="stats-logo">
                                     </div>
                                     <h4 class="fw-bold text-primary mb-0">600+</h4>
                                     <small class="text-muted">AI Tools</small>
@@ -121,7 +121,7 @@
                         {% if tool.logo_url %}
                             <img src="{{ tool.logo_url }}" alt="{{ tool.name }}" class="w-100 h-100 object-fit-cover">
                         {% else %}
-                            <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="Ayou" class="w-100 h-100 object-fit-contain">
+                            <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="AI Exchange" class="w-100 h-100 object-fit-contain">
                         {% endif %}
                     </div>
                     <div class="flex-grow-1">

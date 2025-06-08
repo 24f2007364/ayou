@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Explore AI Tools - Ayou{% endblock %}
+{% block title %}Explore AI Tools - AI Exchange{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -96,7 +96,7 @@
                             {% if tool.logo_url %}
                                 <img src="{{ tool.logo_url }}" alt="{{ tool.name }}" class="w-100 h-100 object-fit-cover">
                             {% else %}
-                                <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="Ayou" class="w-100 h-100 object-fit-contain">
+                                <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="AI Exchange" class="w-100 h-100 object-fit-contain">
                             {% endif %}
                         </div>
                         <div class="flex-grow-1">

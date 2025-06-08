@@ -1,4 +1,4 @@
-# Ayou - AI for You, Me and All
+# AI Exchange - AI for You, Me and All
 
 A stunning AI-powered platform for AI tools with community features, ranking system, admin dashboard, and intelligent tool recommendations.
 
@@ -178,7 +178,7 @@ The application automatically creates the following tables:
 
 ### Community Features
 - User comments on tools
-- Upvote/downvote system (implemented in frontend)
+- Facebook-style reaction system for comments (like, love, angry, laugh)
 - User profiles with XP and ranks
 - Leaderboard competition
 
