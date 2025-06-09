@@ -57,23 +57,94 @@
     <div class="container py-5">
         <div class="row">
             <!-- Main Content -->
-            <div class="col-lg-8">
-                <!-- About Section -->
-                <div class="content-section mb-5">
+            <div class="col-lg-8">                <!-- About Section -->                <div class="content-section mb-5">
                     <h3 class="section-title">About {{ tool.name }}</h3>
                     <div class="tool-description-full">
-                        <p>{{ tool.description }}</p>
-                        <div class="tool-features mt-4">
-                            <h5>Key Features:</h5>
-                            <ul class="feature-list">
-                                <li><i class="bi bi-check-circle text-success me-2"></i>AI-powered capabilities</li>
-                                <li><i class="bi bi-check-circle text-success me-2"></i>User-friendly interface</li>
-                                <li><i class="bi bi-check-circle text-success me-2"></i>{{ tool.pricing_model }} pricing</li>
-                                <li><i class="bi bi-check-circle text-success me-2"></i>Professional grade quality</li>
-                            </ul>
+                        <!-- Description with Read More functionality -->
+                        <div class="description-container">
+                            {% set description = tool.description or '' %}
+                            {% set description_lines = description.split('\n') %}
+                            {% set first_sentence = description.split('.')[0] + '.' if '.' in description else description %}
+                            {% set preview_text = first_sentence if first_sentence|length < 100 else description[:80] %}
+                            
+                            {% if description|length > 80 or description_lines|length > 1 or tool.key_features %}
+                                <div class="description-preview">
+                                    <p>{{ preview_text }}{% if preview_text != description %}...{% endif %}</p>
+                                    <button class="read-more-btn" onclick="toggleDescription()">
+                                        <span class="read-more-text">Read more</span>
+                                        <i class="bi bi-chevron-down read-more-icon"></i>
+                                    </button>
+                                </div>
+                                <div class="description-full" style="display: none;">
+                                    <p>{{ description }}</p>
+                                    
+                                    <!-- Dynamic Key Features (shown only in expanded view) -->
+                                    {% if tool.key_features %}
+                                    <div class="tool-features mt-4">
+                                        <h5>Key Features:</h5>
+                                        <ul class="feature-list">
+                                            {% set features = tool.key_features | from_json if tool.key_features else [] %}
+                                            {% for feature in features %}
+                                            <li><i class="bi bi-check-circle text-success me-2"></i>{{ feature }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <button class="read-less-btn mt-3" onclick="toggleDescription()">
+                                        <span class="read-less-text">Show less</span>
+                                        <i class="bi bi-chevron-up read-less-icon"></i>
+                                    </button>
+                                </div>
+                            {% else %}
+                                <p>{{ description }}</p>
+                                
+                                <!-- Dynamic Key Features (for short descriptions without read more) -->
+                                {% if tool.key_features %}
+                                <div class="tool-features mt-4">
+                                    <h5>Key Features:</h5>
+                                    <ul class="feature-list">
+                                        {% set features = tool.key_features | from_json if tool.key_features else [] %}
+                                        {% for feature in features %}
+                                        <li><i class="bi bi-check-circle text-success me-2"></i>{{ feature }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                            {% endif %}
                         </div>
                     </div>
                 </div>
+
+                <!-- Image Gallery Section -->
+                {% if tool.gallery_images %}
+                {% set images = tool.gallery_images | from_json if tool.gallery_images else [] %}
+                {% if images %}
+                <div class="content-section mb-5">
+                    <h3 class="section-title">Screenshots & Gallery</h3>
+                    <div class="image-gallery">
+                        <div class="row g-3">
+                            {% for image_url in images[:4] %}
+                            <div class="col-md-6 col-lg-3">
+                                <div class="gallery-item">
+                                    <img src="{{ image_url }}" 
+                                         alt="{{ tool.name }} screenshot {{ loop.index }}" 
+                                         class="gallery-image"
+                                         data-bs-toggle="modal" 
+                                         data-bs-target="#imageModal"
+                                         data-image-src="{{ image_url }}"
+                                         data-image-title="{{ tool.name }} - Screenshot {{ loop.index }}">
+                                    <div class="gallery-overlay">
+                                        <i class="bi bi-zoom-in"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
 
                 <!-- Rating & Reviews Summary -->
                 <div class="content-section mb-5">
@@ -471,6 +542,187 @@
     </div>
 </div>
 {% endif %}
+
+<!-- Image Gallery Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalLabel">Screenshot</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" alt="" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Image Gallery Styles */
+.image-gallery {
+    margin-top: 1rem;
+}
+
+.gallery-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    aspect-ratio: 16/10;
+    background: #f8f9fa;
+}
+
+.gallery-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.gallery-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.gallery-item:hover .gallery-image {
+    transform: scale(1.05);
+}
+
+.gallery-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.gallery-item:hover .gallery-overlay {
+    opacity: 1;
+}
+
+.gallery-overlay i {
+    color: white;
+    font-size: 2rem;
+}
+
+/* Tool Features Enhanced Styles */
+.tool-features {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid var(--bs-primary);
+}
+
+.feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.75rem 0 0 0;
+}
+
+.feature-list li {
+    padding: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    color: #495057;
+}
+
+.feature-list li i {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.tool-features .feature-list {
+    list-style: none;
+    padding: 0;
+}
+
+.tool-features .feature-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.tool-features .feature-list li:last-child {
+    border-bottom: none;
+}
+
+/* Read More/Less Functionality Styles */
+.description-container {
+    line-height: 1.6;
+}
+
+.description-preview,
+.description-full {
+    margin-bottom: 0;
+}
+
+.read-more-btn,
+.read-less-btn {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    margin-left: 8px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.read-more-btn:hover,
+.read-less-btn:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+.read-more-icon,
+.read-less-icon {
+    font-size: 12px;
+    transition: transform 0.2s ease;
+}
+
+.description-preview {
+    margin-bottom: 0;
+}
+
+.description-full {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Smooth transitions for description toggle */
+.description-preview,
+.description-full {
+    transition: opacity 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .gallery-item {
+        margin-bottom: 1rem;
+    }
+    
+    .tool-features {
+        padding: 1rem;
+    }
+}
+</style>
 
 <script>
     console.log("Tool ID:", "{{ tool.id if tool.id else 'null' }}");
@@ -1197,9 +1449,44 @@ function testAjaxOperation() {
         tool_id: toolId,
         rating: parseInt(rating),
         review: review.trim()
-    });
-      console.log("Sending data:", data);
+    });      console.log("Sending data:", data);
     xhr.send(data);
 }
+
+// Description Read More functionality
+function toggleDescription() {
+    const preview = document.querySelector('.description-preview');
+    const full = document.querySelector('.description-full');
+    
+    if (preview.style.display === 'none') {
+        // Show preview, hide full
+        preview.style.display = 'block';
+        full.style.display = 'none';
+    } else {
+        // Show full, hide preview
+        preview.style.display = 'none';
+        full.style.display = 'block';
+    }
+}
+
+// Image Gallery Modal functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize image modal
+    const imageModal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const modalTitle = document.getElementById('imageModalLabel');
+    
+    // Add click listeners to gallery images
+    document.querySelectorAll('.gallery-image').forEach(img => {
+        img.addEventListener('click', function() {
+            const imageSrc = this.getAttribute('data-image-src');
+            const imageTitle = this.getAttribute('data-image-title');
+            
+            modalImage.src = imageSrc;
+            modalImage.alt = imageTitle;
+            modalTitle.textContent = imageTitle;
+        });
+    });
+});
 </script>
 {% endblock %}

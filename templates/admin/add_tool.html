@@ -144,16 +144,24 @@
                                            placeholder="AI, Machine Learning, NLP (comma-separated)">
                                     <small class="form-text text-muted">Separate tags with commas</small>
                                 </div>
-                            </div>
-
-                            <!-- Features Section -->
+                            </div>                            <!-- Features Section -->
                             <div class="admin-form-section">
                                 <h3>Features & Capabilities</h3>
                                 
                                 <div class="form-group">
                                     <label for="key_features" class="form-label">Key Features</label>
-                                    <textarea class="form-control" id="key_features" name="key_features" rows="4"
-                                              placeholder="List the main features and capabilities of this tool"></textarea>
+                                    <div id="features-container">
+                                        <div class="feature-item d-flex mb-2">
+                                            <input type="text" class="form-control me-2" name="features[]" placeholder="Enter a key feature">
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-feature" onclick="removeFeature(this)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addFeature()">
+                                        <i class="bi bi-plus"></i> Add Feature
+                                    </button>
+                                    <small class="form-text text-muted">Add the main features and capabilities of this tool</small>
                                 </div>
 
                                 <div class="row">
@@ -175,6 +183,28 @@
                                             </select>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- Image Gallery Section -->
+                            <div class="admin-form-section">
+                                <h3>Image Gallery</h3>
+                                <p class="text-muted">Add screenshots and images to showcase the tool (max 4 images)</p>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Gallery Images</label>
+                                    <div id="gallery-container">
+                                        <div class="gallery-item-input d-flex mb-2">
+                                            <input type="url" class="form-control me-2" name="gallery_images[]" placeholder="Enter image URL">
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-gallery-image" onclick="removeGalleryImage(this)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addGalleryImage()">
+                                        <i class="bi bi-plus"></i> Add Image URL
+                                    </button>
+                                    <small class="form-text text-muted">Add up to 4 image URLs for the gallery. Use high-quality screenshots or promotional images.</small>
                                 </div>
                             </div>
 
@@ -310,9 +340,7 @@
                     bsAlert.close();
                 }
             });
-        }, 5000);
-
-        // Tag input enhancement
+        }, 5000);        // Tag input enhancement
         document.getElementById('tags').addEventListener('input', function(e) {
             let value = e.target.value;
             // Auto-format tags
@@ -321,6 +349,53 @@
                 e.target.value = value;
             }
         });
+
+        // Dynamic Features Functions
+        function addFeature() {
+            const container = document.getElementById('features-container');
+            const featureItem = document.createElement('div');
+            featureItem.className = 'feature-item d-flex mb-2';
+            featureItem.innerHTML = `
+                <input type="text" class="form-control me-2" name="features[]" placeholder="Enter a key feature">
+                <button type="button" class="btn btn-outline-danger btn-sm remove-feature" onclick="removeFeature(this)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            `;
+            container.appendChild(featureItem);
+        }
+
+        function removeFeature(button) {
+            const container = document.getElementById('features-container');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            }
+        }
+
+        // Dynamic Gallery Images Functions
+        function addGalleryImage() {
+            const container = document.getElementById('gallery-container');
+            if (container.children.length >= 4) {
+                alert('Maximum 4 images allowed in gallery');
+                return;
+            }
+            
+            const galleryItem = document.createElement('div');
+            galleryItem.className = 'gallery-item-input d-flex mb-2';
+            galleryItem.innerHTML = `
+                <input type="url" class="form-control me-2" name="gallery_images[]" placeholder="Enter image URL">
+                <button type="button" class="btn btn-outline-danger btn-sm remove-gallery-image" onclick="removeGalleryImage(this)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            `;
+            container.appendChild(galleryItem);
+        }
+
+        function removeGalleryImage(button) {
+            const container = document.getElementById('gallery-container');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            }
+        }
     </script>
 </body>
 </html>

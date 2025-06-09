@@ -107,13 +107,74 @@
                                     <label for="website_url" class="form-label">Website URL *</label>
                                     <input type="url" class="form-control" id="website_url" name="website_url" 
                                            value="{{ tool.link }}" required>
-                                </div>
-
-                                <div class="mb-3">
+                                </div>                                <div class="mb-3">
                                     <label for="image_url" class="form-label">Logo/Image URL</label>
                                     <input type="url" class="form-control" id="image_url" name="image_url" 
                                            value="{{ tool.logo_url or '' }}">
                                     <div class="form-text">Optional: Direct URL to tool's logo or image</div>
+                                </div>
+                            </div>
+
+                            <!-- Features Section -->
+                            <div class="admin-form-section">
+                                <h3>Key Features</h3>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Key Features</label>
+                                    <div id="features-container">
+                                        {% set features = tool.key_features | from_json if tool.key_features else ['AI-powered capabilities', 'User-friendly interface', 'Professional grade quality'] %}
+                                        {% for feature in features %}
+                                        <div class="feature-item d-flex mb-2">
+                                            <input type="text" class="form-control me-2" name="features[]" value="{{ feature }}" placeholder="Enter a key feature">
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-feature" onclick="removeFeature(this)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                        {% endfor %}
+                                        {% if not features %}
+                                        <div class="feature-item d-flex mb-2">
+                                            <input type="text" class="form-control me-2" name="features[]" placeholder="Enter a key feature">
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-feature" onclick="removeFeature(this)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addFeature()">
+                                        <i class="bi bi-plus"></i> Add Feature
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Image Gallery Section -->
+                            <div class="admin-form-section">
+                                <h3>Image Gallery</h3>
+                                <p class="text-muted">Add screenshots and images to showcase the tool (max 4 images)</p>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Gallery Images</label>
+                                    <div id="gallery-container">
+                                        {% set gallery_images = tool.gallery_images | from_json if tool.gallery_images else [] %}
+                                        {% for image_url in gallery_images %}
+                                        <div class="gallery-item-input d-flex mb-2">
+                                            <input type="url" class="form-control me-2" name="gallery_images[]" value="{{ image_url }}" placeholder="Enter image URL">
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-gallery-image" onclick="removeGalleryImage(this)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                        {% endfor %}
+                                        {% if not gallery_images %}
+                                        <div class="gallery-item-input d-flex mb-2">
+                                            <input type="url" class="form-control me-2" name="gallery_images[]" placeholder="Enter image URL">
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-gallery-image" onclick="removeGalleryImage(this)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addGalleryImage()">
+                                        <i class="bi bi-plus"></i> Add Image URL
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -194,9 +255,7 @@
                     bsAlert.close();
                 }
             });
-        }, 5000);
-
-        // Preview image URL
+        }, 5000);        // Preview image URL
         document.getElementById('image_url').addEventListener('input', function() {
             const url = this.value;
             const preview = document.querySelector('.admin-tool-preview img');
@@ -204,6 +263,53 @@
                 preview.src = url;
             }
         });
+
+        // Dynamic Features Functions
+        function addFeature() {
+            const container = document.getElementById('features-container');
+            const featureItem = document.createElement('div');
+            featureItem.className = 'feature-item d-flex mb-2';
+            featureItem.innerHTML = `
+                <input type="text" class="form-control me-2" name="features[]" placeholder="Enter a key feature">
+                <button type="button" class="btn btn-outline-danger btn-sm remove-feature" onclick="removeFeature(this)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            `;
+            container.appendChild(featureItem);
+        }
+
+        function removeFeature(button) {
+            const container = document.getElementById('features-container');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            }
+        }
+
+        // Dynamic Gallery Images Functions
+        function addGalleryImage() {
+            const container = document.getElementById('gallery-container');
+            if (container.children.length >= 4) {
+                alert('Maximum 4 images allowed in gallery');
+                return;
+            }
+            
+            const galleryItem = document.createElement('div');
+            galleryItem.className = 'gallery-item-input d-flex mb-2';
+            galleryItem.innerHTML = `
+                <input type="url" class="form-control me-2" name="gallery_images[]" placeholder="Enter image URL">
+                <button type="button" class="btn btn-outline-danger btn-sm remove-gallery-image" onclick="removeGalleryImage(this)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            `;
+            container.appendChild(galleryItem);
+        }
+
+        function removeGalleryImage(button) {
+            const container = document.getElementById('gallery-container');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            }
+        }
     </script>
 </body>
 </html>

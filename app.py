@@ -29,6 +29,16 @@ def format_date_filter(date_str):
     """Template filter to format datetime strings"""
     return format_datetime(date_str)
 
+@app.template_filter('from_json')
+def from_json_filter(json_str):
+    """Template filter to parse JSON strings"""
+    if not json_str:
+        return []
+    try:
+        return json.loads(json_str)
+    except (json.JSONDecodeError, TypeError):
+        return []
+
 def get_db_path():
     """Get database path - use /tmp for Vercel persistence"""
     if os.environ.get('VERCEL'):
@@ -216,15 +226,16 @@ class SupabaseConnection:
                 response = self.session.get(f"{self.base_url}/rest/v1/users?id=eq.{user_id}&select=username,xp,rank")
                 self._result = response.json() if response.status_code == 200 else []
             
-            # TOOL OPERATIONS
-            elif 'insert into tools' in sql_lower and params:
+            # TOOL OPERATIONS            elif 'insert into tools' in sql_lower and params:
                 tool_data = {
                     'name': params[0],
                     'description': params[1],
                     'link': params[2],
                     'logo_url': params[3] if len(params) > 3 else None,
                     'category': params[4] if len(params) > 4 else '',
-                    'pricing_model': params[5] if len(params) > 5 else ''
+                    'pricing_model': params[5] if len(params) > 5 else '',
+                    'key_features': params[6] if len(params) > 6 else '[]',
+                    'gallery_images': params[7] if len(params) > 7 else '[]'
                 }
                 response = self.session.post(f"{self.base_url}/rest/v1/tools", json=tool_data)
                 if response.status_code in [200, 201]:
@@ -320,18 +331,31 @@ class SupabaseConnection:
                     # Update tool ratings
                     avg_rating, total_ratings, tool_id = params[:3]
                     tool_data = {'average_rating': avg_rating, 'total_ratings': total_ratings}
-                    response = self.session.patch(f"{self.base_url}/rest/v1/tools?id=eq.{tool_id}", json=tool_data)
+                    response = self.session.patch(f"{self.base_url}/rest/v1/tools?id=eq.{tool_id}", json=tool_data)                
                 else:
                     # Update tool info
-                    name, description, link, logo_url, category, pricing_model, tool_id = params
-                    tool_data = {
-                        'name': name,
-                        'description': description,
-                        'link': link,
-                        'logo_url': logo_url,
-                        'category': category,
-                        'pricing_model': pricing_model
-                    }
+                    if len(params) >= 9:  # New format with key_features and gallery_images
+                        name, description, link, logo_url, category, pricing_model, key_features, gallery_images, tool_id = params
+                        tool_data = {
+                            'name': name,
+                            'description': description,
+                            'link': link,
+                            'logo_url': logo_url,
+                            'category': category,
+                            'pricing_model': pricing_model,
+                            'key_features': key_features,
+                            'gallery_images': gallery_images
+                        }
+                    else:  # Legacy format
+                        name, description, link, logo_url, category, pricing_model, tool_id = params
+                        tool_data = {
+                            'name': name,
+                            'description': description,
+                            'link': link,
+                            'logo_url': logo_url,
+                            'category': category,
+                            'pricing_model': pricing_model
+                        }
                     response = self.session.patch(f"{self.base_url}/rest/v1/tools?id=eq.{tool_id}", json=tool_data)
                 self._result = []
             
@@ -1753,11 +1777,19 @@ def admin_add_tool():
         category = request.form['category']
         pricing_model = request.form['pricing_model']
         
+        # Handle dynamic key features
+        features = request.form.getlist('features[]')
+        key_features = json.dumps([f.strip() for f in features if f.strip()])
+        
+        # Handle gallery images
+        gallery_images = request.form.getlist('gallery_images[]')
+        gallery_images_json = json.dumps([img.strip() for img in gallery_images if img.strip()])
+        
         conn = get_db_connection()
         conn.execute('''
-            INSERT INTO tools (name, description, link, logo_url, category, pricing_model)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (name, description, link, logo_url, category, pricing_model))
+            INSERT INTO tools (name, description, link, logo_url, category, pricing_model, key_features, gallery_images)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (name, description, link, logo_url, category, pricing_model, key_features, gallery_images_json))
         conn.commit()
         conn.close()
         
@@ -1825,7 +1857,6 @@ def admin_edit_tool(tool_id):
         flash('Tool not found', 'error')
         conn.close()
         return redirect(url_for('admin_dashboard'))
-    
     if request.method == 'POST':
         name = request.form['name']
         description = request.form['description']
@@ -1834,13 +1865,21 @@ def admin_edit_tool(tool_id):
         category = request.form['category']
         pricing_model = request.form['pricing_model']
         
+        # Handle dynamic key features
+        features = request.form.getlist('features[]')
+        key_features = json.dumps([f.strip() for f in features if f.strip()])
+        
+        # Handle gallery images
+        gallery_images = request.form.getlist('gallery_images[]')
+        gallery_images_json = json.dumps([img.strip() for img in gallery_images if img.strip()])
+        
         try:
             conn.execute('''
                 UPDATE tools 
                 SET name = ?, description = ?, link = ?, logo_url = ?, 
-                    category = ?, pricing_model = ?
+                    category = ?, pricing_model = ?, key_features = ?, gallery_images = ?
                 WHERE id = ?
-            ''', (name, description, link, logo_url, category, pricing_model, tool_id))
+            ''', (name, description, link, logo_url, category, pricing_model, key_features, gallery_images_json, tool_id))
             conn.commit()
             flash('Tool updated successfully!', 'success')
             conn.close()

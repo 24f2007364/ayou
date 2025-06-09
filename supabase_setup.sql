@@ -22,8 +22,18 @@ CREATE TABLE IF NOT EXISTS tools (
     pricing_model VARCHAR(255) NOT NULL,
     average_rating DECIMAL(3,2) DEFAULT 0,
     total_ratings INTEGER DEFAULT 0,
+    key_features TEXT, -- JSON array of key features
+    gallery_images TEXT, -- JSON array of image URLs
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Add new columns to existing tools table (run these if table already exists)
+ALTER TABLE tools ADD COLUMN IF NOT EXISTS key_features TEXT;
+ALTER TABLE tools ADD COLUMN IF NOT EXISTS gallery_images TEXT;
+
+-- Set default values for existing tools
+UPDATE tools SET key_features = '["AI-powered capabilities", "User-friendly interface", "Professional grade quality"]' WHERE key_features IS NULL;
+UPDATE tools SET gallery_images = '[]' WHERE gallery_images IS NULL;
 
 -- Ratings table
 CREATE TABLE IF NOT EXISTS ratings (
