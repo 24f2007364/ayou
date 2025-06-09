@@ -1,259 +1,104 @@
 {% extends "layout.html" %}
 
-{% block title %}AI Prompt Helper - AI Exchange{% endblock %}
+{% block title %}AI Prompt Helper - Coming Soon - AI Exchange{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <!-- Header -->
-    <div class="hero-section mb-5">
-        <div class="container">
-            <div class="text-center">
-                <div class="display-4 text-primary mb-3">
-                    <i class="bi bi-lightbulb"></i>
+<div class="container">
+    <!-- Coming Soon Hero Section -->
+    <div class="coming-soon-section d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+        <div class="text-center">
+            <!-- Animated Icon -->
+            <div class="coming-soon-icon mb-4">
+                <div class="icon-container">
+                    <i class="bi bi-lightbulb display-1 text-primary"></i>
+                    <div class="pulse-ring"></div>
+                    <div class="pulse-ring-2"></div>
                 </div>
-                <h1 class="display-5 fw-bold mb-3">AI Prompt Helper</h1>
-                <p class="lead text-muted mb-4">
-                    Describe what you want to accomplish, and we'll recommend the perfect AI tools 
-                    with a step-by-step roadmap to get you there.
-                </p>                <div class="row justify-content-center">
-                    <div class="col-lg-8">
-                        <div class="prompt-form-card glass-card-enhanced p-4">
-                            <form id="promptForm">
-                                <div class="mb-3">
-                                    <label for="promptInput" class="form-label fw-semibold gradient-text">What do you want to accomplish?</label>
-                                    <textarea class="form-control enhanced-textarea" id="promptInput" rows="3" 
-                                              placeholder="e.g., 'I need to create a professional presentation about AI trends' or 'I want to analyze customer feedback data' or 'I need to generate social media content for my business'"></textarea>
-                                    <div class="form-text enhanced-form-text">Be as specific as possible for better recommendations</div>
+            </div>
+            
+            <!-- Main Message -->
+            <h1 class="display-4 fw-bold mb-3 gradient-text">
+                AI Prompt Helper
+            </h1>
+            <h2 class="h3 text-muted mb-4">Coming Soon!</h2>
+            
+            <!-- Description -->
+            <div class="row justify-content-center mb-5">
+                <div class="col-lg-8">
+                    <p class="lead text-muted mb-4">
+                        🚀 Our talented team is working hard to bring you an incredible AI Prompt Helper feature!
+                    </p>
+                    <p class="text-muted mb-4">
+                        Soon you'll be able to describe what you want to accomplish, and we'll recommend 
+                        the perfect AI tools with step-by-step guidance to help you achieve your goals.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Features Preview -->
+            <div class="row justify-content-center mb-5">
+                <div class="col-lg-10">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="feature-preview-card glass-card p-4 h-100">
+                                <div class="feature-icon mb-3">
+                                    <i class="bi bi-search text-primary fs-2"></i>
                                 </div>
-                                <button type="submit" class="btn btn-primary btn-enhanced btn-lg w-100 rounded-pill">
-                                    <i class="bi bi-search me-2"></i>Get AI Recommendations
-                                </button>
-                            </form>
+                                <h5 class="fw-bold mb-2">Smart Analysis</h5>
+                                <p class="text-muted small">Analyze your requirements and suggest the best AI tools</p>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Loading State -->
-    <div id="loadingResults" class="d-none">
-        <div class="text-center py-5">
-            <div class="spinner mb-3"></div>
-            <h5 class="fw-bold">Analyzing your request...</h5>
-            <p class="text-muted">Finding the best AI tools for your needs</p>
-        </div>
-    </div>
-
-    <!-- Results Container -->
-    <div id="promptResults"></div>
-
-    <!-- Example Prompts -->
-    <div class="container mb-5">
-        <div class="text-center mb-4">
-            <h3 class="fw-bold mb-2">Need inspiration? Try these examples:</h3>
-            <p class="text-muted">Click on any example to see what our AI recommends</p>
-        </div>
-          <div class="row g-3">
-            <div class="col-md-6 col-lg-3">
-                <div class="example-card glass-card-enhanced p-3 h-100 cursor-pointer example-prompt hover-lift" 
-                     data-prompt="I need to create professional presentations for my business">
-                    <div class="text-center">
-                        <div class="example-icon text-primary mb-2">📊</div>
-                        <h6 class="fw-bold mb-2 example-title">Business Presentations</h6>
-                        <small class="text-muted example-description">Create professional slides and presentations</small>
+                        <div class="col-md-4">
+                            <div class="feature-preview-card glass-card p-4 h-100">
+                                <div class="feature-icon mb-3">
+                                    <i class="bi bi-map text-success fs-2"></i>
+                                </div>
+                                <h5 class="fw-bold mb-2">Step-by-Step Guide</h5>
+                                <p class="text-muted small">Get detailed roadmaps to accomplish your goals</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="feature-preview-card glass-card p-4 h-100">
+                                <div class="feature-icon mb-3">
+                                    <i class="bi bi-stars text-warning fs-2"></i>
+                                </div>
+                                <h5 class="fw-bold mb-2">Personalized</h5>
+                                <p class="text-muted small">Tailored recommendations based on your specific needs</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <div class="col-md-6 col-lg-3">
-                <div class="example-card glass-card-enhanced p-3 h-100 cursor-pointer example-prompt hover-lift" 
-                     data-prompt="I want to generate creative content for social media marketing">
-                    <div class="text-center">
-                        <div class="example-icon text-primary mb-2">📱</div>
-                        <h6 class="fw-bold mb-2 example-title">Social Media Content</h6>
-                        <small class="text-muted example-description">Generate posts, captions, and visuals</small>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6 col-lg-3">
-                <div class="example-card glass-card-enhanced p-3 h-100 cursor-pointer example-prompt hover-lift" 
-                     data-prompt="I need to analyze and visualize large datasets for insights">
-                    <div class="text-center">
-                        <div class="example-icon text-primary mb-2">📈</div>
-                        <h6 class="fw-bold mb-2 example-title">Data Analysis</h6>
-                        <small class="text-muted example-description">Process and visualize data insights</small>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6 col-lg-3">
-                <div class="example-card glass-card-enhanced p-3 h-100 cursor-pointer example-prompt hover-lift" 
-                     data-prompt="I want to create high-quality images and artwork for my projects">
-                    <div class="text-center">
-                        <div class="example-icon text-primary mb-2">🎨</div>
-                        <h6 class="fw-bold mb-2 example-title">Image Generation</h6>
-                        <small class="text-muted example-description">Create stunning visuals and artwork</small>
-                    </div>
-                </div>
-            </div>            
-            <div class="col-md-6 col-lg-3">
-                <div class="example-card glass-card-enhanced p-3 h-100 cursor-pointer example-prompt hover-lift" 
-                     data-prompt="I need to write and edit professional documents and articles">
-                    <div class="text-center">
-                        <div class="example-icon text-primary mb-2">✍️</div>
-                        <h6 class="fw-bold mb-2 example-title">Content Writing</h6>
-                        <small class="text-muted example-description">Write blogs, articles, and documents</small>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6 col-lg-3">
-                <div class="example-card glass-card-enhanced p-3 h-100 cursor-pointer example-prompt hover-lift" 
-                     data-prompt="I want to create and edit professional videos for marketing">
-                    <div class="text-center">
-                        <div class="example-icon text-primary mb-2">🎬</div>
-                        <h6 class="fw-bold mb-2 example-title">Video Creation</h6>
-                        <small class="text-muted example-description">Produce and edit video content</small>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6 col-lg-3">
-                <div class="example-card glass-card-enhanced p-3 h-100 cursor-pointer example-prompt hover-lift" 
-                     data-prompt="I need help with coding and software development tasks">
-                    <div class="text-center">
-                        <div class="example-icon text-primary mb-2">💻</div>
-                        <h6 class="fw-bold mb-2 example-title">Code Development</h6>
-                        <small class="text-muted example-description">Programming and development assistance</small>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6 col-lg-3">
-                <div class="example-card glass-card-enhanced p-3 h-100 cursor-pointer example-prompt hover-lift" 
-                     data-prompt="I want to automate repetitive tasks and workflows">
-                    <div class="text-center">
-                        <div class="example-icon text-primary mb-2">⚡</div>
-                        <h6 class="fw-bold mb-2 example-title">Automation</h6>
-                        <small class="text-muted example-description">Streamline processes and workflows</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>    <!-- How it Works -->
-    <div class="container mb-5">
-        <div class="how-it-works-card glass-card-enhanced p-5">
-            <div class="text-center mb-5">
-                <h3 class="fw-bold mb-3 gradient-text">How Our AI Prompt Helper Works</h3>
-                <p class="text-muted how-it-works-description">We analyze your needs and match them with the perfect tools</p>
-                <div class="text-center mt-3">
-                    <span class="badge bg-primary-soft px-3 py-2 rounded-pill">
-                        <i class="bi bi-magic me-2"></i>Powered by Advanced AI
-                    </span>
-                </div>
-            </div>
-            
-            <div class="row g-4 position-relative">
-                <div class="col-md-4">
-                    <div class="step-card text-center">
-                        <div class="step-number-enhanced mx-auto mb-4">
-                            <i class="bi bi-chat-dots"></i>
-                        </div>
-                        <h5 class="fw-bold mb-3 step-title">Describe Your Goal</h5>
-                        <p class="text-muted step-description">Tell us what you want to accomplish in natural language. Our AI understands context and nuance.</p>
-                        <div class="mt-3">
-                            <small class="text-primary fw-semibold">
-                                <i class="bi bi-lightbulb me-1"></i>Natural Language Processing
-                            </small>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-4">
-                    <div class="step-card text-center">
-                        <div class="step-number-enhanced mx-auto mb-4">
-                            <i class="bi bi-cpu"></i>
-                        </div>
-                        <h5 class="fw-bold mb-3 step-title">AI Analysis</h5>
-                        <p class="text-muted step-description">Our AI analyzes your request and matches it with relevant tools from our curated database.</p>
-                        <div class="mt-3">
-                            <small class="text-primary fw-semibold">
-                                <i class="bi bi-graph-up me-1"></i>Smart Matching Algorithm
-                            </small>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-4">
-                    <div class="step-card text-center">
-                        <div class="step-number-enhanced mx-auto mb-4">
-                            <i class="bi bi-map"></i>
-                        </div>
-                        <h5 class="fw-bold mb-3 step-title">Get Roadmap</h5>
-                        <p class="text-muted step-description">Receive personalized tool recommendations with a detailed step-by-step implementation plan.</p>
-                        <div class="mt-3">
-                            <small class="text-primary fw-semibold">
-                                <i class="bi bi-check-circle me-1"></i>Actionable Insights
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div><!-- Recent Success Stories -->
-    <div class="container mb-5">
-        <div class="text-center mb-4">
-            <h3 class="fw-bold mb-2 gradient-text">💡 Success Stories</h3>
-            <p class="text-muted success-stories-description">See how others have achieved their goals with our recommendations</p>
-        </div>
-        
-        <div class="row g-4">
-            <div class="col-md-6">                <div class="success-story-card glass-card-enhanced p-4">
-                    <div class="d-flex align-items-start mb-3">
-                        <div class="user-avatar me-3" data-username="Manager">M</div>
-                        <div>
-                            <h6 class="fw-bold mb-1 story-user-title">Marketing Manager</h6>
-                            <small class="text-muted story-user-subtitle username" style="display: none;">Manager</small>
-                            <small class="text-muted story-user-subtitle">Created social media campaign</small>
-                        </div>
-                    </div>
-                    <p class="text-muted mb-3 story-text">
-                        "I asked for help creating a social media campaign. The AI recommended 3 perfect tools 
-                        and gave me a clear roadmap. Saved me hours of research!"
+            <!-- Call to Action -->
+            <div class="cta-section">
+                <div class="glass-card-enhanced p-4 d-inline-block">
+                    <h5 class="fw-bold mb-3">Stay tuned for updates!</h5>
+                    <p class="text-muted mb-3">
+                        Meanwhile, explore our amazing AI tools collection
                     </p>
-                    <div class="d-flex align-items-center">
-                        <div class="rating-display me-2">
-                            {% for i in range(5) %}
-                                <i class="bi bi-star-fill text-warning star-rating"></i>
-                            {% endfor %}
-                        </div>
-                        <small class="text-muted rating-text">Perfect recommendations</small>
-                    </div>
+                    <a href="{{ url_for('tools') }}" class="btn btn-primary btn-lg rounded-pill px-4">
+                        <i class="bi bi-collection me-2"></i>
+                        Browse AI Tools
+                    </a>
                 </div>
             </div>
             
-            <div class="col-md-6">                <div class="success-story-card glass-card-enhanced p-4">
-                    <div class="d-flex align-items-start mb-3">
-                        <div class="user-avatar me-3" data-username="DataAnalyst">D</div>
-                        <div>
-                            <h6 class="fw-bold mb-1 story-user-title">Data Analyst</h6>
-                            <small class="text-muted story-user-subtitle username" style="display: none;">DataAnalyst</small>
-                            <small class="text-muted story-user-subtitle">Analyzed customer data</small>
+            <!-- Progress Indicator -->
+            <div class="progress-section mt-5">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6">
+                        <div class="glass-card p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="text-muted fw-semibold">Development Progress</small>
+                                <small class="text-primary fw-bold">75%</small>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-gradient-primary progress-bar-animated" 
+                                     role="progressbar" style="width: 75%"></div>
+                            </div>
+                            <small class="text-muted d-block mt-2">Expected launch: Soon™</small>
                         </div>
-                    </div>
-                    <p class="text-muted mb-3 story-text">
-                        "Needed to visualize complex customer data. The recommended tools were exactly 
-                        what I needed, and the step-by-step guide made it easy to follow."
-                    </p>
-                    <div class="d-flex align-items-center">
-                        <div class="rating-display me-2">
-                            {% for i in range(5) %}
-                                <i class="bi bi-star-fill text-warning star-rating"></i>
-                            {% endfor %}
-                        </div>
-                        <small class="text-muted rating-text">Exactly what I needed</small>
                     </div>
                 </div>
             </div>
@@ -262,39 +107,226 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.coming-soon-section {
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.1) 0%, rgba(80, 200, 120, 0.1) 100%);
+    border-radius: 20px;
+    margin: 2rem 0;
+}
+
+.icon-container {
+    position: relative;
+    display: inline-block;
+}
+
+.pulse-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px;
+    height: 120px;
+    border: 2px solid var(--bs-primary);
+    border-radius: 50%;
+    opacity: 0;
+    animation: pulse-animation 2s infinite;
+}
+
+.pulse-ring-2 {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 140px;
+    height: 140px;
+    border: 2px solid var(--bs-success);
+    border-radius: 50%;
+    opacity: 0;
+    animation: pulse-animation 2s infinite 0.5s;
+}
+
+@keyframes pulse-animation {
+    0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1.5);
+        opacity: 0;
+    }
+}
+
+.feature-preview-card {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.feature-preview-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+    transition: transform 0.3s ease;
+}
+
+.feature-preview-card:hover .feature-icon {
+    transform: scale(1.1);
+}
+
+.progress-bar-animated {
+    animation: progress-shimmer 2s infinite;
+}
+
+@keyframes progress-shimmer {
+    0% {
+        background-position: -200px 0;
+    }
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, var(--bs-primary), var(--bs-success));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+}
+
+.glass-card-enhanced {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.cta-section .glass-card-enhanced:hover {
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .coming-soon-section {
+        min-height: 70vh;
+        margin: 1rem 0;
+        padding: 2rem 1rem;
+    }
+    
+    .display-4 {
+        font-size: 2.5rem;
+    }
+    
+    .pulse-ring, .pulse-ring-2 {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .pulse-ring-2 {
+        width: 100px;
+        height: 100px;
+    }
+}
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle example prompt clicks
-    const examplePrompts = document.querySelectorAll('.example-prompt');
-    examplePrompts.forEach(prompt => {
-        prompt.addEventListener('click', function() {
-            const promptText = this.dataset.prompt;
-            document.getElementById('promptInput').value = promptText;
-            
-            // Scroll to the form
-            document.getElementById('promptForm').scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'center' 
-            });
-            
-            // Optional: Auto-submit after a short delay
-            setTimeout(() => {
-                document.getElementById('promptForm').dispatchEvent(new Event('submit'));
-            }, 500);
-        });
+    // Add some interactive animations
+    const featureCards = document.querySelectorAll('.feature-preview-card');
+    
+    // Stagger animation for feature cards
+    featureCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 200 * (index + 1));
     });
     
-    // Add hover effects to example prompts
-    examplePrompts.forEach(prompt => {
-        prompt.style.cursor = 'pointer';
-        prompt.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-4px)';
+    // Add click animation to CTA button
+    const ctaButton = document.querySelector('.cta-section .btn');
+    if (ctaButton) {
+        ctaButton.addEventListener('click', function(e) {
+            // Create ripple effect
+            const ripple = document.createElement('span');
+            ripple.classList.add('ripple');
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
         });
-        prompt.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-        });
-    });
+    }
 });
+
+// Add some particle effect (optional)
+function createFloatingParticle() {
+    const particle = document.createElement('div');
+    particle.style.cssText = `
+        position: fixed;
+        width: 4px;
+        height: 4px;
+        background: linear-gradient(45deg, var(--bs-primary), var(--bs-success));
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: -1;
+        opacity: 0.7;
+        animation: float-up 4s linear infinite;
+    `;
+    
+    particle.style.left = Math.random() * window.innerWidth + 'px';
+    particle.style.top = window.innerHeight + 'px';
+    
+    document.body.appendChild(particle);
+    
+    setTimeout(() => {
+        particle.remove();
+    }, 4000);
+}
+
+// Create floating particles occasionally
+setInterval(createFloatingParticle, 3000);
+
+// Add CSS for floating animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes float-up {
+        to {
+            transform: translateY(-100vh) rotate(360deg);
+            opacity: 0;
+        }
+    }
+    
+    .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(0);
+        animation: ripple-animation 0.6s linear;
+        pointer-events: none;
+    }
+    
+    @keyframes ripple-animation {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
 </script>
 {% endblock %}

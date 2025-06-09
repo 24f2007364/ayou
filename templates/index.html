@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}AI Exchange - AI for You, Me and All{% endblock %}
+{% block title %}AI Exchange - World's No 1 AI Community{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
@@ -53,18 +53,16 @@
                                 <div class="stats-card">
                                     <div class="stats-icon">
                                         <i class="bi bi-people"></i>
-                                    </div>
-                                    <h4 class="fw-bold text-primary mb-0">5K+</h4>
-                                    <small class="text-muted">Users</small>
+                                    </div>                                    <h4 class="fw-bold text-primary mb-0">1.1K+</h4>
+                                    <small class="text-muted">Registered Users</small>
                                 </div>
                             </div>
-                            <div class="col-4">
-                                <div class="stats-card">
+                            <div class="col-4">                                <div class="stats-card">
                                     <div class="stats-icon">
-                                        <i class="bi bi-star"></i>
+                                        <i class="bi bi-eye"></i>
                                     </div>
-                                    <h4 class="fw-bold text-primary mb-0">10K+</h4>
-                                    <small class="text-muted">Reviews</small>
+                                    <h4 class="fw-bold text-primary mb-0">5K+</h4>
+                                    <small class="text-muted">Daily Page Views</small>
                                 </div>
                             </div>
                         </div>
@@ -280,33 +278,49 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Animate stats on scroll
         const statsCards = document.querySelectorAll('.stats-card h4');
-        
-        const animateStats = (entries, observer) => {
+          const animateStats = (entries, observer) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     const target = entry.target;
                     const finalValue = target.textContent;
                     const numericValue = parseInt(finalValue.replace(/[^\d]/g, ''));
                     
-                    let currentValue = 0;
-                    const increment = numericValue / 50;
+                    // Store original text for reference
+                    const originalText = finalValue;
+                    
+                    // Don't start at zero for K values to avoid the 0.0K display
+                    let startValue = 0;
+                    if (finalValue.includes('K')) {
+                        startValue = numericValue > 1000 ? 100 : 10;
+                    }
+                    
+                    let currentValue = startValue;
+                    const duration = 1500; // ms
+                    const steps = 30;
+                    const increment = (numericValue - startValue) / steps;
+                    
                     const timer = setInterval(() => {
                         currentValue += increment;
                         if (currentValue >= numericValue) {
                             currentValue = numericValue;
                             clearInterval(timer);
+                            // Ensure we end with the exact original text
+                            target.textContent = originalText;
+                            return;
                         }
                         
                         let displayValue = Math.floor(currentValue);
                         if (finalValue.includes('K')) {
-                            displayValue = (displayValue / 1000).toFixed(displayValue >= 1000 ? 0 : 1) + 'K';
+                            // Only show decimal for values under 10K
+                            const kValue = displayValue / 1000;
+                            displayValue = kValue < 10 ? kValue.toFixed(1) + 'K' : Math.floor(kValue) + 'K';
                         }
                         if (finalValue.includes('+')) {
                             displayValue += '+';
                         }
                         
                         target.textContent = displayValue;
-                    }, 30);
+                    }, duration / steps);
                     
                     observer.unobserve(target);
                 }

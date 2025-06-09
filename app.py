@@ -43,7 +43,7 @@ def get_db_path():
 # Database initialization
 def init_db():
     """Initialize database - Supabase for production, SQLite for local"""
-    if os.environ.get('SUPABASE_URL') and os.environ.get('SUPABASE_KEY'):
+    if os.environ.get('SUPABASE_URL') and os.environ.get('SUPABASE_ANON_KEY'):
         init_supabase_db()
   
 
@@ -56,10 +56,10 @@ def init_supabase_db():
 def get_db_connection():
     """Get database connection - Supabase for production, SQLite for local"""
     supabase_url = os.environ.get('SUPABASE_URL')
-    supabase_key = os.environ.get('SUPABASE_KEY')
+    supabase_key = os.environ.get('SUPABASE_ANON_KEY')
     
     print(f"DEBUG: SUPABASE_URL exists: {bool(supabase_url)}")
-    print(f"DEBUG: SUPABASE_KEY exists: {bool(supabase_key)}")
+    print(f"DEBUG: SUPABASE_ANON_KEY exists: {bool(supabase_key)}")
     
     if supabase_url and supabase_key:
         try:
@@ -83,7 +83,7 @@ class SupabaseConnection:
         import requests
         
         self.base_url = os.environ.get('SUPABASE_URL')
-        self.api_key = os.environ.get('SUPABASE_KEY')
+        self.api_key = os.environ.get('SUPABASE_ANON_KEY')
         self.headers = {
             'apikey': self.api_key,
             'Authorization': f'Bearer {self.api_key}',
@@ -690,8 +690,7 @@ class SupabaseConnection:
                         comments = response.json()
                         if comments:
                             current_counts = comments[0]
-                            
-                            # Determine which reaction count to update and how
+                              # Determine which reaction count to update and how
                             update_data = {}
                             
                             if 'like_count = like_count + 1' in sql_lower:
@@ -718,6 +717,117 @@ class SupabaseConnection:
                                     print(f"Failed to update reaction count: {update_response.text}")
                 
                 self._result = []
+            
+            # ADMIN DASHBOARD QUERIES
+            elif ('select t.*,' in sql_lower and 'coalesce(avg(r.rating), 0) as average_rating' in sql_lower and 
+                  'count(r.id) as rating_count' in sql_lower and params):
+                # Tools with average ratings for admin dashboard
+                per_page, offset = params[:2]
+                # Get tools
+                tools_response = self.session.get(f"{self.base_url}/rest/v1/tools?select=*&name=neq.DATA_IMPORT_COMPLETED&limit={per_page}&offset={offset}&order=created_at.desc")
+                if tools_response.status_code == 200:
+                    tools = tools_response.json()
+                    # For each tool, get its ratings to calculate average
+                    for tool in tools:
+                        ratings_response = self.session.get(f"{self.base_url}/rest/v1/ratings?tool_id=eq.{tool['id']}&select=rating")
+                        if ratings_response.status_code == 200:
+                            ratings = ratings_response.json()
+                            if ratings:
+                                tool['average_rating'] = sum(r['rating'] for r in ratings) / len(ratings)
+                                tool['rating_count'] = len(ratings)
+                            else:
+                                tool['average_rating'] = 0
+                                tool['rating_count'] = 0
+                        else:
+                            tool['average_rating'] = 0
+                            tool['rating_count'] = 0
+                    self._result = tools
+                else:
+                    self._result = []
+            
+            elif ('select id, username, email, xp, rank, created_at' in sql_lower and 
+                  'from users order by created_at desc limit' in sql_lower):                # Users for admin dashboard
+                response = self.session.get(f"{self.base_url}/rest/v1/users?select=id,username,email,xp,rank,created_at&order=created_at.desc&limit=50")
+                self._result = response.json() if response.status_code == 200 else []
+            
+            elif ('select r.id, r.rating, r.review, r.created_at' in sql_lower and
+                  'u.username, t.name' in sql_lower and 'from ratings r' in sql_lower and
+                  'join users u' in sql_lower and 'join tools t' in sql_lower):
+                # Recent reviews for admin dashboard
+                response = self.session.get(f"{self.base_url}/rest/v1/ratings?review=not.is.null&review=neq.&select=id,rating,review,created_at,tool_id,users(username),tools(id,name)&order=created_at.desc&limit=20")
+                if response.status_code == 200:
+                    reviews = response.json()
+                    # Flatten nested user and tool data
+                    for review in reviews:
+                        if review.get('users'):
+                            review['username'] = review['users']['username']
+                        if review.get('tools'):
+                            review['tool_name'] = review['tools']['name']
+                            review['tool_id'] = review['tools']['id']
+                        # Also ensure tool_id is available from the rating record itself
+                        if not review.get('tool_id') and review.get('tools'):
+                            review['tool_id'] = review['tools']['id']
+                    self._result = reviews
+                else:
+                    self._result = []
+            
+            # COUNT QUERIES FOR STATS
+            elif sql_lower == "select count(*) from tools where name != 'data_import_completed'":
+                response = self.session.get(f"{self.base_url}/rest/v1/tools?name=neq.DATA_IMPORT_COMPLETED&select=count")
+                if response.status_code == 200:
+                    data = response.json()
+                    count = len(data) if isinstance(data, list) else data.get('count', 0)
+                    self._result = [(count,)]
+                else:
+                    self._result = [(0,)]
+            
+            elif sql_lower == 'select count(*) from users':
+                response = self.session.get(f"{self.base_url}/rest/v1/users?select=count")
+                if response.status_code == 200:
+                    data = response.json()
+                    count = len(data) if isinstance(data, list) else data.get('count', 0)
+                    self._result = [(count,)]
+                else:
+                    self._result = [(0,)]
+            
+            elif sql_lower == 'select count(*) from ratings':
+                response = self.session.get(f"{self.base_url}/rest/v1/ratings?select=count")
+                if response.status_code == 200:
+                    data = response.json()
+                    count = len(data) if isinstance(data, list) else data.get('count', 0)
+                    self._result = [(count,)]
+                else:
+                    self._result = [(0,)]
+            
+            elif sql_lower == 'select count(*) from comments':
+                response = self.session.get(f"{self.base_url}/rest/v1/comments?select=count")
+                if response.status_code == 200:
+                    data = response.json()
+                    count = len(data) if isinstance(data, list) else data.get('count', 0)
+                    self._result = [(count,)]
+                else:
+                    self._result = [(0,)]
+            
+            elif sql_lower == 'select count(*) from ratings where review is not null and review != ""':
+                response = self.session.get(f"{self.base_url}/rest/v1/ratings?review=not.is.null&review=neq.&select=count")
+                if response.status_code == 200:
+                    data = response.json()
+                    count = len(data) if isinstance(data, list) else data.get('count', 0)
+                    self._result = [(count,)]
+                else:
+                    self._result = [(0,)]
+            
+            elif sql_lower == 'select avg(rating) from ratings':
+                response = self.session.get(f"{self.base_url}/rest/v1/ratings?select=rating")
+                if response.status_code == 200:
+                    ratings = response.json()
+                    if ratings:
+                        avg_rating = sum(r['rating'] for r in ratings) / len(ratings)
+                        self._result = [(avg_rating,)]
+                    else:
+                        self._result = [(None,)]
+                else:
+                    self._result = [(None,)]
             
             else:
                 print(f"Unhandled SQL query: {sql_lower[:100]}...")
@@ -1193,15 +1303,19 @@ def rate_tool():
         )
         # Award XP for new rating
         update_user_xp(session['user_id'], 20, conn)
-    
-    # Update tool's average rating
+      # Update tool's average rating with safe handling
     avg_rating = conn.execute(
         'SELECT AVG(rating) as avg, COUNT(*) as count FROM ratings WHERE tool_id = ?',
         (tool_id,)
     ).fetchone()
     
+    # Safe handling of average rating calculation
+    avg_value = round(avg_rating['avg'], 1) if avg_rating['avg'] is not None else 0.0
+    count_value = avg_rating['count'] if avg_rating['count'] is not None else 0
+    
     conn.execute(
-        'UPDATE tools SET average_rating = ?, total_ratings = ? WHERE id = ?',        (round(avg_rating['avg'], 1), avg_rating['count'], tool_id)
+        'UPDATE tools SET average_rating = ?, total_ratings = ? WHERE id = ?',
+        (avg_value, count_value, tool_id)
     )
     conn.commit()
     conn.close()
@@ -1610,16 +1724,19 @@ def admin_dashboard():
                              JOIN tools t ON r.tool_id = t.id
                              WHERE r.review IS NOT NULL AND r.review != ''
                              ORDER BY r.created_at DESC LIMIT 20''').fetchall()
+      # Get comprehensive stats with safe handling
+    stats = {}
     
-    # Get comprehensive stats
-    stats = {
-        'total_tools': conn.execute("SELECT COUNT(*) FROM tools WHERE name != 'DATA_IMPORT_COMPLETED'").fetchone()[0],
-        'total_users': conn.execute('SELECT COUNT(*) FROM users').fetchone()[0],
-        'total_ratings': conn.execute('SELECT COUNT(*) FROM ratings').fetchone()[0],
-        'total_comments': conn.execute('SELECT COUNT(*) FROM comments').fetchone()[0],
-        'total_reviews': conn.execute('SELECT COUNT(*) FROM ratings WHERE review IS NOT NULL AND review != ""').fetchone()[0],
-        'avg_rating': conn.execute('SELECT AVG(rating) FROM ratings').fetchone()[0] or 0
-    }
+    # Safe query execution with fallback values
+    stats['total_tools'] = conn.execute("SELECT COUNT(*) FROM tools WHERE name != 'DATA_IMPORT_COMPLETED'").fetchone()[0]
+    stats['total_users'] = conn.execute('SELECT COUNT(*) FROM users').fetchone()[0]
+    stats['total_ratings'] = conn.execute('SELECT COUNT(*) FROM ratings').fetchone()[0]
+    stats['total_comments'] = conn.execute('SELECT COUNT(*) FROM comments').fetchone()[0]
+    stats['total_reviews'] = conn.execute('SELECT COUNT(*) FROM ratings WHERE review IS NOT NULL AND review != ""').fetchone()[0]
+    
+    # Safe average rating calculation
+    avg_result = conn.execute('SELECT AVG(rating) FROM ratings').fetchone()
+    stats['avg_rating'] = round(avg_result[0], 2) if avg_result and avg_result[0] is not None else 0
     
     conn.close()
     return render_template('admin/dashboard.html', 
@@ -1847,20 +1964,68 @@ def about():
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
     if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        message = request.form['message']
+        # Get form data
+        name = request.form.get('name', '').strip()
+        email = request.form.get('email', '').strip()
+        company = request.form.get('company', '').strip()
+        subject = request.form.get('subject', '').strip()
+        message = request.form.get('message', '').strip()
+        newsletter = request.form.get('newsletter') == '1'
         
-        conn = get_db_connection()
-        conn.execute(
-            'INSERT INTO contact_messages (name, email, message) VALUES (?, ?, ?)',
-            (name, email, message)
-        )
-        conn.commit()
-        conn.close()
+        # Basic validation
+        if not name or not email or not message or not subject:
+            flash('Please fill in all required fields.', 'error')
+            return render_template('contact.html')
         
-        flash('Thank you for your message! We\'ll get back to you soon.', 'success')
-        return redirect(url_for('contact'))
+        if len(message) < 10:
+            flash('Please provide a message with at least 10 characters.', 'error')
+            return render_template('contact.html')
+        
+        try:
+            conn = get_db_connection()
+            
+            # Check if we need to create the contact_messages table with new structure
+            if isinstance(conn, SupabaseConnection):
+                # For Supabase, we'll use a more complete insert
+                conn.execute('''
+                    INSERT INTO contact_messages (name, email, company, subject, message, newsletter_subscription, created_at) 
+                    VALUES (%s, %s, %s, %s, %s, %s, NOW())
+                ''', (name, email, company, subject, message, newsletter))
+            else:
+                # For SQLite, create table if not exists and insert
+                conn.execute('''
+                    CREATE TABLE IF NOT EXISTS contact_messages (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT NOT NULL,
+                        email TEXT NOT NULL,
+                        company TEXT,
+                        subject TEXT NOT NULL,
+                        message TEXT NOT NULL,
+                        newsletter_subscription BOOLEAN DEFAULT FALSE,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                ''')
+                conn.execute('''
+                    INSERT INTO contact_messages (name, email, company, subject, message, newsletter_subscription) 
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', (name, email, company, subject, message, newsletter))
+            
+            conn.commit()
+            conn.close()
+            
+            # Success message with personalization
+            success_msg = f'Thank you, {name}! Your message has been received. '
+            if newsletter:
+                success_msg += "You've also been subscribed to our newsletter. "
+            success_msg += "I'll get back to you within 24-48 hours."
+            
+            flash(success_msg, 'success')
+            return redirect(url_for('contact'))
+            
+        except Exception as e:
+            print(f"Contact form error: {e}")
+            flash('Sorry, there was an error sending your message. Please try again or email me directly.', 'error')
+            return render_template('contact.html')
     
     return render_template('contact.html')
 
@@ -1876,7 +2041,7 @@ def debug_info():
         'python_version': sys.version,
         'environment': 'vercel' if os.environ.get('VERCEL') else 'local',
         'supabase_url_exists': bool(os.environ.get('SUPABASE_URL')),
-        'supabase_key_exists': bool(os.environ.get('SUPABASE_KEY')),
+        'supabase_key_exists': bool(os.environ.get('SUPABASE_ANON_KEY')),
         'supabase_url_value': os.environ.get('SUPABASE_URL', 'NOT_SET')[:50] + '...' if os.environ.get('SUPABASE_URL') else 'NOT_SET',
     }
     
