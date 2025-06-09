@@ -22,6 +22,15 @@
     
     {% block extra_css %}{% endblock %}
 </head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-N26Q5J2Q3R"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-N26Q5J2Q3R');
+</script>
 <body>    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNavbar">
         <div class="container">            <a class="navbar-brand fw-bold fs-3" href="{{ url_for('index') }}">
