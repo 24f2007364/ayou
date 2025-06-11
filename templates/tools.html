@@ -55,9 +55,17 @@
                     {% endif %}
                     <a href="{{ url_for('tools') }}" class="btn btn-outline-secondary btn-sm rounded-pill ms-2">
                         Clear All
+                    </a>                </div>
+                {% endif %}
+                
+                <!-- Stack Builder Call-to-Action -->
+                <div class="text-center mt-4 p-4 bg-light rounded">
+                    <h5 class="mb-2">Need a complete AI workflow?</h5>
+                    <p class="text-muted mb-3">Let our AI Stack Builder create a personalized tool workflow for your specific needs</p>
+                    <a href="{{ url_for('stack_builder') }}" class="btn btn-primary">
+                        <i class="bi bi-layers me-2"></i>Build My AI Stack
                     </a>
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -73,16 +81,114 @@
                 {% endif %}
                 <span class="text-muted fs-6">({{ tools|length }} tools)</span>
             </h3>
-            <div class="d-flex gap-2">
-                <div class="dropdown">
+            <div class="d-flex gap-2">                <div class="dropdown">
                     <button class="btn btn-outline-secondary dropdown-toggle btn-sm" type="button" data-bs-toggle="dropdown">
                         <i class="bi bi-funnel me-1"></i>Sort by
                     </button>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Highest Rated</a></li>
-                        <li><a class="dropdown-item" href="#">Most Reviewed</a></li>
-                        <li><a class="dropdown-item" href="#">Newest</a></li>
-                        <li><a class="dropdown-item" href="#">Name A-Z</a></li>
+                        <li><a class="dropdown-item {% if current_sort == 'rating' %}active{% endif %}" 
+                               href="{{ url_for('tools', search=current_search, category=current_category, sort='rating') }}">Highest Rated</a></li>
+                        <li><a class="dropdown-item {% if current_sort == 'reviews' %}active{% endif %}" 
+                               href="{{ url_for('tools', search=current_search, category=current_category, sort='reviews') }}">Most Reviewed</a></li>
+                        <li><a class="dropdown-item {% if current_sort == 'newest' %}active{% endif %}" 
+                               href="{{ url_for('tools', search=current_search, category=current_category, sort='newest') }}">Newest</a></li>
+                        <li><a class="dropdown-item {% if current_sort == 'name' %}active{% endif %}" 
+                               href="{{ url_for('tools', search=current_search, category=current_category, sort='name') }}">Name A-Z</a></li>
+                    </ul>
+                </div>
+            </div>        </div>
+
+        <!-- Featured Tools Section (Premium) -->
+        {% if featured_tools and not (current_search or current_category) %}
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="fw-bold mb-2">⭐ Featured Tools</h4>
+                    <p class="text-muted mb-0">Premium tools recommended by experts</p>
+                </div>
+                <div class="badge bg-gradient-premium px-3 py-2 rounded-pill">
+                    <i class="bi bi-gem me-1"></i>Premium
+                </div>
+            </div>
+            
+            <div class="row g-4 mb-4">
+                {% for tool in featured_tools %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="tool-card featured-tool-card h-100">
+                        <div class="featured-badge">
+                            <i class="bi bi-star-fill"></i>
+                            <span>Featured</span>
+                        </div>
+                        
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="tool-logo me-3">
+                                {% if tool.logo_url %}
+                                    <img src="{{ tool.logo_url }}" alt="{{ tool.name }}" class="w-100 h-100 object-fit-cover">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="AI Exchange" class="w-100 h-100 object-fit-contain">
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="fw-bold mb-1">{{ tool.name }}</h5>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="rating-display me-2">
+                                        {% for i in range(5) %}
+                                            {% if tool.average_rating and i < tool.average_rating %}
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                            {% else %}
+                                                <i class="bi bi-star text-muted"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                        <small class="text-muted ms-1">({{ tool.total_ratings or 0 }})</small>
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill">{{ tool.category }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p class="text-muted mb-3">{{ tool.description[:120] }}{% if tool.description|length > 120 %}...{% endif %}</p>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <span class="badge 
+                                    {% if tool.pricing_model == 'Free' %}bg-success
+                                    {% elif tool.pricing_model == 'Freemium' %}bg-info
+                                    {% else %}bg-warning{% endif %} rounded-pill">
+                                    {{ tool.pricing_model }}
+                                </span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="{{ tool.link }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i>Visit
+                                </a>
+                                <a href="{{ url_for('tool_detail', tool_id=tool.id) }}" class="btn btn-primary btn-sm rounded-pill">
+                                    Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <hr class="my-5" style="border-color: rgba(255, 215, 0, 0.3); border-width: 2px;">
+        </div>
+        {% endif %}
+
+        <!-- Regular Tools Section -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold mb-0">All Tools</h4>
+            <div class="d-flex gap-2">                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        Sort by
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item {% if current_sort == 'rating' %}active{% endif %}" 
+                               href="{{ url_for('tools', search=current_search, category=current_category, sort='rating') }}">Rating</a></li>
+                        <li><a class="dropdown-item {% if current_sort == 'newest' %}active{% endif %}" 
+                               href="{{ url_for('tools', search=current_search, category=current_category, sort='newest') }}">Newest</a></li>
+                        <li><a class="dropdown-item {% if current_sort == 'name' %}active{% endif %}" 
+                               href="{{ url_for('tools', search=current_search, category=current_category, sort='name') }}">Name A-Z</a></li>
                     </ul>
                 </div>
             </div>

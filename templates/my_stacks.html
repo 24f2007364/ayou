@@ -1,0 +1,503 @@
+{% extends "layout.html" %}
+
+{% block title %}My AI Stacks - AI Exchange{% endblock %}
+
+{% block extra_css %}
+<style>
+    .my-stacks-header {
+        background: linear-gradient(135deg, #667eea 0%, #0b42e9 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+    }
+    
+    .stack-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        transition: all 0.3s ease;
+    }
+    
+    .stack-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    
+    .stack-title {
+        color: #2196f3;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stack-meta {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .meta-badge {
+        background: #f8f9fa;
+        color: #666;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .stack-prompt {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        border-left: 4px solid #2196f3;
+    }
+    
+    .stack-prompt-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+    
+    .stack-steps-preview {
+        margin-bottom: 1rem;
+    }
+    
+    .steps-summary {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .step-badge {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 0.3rem 0.8rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+    }
+    
+    .stack-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .btn-view {
+        background: #2196f3;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-view:hover {
+        background: #1976d2;
+        text-decoration: none;
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    .btn-delete {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-delete:hover {
+        background: #c82333;
+        transform: translateY(-1px);
+    }
+    
+    .stack-created {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: #dee2e6;
+    }
+    
+    .stack-modal .modal-content {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+    
+    .stack-modal .modal-header {
+        border-bottom: 2px solid #f8f9fa;
+        padding: 1.5rem;
+    }
+    
+    .stack-modal .modal-body {
+        padding: 2rem;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+    
+    .modal-workflow-steps {
+        counter-reset: step-counter;
+    }
+    
+    .modal-workflow-step {
+        counter-increment: step-counter;
+        margin-bottom: 2rem;
+        position: relative;
+        padding-left: 3rem;
+    }
+    
+    .modal-workflow-step::before {
+        content: counter(step-counter);
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 2rem;
+        height: 2rem;
+        background: #2196f3;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+    
+    .modal-step-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+    
+    .modal-step-tools {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .modal-tool-card {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .modal-tool-name {
+        font-weight: 600;
+        color: #2196f3;
+        margin-bottom: 0.3rem;
+    }
+    
+    @media (max-width: 768px) {
+        .my-stacks-header {
+            padding: 2rem 0;
+        }
+        
+        .stack-meta {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .stack-actions {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .action-buttons {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="my-stacks-header">
+    <div class="container text-center">
+        <h1 class="display-5 fw-bold mb-3">My AI Stacks</h1>
+        <p class="lead">Your saved AI workflow collections</p>
+    </div>
+</div>
+
+<div class="container">
+    {% if stacks %}
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3>{{ stacks|length }} Saved Stack{{ 's' if stacks|length != 1 else '' }}</h3>
+                    <a href="{{ url_for('stack_builder') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Create New Stack
+                    </a>
+                </div>
+                
+                {% for stack in stacks %}
+                <div class="stack-card">
+                    <div class="stack-title">{{ stack.workflow_title }}</div>
+                    
+                    <div class="stack-meta">
+                        <div class="meta-badge">
+                            <i class="bi bi-calendar"></i>
+                            {{ stack.created_at[:10] }}
+                        </div>
+                        <div class="meta-badge">
+                            <i class="bi bi-list-check"></i>
+                            {{ stack.workflow_data.steps|length if stack.workflow_data.steps else 0 }} Steps
+                        </div>
+                        {% if stack.workflow_data.difficulty_level %}
+                        <div class="meta-badge">
+                            <i class="bi bi-bar-chart"></i>
+                            {{ stack.workflow_data.difficulty_level }}
+                        </div>
+                        {% endif %}
+                        {% if stack.workflow_data.estimated_time %}
+                        <div class="meta-badge">
+                            <i class="bi bi-clock"></i>
+                            {{ stack.workflow_data.estimated_time }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="stack-prompt">
+                        <div class="stack-prompt-title">Original Request:</div>
+                        <div class="text-muted">{{ stack.original_prompt }}</div>
+                    </div>
+                    
+                    {% if stack.workflow_data.workflow_description %}
+                    <div class="mb-3">
+                        <strong>Description:</strong> {{ stack.workflow_data.workflow_description }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if stack.workflow_data.steps %}
+                    <div class="stack-steps-preview">
+                        <div class="steps-summary">
+                            {% for step in stack.workflow_data.steps[:5] %}
+                            <div class="step-badge">{{ loop.index }}. {{ step.title[:30] }}{% if step.title|length > 30 %}...{% endif %}</div>
+                            {% endfor %}
+                            {% if stack.workflow_data.steps|length > 5 %}
+                            <div class="step-badge">+{{ stack.workflow_data.steps|length - 5 }} more</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="stack-actions">
+                        <div class="action-buttons">
+                            <button class="btn-view" onclick="viewStack({{ stack.id }})">
+                                <i class="bi bi-eye me-1"></i>View Full Workflow
+                            </button>
+                            <button class="btn-delete" onclick="deleteStack({{ stack.id }})">
+                                <i class="bi bi-trash me-1"></i>Delete
+                            </button>
+                        </div>
+                        <div class="stack-created">
+                            Created {{ stack.created_at[:10] }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-layers"></i>
+            <h3>No stacks yet</h3>
+            <p>Create your first AI workflow stack to get started!</p>
+            <a href="{{ url_for('stack_builder') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-plus-circle me-2"></i>Create Your First Stack
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Stack View Modal -->
+<div class="modal fade stack-modal" id="stackModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="stackModalTitle">Stack Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="stackModalBody">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{{ url_for('stack_builder') }}" class="btn btn-primary">Create Similar Stack</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Store stacks data for JavaScript access
+const stacksData = {{ stacks|tojson|safe }};
+
+function viewStack(stackId) {
+    const stack = stacksData.find(s => s.id === stackId);
+    if (!stack) return;
+    
+    const modal = document.getElementById('stackModal');
+    const modalTitle = document.getElementById('stackModalTitle');
+    const modalBody = document.getElementById('stackModalBody');
+    
+    modalTitle.textContent = stack.workflow_title;
+    
+    let stepsHtml = '';
+    if (stack.workflow_data.steps) {
+        stepsHtml = `
+            <div class="modal-workflow-steps">
+                ${stack.workflow_data.steps.map(step => `
+                    <div class="modal-workflow-step">
+                        <div class="modal-step-title">${step.title}</div>
+                        <div class="mb-2 text-muted">${step.description}</div>
+                        ${step.recommended_tools && step.recommended_tools.length > 0 ? `
+                            <div class="modal-step-tools">
+                                ${step.recommended_tools.map(tool => `
+                                    <div class="modal-tool-card">
+                                        <div class="modal-tool-name">${tool.tool_name}</div>
+                                        <div class="small text-muted mb-2">${tool.why_recommended}</div>
+                                        ${tool.tool_url ? `<a href="${tool.tool_url}" target="_blank" class="btn btn-sm btn-outline-primary">Visit Tool</a>` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        ${step.expected_outcome ? `
+                            <div class="alert alert-success mt-2">
+                                <strong>Expected Outcome:</strong> ${step.expected_outcome}
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+    
+    modalBody.innerHTML = `
+        <div class="mb-3">
+            <strong>Original Request:</strong>
+            <div class="alert alert-info mt-2">${stack.original_prompt}</div>
+        </div>
+        
+        ${stack.workflow_data.workflow_description ? `
+            <div class="mb-3">
+                <strong>Description:</strong> ${stack.workflow_data.workflow_description}
+            </div>
+        ` : ''}
+        
+        <div class="mb-4">
+            <div class="row">
+                ${stack.workflow_data.estimated_time ? `
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <i class="bi bi-clock h4 text-primary"></i>
+                            <div><strong>Estimated Time</strong></div>
+                            <div class="text-muted">${stack.workflow_data.estimated_time}</div>
+                        </div>
+                    </div>
+                ` : ''}
+                ${stack.workflow_data.difficulty_level ? `
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <i class="bi bi-bar-chart h4 text-success"></i>
+                            <div><strong>Difficulty</strong></div>
+                            <div class="text-muted">${stack.workflow_data.difficulty_level}</div>
+                        </div>
+                    </div>
+                ` : ''}
+                <div class="col-md-4">
+                    <div class="text-center p-3 bg-light rounded">
+                        <i class="bi bi-list-check h4 text-info"></i>
+                        <div><strong>Steps</strong></div>
+                        <div class="text-muted">${stack.workflow_data.steps?.length || 0}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <h5>Workflow Steps:</h5>
+        ${stepsHtml}
+        
+        ${stack.workflow_data.additional_tips && stack.workflow_data.additional_tips.length > 0 ? `
+            <div class="mt-4">
+                <h5>Additional Tips:</h5>
+                <ul class="list-group list-group-flush">
+                    ${stack.workflow_data.additional_tips.map(tip => `
+                        <li class="list-group-item">${tip}</li>
+                    `).join('')}
+                </ul>
+            </div>
+        ` : ''}
+        
+        ${stack.workflow_data.success_metrics && stack.workflow_data.success_metrics.length > 0 ? `
+            <div class="mt-4">
+                <h5>Success Metrics:</h5>
+                <ul class="list-group list-group-flush">
+                    ${stack.workflow_data.success_metrics.map(metric => `
+                        <li class="list-group-item">${metric}</li>
+                    `).join('')}
+                </ul>
+            </div>
+        ` : ''}
+    `;
+    
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+}
+
+function deleteStack(stackId) {
+    if (!confirm('Are you sure you want to delete this stack? This action cannot be undone.')) {
+        return;
+    }
+    
+    fetch(`/delete-stack/${stackId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload(); // Refresh page to show updated list
+        } else {
+            alert('Error deleting stack: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error deleting stack. Please try again.');
+    });
+}
+</script>
+{% endblock %}

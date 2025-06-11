@@ -224,19 +224,51 @@ class SupabaseConnection:
             elif 'select username, xp, rank from users where id' in sql_lower and params:
                 user_id = params[0]
                 response = self.session.get(f"{self.base_url}/rest/v1/users?id=eq.{user_id}&select=username,xp,rank")
-                self._result = response.json() if response.status_code == 200 else []
-            
-            # TOOL OPERATIONS            elif 'insert into tools' in sql_lower and params:
-                tool_data = {
-                    'name': params[0],
-                    'description': params[1],
-                    'link': params[2],
-                    'logo_url': params[3] if len(params) > 3 else None,
-                    'category': params[4] if len(params) > 4 else '',
-                    'pricing_model': params[5] if len(params) > 5 else '',
-                    'key_features': params[6] if len(params) > 6 else '[]',
-                    'gallery_images': params[7] if len(params) > 7 else '[]'
-                }
+                self._result = response.json() if response.status_code == 200 else []            # TOOL OPERATIONS
+            elif 'insert into tools' in sql_lower and params:
+                # Handle different insert formats
+                if len(params) == 9 and 'is_featured' in sql_lower and 'featured_since' not in sql_lower:
+                    # Format: name, description, link, logo_url, category, pricing_model, key_features, gallery_images, is_featured
+                    name, description, link, logo_url, category, pricing_model, key_features, gallery_images, is_featured = params
+                    tool_data = {
+                        'name': name,
+                        'description': description,
+                        'link': link,
+                        'logo_url': logo_url,
+                        'category': category,
+                        'pricing_model': pricing_model,
+                        'key_features': key_features,
+                        'gallery_images': gallery_images,
+                        'is_featured': is_featured
+                    }
+                elif len(params) == 9 and 'featured_since' in sql_lower:
+                    # Format: name, description, link, logo_url, category, pricing_model, key_features, gallery_images, is_featured (with CURRENT_TIMESTAMP)
+                    name, description, link, logo_url, category, pricing_model, key_features, gallery_images, is_featured = params
+                    tool_data = {
+                        'name': name,
+                        'description': description,
+                        'link': link,
+                        'logo_url': logo_url,
+                        'category': category,
+                        'pricing_model': pricing_model,
+                        'key_features': key_features,
+                        'gallery_images': gallery_images,
+                        'is_featured': is_featured,
+                        'featured_since': datetime.now().isoformat() if is_featured else None
+                    }
+                else:
+                    # Default format for backwards compatibility
+                    tool_data = {
+                        'name': params[0],
+                        'description': params[1],
+                        'link': params[2],
+                        'logo_url': params[3] if len(params) > 3 else None,
+                        'category': params[4] if len(params) > 4 else '',
+                        'pricing_model': params[5] if len(params) > 5 else '',
+                        'key_features': params[6] if len(params) > 6 else '[]',
+                        'gallery_images': params[7] if len(params) > 7 else '[]'
+                    }
+                
                 response = self.session.post(f"{self.base_url}/rest/v1/tools", json=tool_data)
                 if response.status_code in [200, 201]:
                     self._result = response.json()
@@ -244,9 +276,9 @@ class SupabaseConnection:
                     print(f"Tool insert failed: {response.status_code} - {response.text}")
             
             elif ('select *, coalesce(average_rating, 0)' in sql_lower and 
-                  'from tools' in sql_lower and 'limit 12' in sql_lower):
-                # Homepage tools query
-                response = self.session.get(f"{self.base_url}/rest/v1/tools?select=*&order=average_rating.desc.nullslast,total_ratings.desc.nullslast&limit=12")
+                  'from tools' in sql_lower and 'where is_featured' in sql_lower and 'limit 6' in sql_lower):
+                # Homepage featured tools query
+                response = self.session.get(f"{self.base_url}/rest/v1/tools?is_featured=eq.true&select=*&order=featured_since.desc.nullslast,average_rating.desc.nullslast&limit=6")
                 if response.status_code == 200:
                     data = response.json()
                     for tool in data:
@@ -256,6 +288,44 @@ class SupabaseConnection:
                 else:
                     self._result = []
             
+            elif ('select *, coalesce(average_rating, 0)' in sql_lower and 
+                  'from tools' in sql_lower and 'where is_featured' in sql_lower and 'limit 8' in sql_lower):
+                # Tools page featured tools query
+                response = self.session.get(f"{self.base_url}/rest/v1/tools?is_featured=eq.true&select=*&order=featured_since.desc.nullslast,average_rating.desc.nullslast&limit=8")
+                if response.status_code == 200:
+                    data = response.json()
+                    for tool in data:
+                        tool['average_rating'] = tool.get('average_rating') or 0
+                        tool['total_ratings'] = tool.get('total_ratings') or 0
+                    self._result = data
+                else:
+                    self._result = []
+            
+            elif ('select *, coalesce(average_rating, 0)' in sql_lower and 
+                  'from tools' in sql_lower and 'where is_featured !=' in sql_lower and 'limit 12' in sql_lower):
+                # Homepage regular tools query (excluding featured)
+                response = self.session.get(f"{self.base_url}/rest/v1/tools?or=(is_featured.eq.false,is_featured.is.null)&select=*&order=average_rating.desc.nullslast,total_ratings.desc.nullslast&limit=12")
+                if response.status_code == 200:
+                    data = response.json()
+                    for tool in data:
+                        tool['average_rating'] = tool.get('average_rating') or 0
+                        tool['total_ratings'] = tool.get('total_ratings') or 0
+                    self._result = data
+                else:
+                    self._result = []
+            
+            elif ('select *, coalesce(average_rating, 0)' in sql_lower and 
+                  'from tools' in sql_lower and 'limit 12' in sql_lower):
+                # Generic homepage tools query
+                response = self.session.get(f"{self.base_url}/rest/v1/tools?select=*&order=average_rating.desc.nullslast,total_ratings.desc.nullslast&limit=12")
+                if response.status_code == 200:
+                    data = response.json()
+                    for tool in data:
+                        tool['average_rating'] = tool.get('average_rating') or 0
+                        tool['total_ratings'] = tool.get('total_ratings') or 0
+                    self._result = data
+                else:
+                    self._result = []            
             elif ('select *, coalesce(average_rating, 0)' in sql_lower and 
                   'from tools where 1=1' in sql_lower):
                 # Tools page query with search/filter
@@ -276,7 +346,15 @@ class SupabaseConnection:
                 if filters:
                     url += "&" + "&".join(filters)
                 
-                url += "&order=average_rating.desc.nullslast,total_ratings.desc.nullslast"
+                # Handle different sorting options
+                if 'order by created_at desc' in sql_lower:
+                    url += "&order=created_at.desc.nullslast"
+                elif 'order by name asc' in sql_lower:
+                    url += "&order=name.asc.nullslast"
+                elif 'order by total_ratings desc' in sql_lower:
+                    url += "&order=total_ratings.desc.nullslast,average_rating.desc.nullslast"
+                else:  # Default rating sort
+                    url += "&order=average_rating.desc.nullslast,total_ratings.desc.nullslast"
                 
                 response = self.session.get(url)
                 if response.status_code == 200:
@@ -333,8 +411,38 @@ class SupabaseConnection:
                     tool_data = {'average_rating': avg_rating, 'total_ratings': total_ratings}
                     response = self.session.patch(f"{self.base_url}/rest/v1/tools?id=eq.{tool_id}", json=tool_data)                
                 else:
-                    # Update tool info
-                    if len(params) >= 9:  # New format with key_features and gallery_images
+                    # Update tool info - handle different parameter counts
+                    if len(params) == 11:  # New format with is_featured and featured_since (newly featured)
+                        name, description, link, logo_url, category, pricing_model, key_features, gallery_images, is_featured, featured_since, tool_id = params
+                        tool_data = {
+                            'name': name,
+                            'description': description,
+                            'link': link,
+                            'logo_url': logo_url,
+                            'category': category,
+                            'pricing_model': pricing_model,
+                            'key_features': key_features,
+                            'gallery_images': gallery_images,
+                            'is_featured': is_featured,
+                            'featured_since': featured_since if featured_since != 'CURRENT_TIMESTAMP' else datetime.now().isoformat()
+                        }
+                    elif len(params) == 10 and ('is_featured' in sql_lower):  # New format with is_featured
+                        name, description, link, logo_url, category, pricing_model, key_features, gallery_images, is_featured, tool_id = params
+                        tool_data = {
+                            'name': name,
+                            'description': description,
+                            'link': link,
+                            'logo_url': logo_url,
+                            'category': category,
+                            'pricing_model': pricing_model,
+                            'key_features': key_features,
+                            'gallery_images': gallery_images,
+                            'is_featured': is_featured
+                        }
+                        # If featured_since = NULL is in the query, handle it
+                        if 'featured_since = null' in sql_lower.replace(' ', ''):
+                            tool_data['featured_since'] = None
+                    elif len(params) >= 9:  # New format with key_features and gallery_images
                         name, description, link, logo_url, category, pricing_model, key_features, gallery_images, tool_id = params
                         tool_data = {
                             'name': name,
@@ -853,6 +961,40 @@ class SupabaseConnection:
                 else:
                     self._result = [(None,)]
             
+            # TOOLS QUERIES FOR STACK BUILDER
+            elif 'select name, description, category, key_features, average_rating, link from tools' in sql_lower:
+                response = self.session.get(f"{self.base_url}/rest/v1/tools?select=name,description,category,key_features,average_rating,link")
+                if response.status_code == 200:
+                    data = response.json()
+                    # Convert to dict format expected by the code
+                    formatted_data = []
+                    for tool in data:
+                        # Ensure all required fields exist
+                        formatted_tool = {
+                            'name': tool.get('name', ''),
+                            'description': tool.get('description', ''),
+                            'category': tool.get('category', ''),
+                            'key_features': tool.get('key_features', '[]'),
+                            'average_rating': tool.get('average_rating', 0),
+                            'link': tool.get('link', '')
+                        }
+                        formatted_data.append(formatted_tool)
+                    self._result = formatted_data
+                else:
+                    print(f"Failed to fetch tools: {response.status_code} - {response.text}")
+                    self._result = []
+            
+            # LOGO QUERY HANDLER
+            elif 'select name, logo_url from tools where lower(name) = lower(?)' in sql_lower and params:
+                tool_name = params[0]
+                # Use ilike for case-insensitive search in PostgreSQL
+                response = self.session.get(f"{self.base_url}/rest/v1/tools?name=ilike.{tool_name}&select=name,logo_url")
+                if response.status_code == 200:
+                    self._result = response.json()
+                else:
+                    print(f"Failed to fetch logo for tool {tool_name}: {response.status_code} - {response.text}")
+                    self._result = []
+            
             else:
                 print(f"Unhandled SQL query: {sql_lower[:100]}...")
                 self._result = []
@@ -1102,8 +1244,19 @@ def before_request():
 @app.route('/')
 def index():
     conn = get_db_connection()
+    
+    # Get featured tools (premium placement)
+    featured_tools = conn.execute('''
+        SELECT *, COALESCE(average_rating, 0) as average_rating, COALESCE(total_ratings, 0) as total_ratings FROM tools 
+        WHERE is_featured = 1 OR is_featured = TRUE
+        ORDER BY featured_since DESC, COALESCE(average_rating, 0) DESC 
+        LIMIT 6
+    ''').fetchall()
+    
+    # Get regular tools (excluding featured ones for diversity)
     tools = conn.execute('''
         SELECT *, COALESCE(average_rating, 0) as average_rating, COALESCE(total_ratings, 0) as total_ratings FROM tools 
+        WHERE is_featured != 1 AND is_featured != TRUE OR is_featured IS NULL
         ORDER BY COALESCE(average_rating, 0) DESC, COALESCE(total_ratings, 0) DESC 
         LIMIT 12
     ''').fetchall()
@@ -1115,7 +1268,7 @@ def index():
     ''').fetchall()
     
     conn.close()
-    return render_template('index.html', tools=tools, top_users=top_users)
+    return render_template('index.html', tools=tools, featured_tools=featured_tools, top_users=top_users)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -1196,7 +1349,18 @@ def logout():
 def tools():
     search = request.args.get('search', '')
     category = request.args.get('category', '')
+    sort = request.args.get('sort', 'rating')  # Default sort by rating
     conn = get_db_connection()
+    
+    # Get featured tools (premium placement)
+    featured_tools = conn.execute('''
+        SELECT *, COALESCE(average_rating, 0) as average_rating, COALESCE(total_ratings, 0) as total_ratings FROM tools 
+        WHERE is_featured = 1 OR is_featured = TRUE
+        ORDER BY featured_since DESC, COALESCE(average_rating, 0) DESC 
+        LIMIT 8
+    ''').fetchall()
+    
+    # Get regular tools with sorting
     query = 'SELECT *, COALESCE(average_rating, 0) as average_rating, COALESCE(total_ratings, 0) as total_ratings FROM tools WHERE 1=1'
     params = []
     
@@ -1208,7 +1372,15 @@ def tools():
         query += ' AND category = ?'
         params.append(category)
     
-    query += ' ORDER BY COALESCE(average_rating, 0) DESC, total_ratings DESC'
+    # Handle sorting
+    if sort == 'newest':
+        query += ' ORDER BY created_at DESC'
+    elif sort == 'name':
+        query += ' ORDER BY name ASC'
+    elif sort == 'reviews':
+        query += ' ORDER BY total_ratings DESC, COALESCE(average_rating, 0) DESC'
+    else:  # Default to rating
+        query += ' ORDER BY COALESCE(average_rating, 0) DESC, total_ratings DESC'
     
     tools = conn.execute(query, params).fetchall()
     
@@ -1216,8 +1388,8 @@ def tools():
     categories = conn.execute('SELECT DISTINCT category FROM tools').fetchall()
     
     conn.close()
-    return render_template('tools.html', tools=tools, categories=categories, 
-                         current_search=search, current_category=category)
+    return render_template('tools.html', tools=tools, featured_tools=featured_tools, categories=categories, 
+                         current_search=search, current_category=category, current_sort=sort)
 
 @app.route('/tool/<int:tool_id>')
 def tool_detail(tool_id):
@@ -1504,7 +1676,9 @@ def react_comment():
 def edit_comment():
     comment_id = request.json.get('comment_id')
     new_comment = request.json.get('comment')
-    
+
+
+
     if not comment_id or not new_comment:
         return jsonify({'error': 'Invalid comment data'}), 400
     
@@ -1573,92 +1747,9 @@ def delete_comment():
     
     # Delete the main comment
     conn.execute('DELETE FROM comments WHERE id = ?', (comment_id,))
-    
     conn.close()
     
     return jsonify({'success': True})
-
-@app.route('/prompt-helper')
-def prompt_helper():
-    return render_template('prompt_helper.html')
-
-@app.route('/get_tool_suggestions', methods=['POST'])
-def get_tool_suggestions():
-    prompt = request.json.get('prompt', '').lower()
-    
-    if not prompt:
-        return jsonify({'error': 'Please enter a prompt'}), 400
-    
-    conn = get_db_connection()
-    
-    # Simple keyword matching for tool suggestions
-    # In production, you'd use more sophisticated NLP/AI matching
-    suggestions = []
-    tools = conn.execute('SELECT *, COALESCE(average_rating, 0) as average_rating, COALESCE(total_ratings, 0) as total_ratings FROM tools ORDER BY COALESCE(average_rating, 0) DESC').fetchall()
-    
-    keywords = {
-        'pdf': ['document', 'pdf', 'text', 'read'],
-        'image': ['image', 'photo', 'picture', 'visual', 'design'],
-        'video': ['video', 'movie', 'clip', 'stream'],
-        'text': ['text', 'write', 'content', 'blog', 'article'],
-        'code': ['code', 'programming', 'developer', 'github'],
-        'data': ['data', 'analytics', 'chart', 'visualization'],
-        'audio': ['audio', 'sound', 'music', 'voice'],
-        'chat': ['chat', 'conversation', 'talk', 'assistant']
-    }
-    
-    relevant_tools = []
-    for tool in tools:
-        tool_text = (tool['name'] + ' ' + tool['description'] + ' ' + tool['category']).lower()
-        relevance_score = 0
-        
-        for keyword in prompt.split():
-            if keyword in tool_text:
-                relevance_score += 2
-        
-        for category, category_keywords in keywords.items():
-            if any(keyword in prompt for keyword in category_keywords):
-                if category in tool['category'].lower():
-                    relevance_score += 3
-        
-        if relevance_score > 0:
-            relevant_tools.append({
-                'tool': dict(tool),
-                'score': relevance_score
-            })
-    
-    # Sort by relevance and take top 5
-    relevant_tools.sort(key=lambda x: x['score'], reverse=True)
-    top_tools = [item['tool'] for item in relevant_tools[:5]]
-    
-    # Generate simple roadmap
-    roadmap = [
-        {
-            'step': 1,
-            'title': 'Identify Your Needs',
-            'description': f'Based on your prompt "{prompt[:50]}...", you need tools that can help with this specific task.',
-            'tools': top_tools[:2] if top_tools else []
-        },
-        {
-            'step': 2,
-            'title': 'Choose the Right Tool',
-            'description': 'Select from the recommended tools based on your budget and feature requirements.',
-            'tools': top_tools[2:4] if len(top_tools) > 2 else []
-        },
-        {
-            'step': 3,
-            'title': 'Execute and Optimize',
-            'description': 'Use the selected tool and optimize your workflow for best results.',
-            'tools': top_tools[4:] if len(top_tools) > 4 else []
-        }
-    ]
-    
-    conn.close()
-    
-    return jsonify({
-        'suggestions': [dict(tool) for tool in top_tools],
-        'roadmap': roadmap
-    })
 
 @app.route('/leaderboard')
 def leaderboard():
@@ -1776,8 +1867,7 @@ def admin_add_tool():
         logo_url = request.form.get('image_url', '')  # Form field is 'image_url'
         category = request.form['category']
         pricing_model = request.form['pricing_model']
-        
-        # Handle dynamic key features
+          # Handle dynamic key features
         features = request.form.getlist('features[]')
         key_features = json.dumps([f.strip() for f in features if f.strip()])
         
@@ -1785,11 +1875,21 @@ def admin_add_tool():
         gallery_images = request.form.getlist('gallery_images[]')
         gallery_images_json = json.dumps([img.strip() for img in gallery_images if img.strip()])
         
+        # Handle featured status
+        is_featured = 'is_featured' in request.form
+        featured_since = 'CURRENT_TIMESTAMP' if is_featured else None
+        
         conn = get_db_connection()
-        conn.execute('''
-            INSERT INTO tools (name, description, link, logo_url, category, pricing_model, key_features, gallery_images)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (name, description, link, logo_url, category, pricing_model, key_features, gallery_images_json))
+        if is_featured and featured_since:
+            conn.execute('''
+                INSERT INTO tools (name, description, link, logo_url, category, pricing_model, key_features, gallery_images, is_featured, featured_since)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ''', (name, description, link, logo_url, category, pricing_model, key_features, gallery_images_json, is_featured))
+        else:
+            conn.execute('''
+                INSERT INTO tools (name, description, link, logo_url, category, pricing_model, key_features, gallery_images, is_featured)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (name, description, link, logo_url, category, pricing_model, key_features, gallery_images_json, is_featured))
         conn.commit()
         conn.close()
         
@@ -1851,12 +1951,12 @@ def admin_edit_tool(tool_id):
         tool_result = conn.execute('SELECT * FROM tools WHERE id = ?', (tool_id,))
         tool = tool_result.fetchone()
     else:
-        tool = conn.execute('SELECT * FROM tools WHERE id = ?', (tool_id,)).fetchone()
-    
+        tool = conn.execute('SELECT * FROM tools WHERE id = ?', (tool_id,)).fetchone()    
     if not tool:
         flash('Tool not found', 'error')
         conn.close()
         return redirect(url_for('admin_dashboard'))
+    
     if request.method == 'POST':
         name = request.form['name']
         description = request.form['description']
@@ -1873,13 +1973,38 @@ def admin_edit_tool(tool_id):
         gallery_images = request.form.getlist('gallery_images[]')
         gallery_images_json = json.dumps([img.strip() for img in gallery_images if img.strip()])
         
+        # Handle featured status
+        is_featured = 'is_featured' in request.form
+        was_featured = tool.get('is_featured', False)
+        
         try:
-            conn.execute('''
-                UPDATE tools 
-                SET name = ?, description = ?, link = ?, logo_url = ?, 
-                    category = ?, pricing_model = ?, key_features = ?, gallery_images = ?
-                WHERE id = ?
-            ''', (name, description, link, logo_url, category, pricing_model, key_features, gallery_images_json, tool_id))
+            if is_featured and not was_featured:
+                # Newly featured - set featured_since timestamp
+                conn.execute('''
+                    UPDATE tools 
+                    SET name = ?, description = ?, link = ?, logo_url = ?, 
+                        category = ?, pricing_model = ?, key_features = ?, gallery_images = ?,
+                        is_featured = ?, featured_since = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                ''', (name, description, link, logo_url, category, pricing_model, key_features, gallery_images_json, is_featured, tool_id))
+            elif not is_featured and was_featured:
+                # No longer featured - remove featured_since
+                conn.execute('''
+                    UPDATE tools 
+                    SET name = ?, description = ?, link = ?, logo_url = ?, 
+                        category = ?, pricing_model = ?, key_features = ?, gallery_images = ?,
+                        is_featured = ?, featured_since = NULL
+                    WHERE id = ?
+                ''', (name, description, link, logo_url, category, pricing_model, key_features, gallery_images_json, is_featured, tool_id))
+            else:
+                # No change in featured status
+                conn.execute('''
+                    UPDATE tools 
+                    SET name = ?, description = ?, link = ?, logo_url = ?, 
+                        category = ?, pricing_model = ?, key_features = ?, gallery_images = ?,
+                        is_featured = ?
+                    WHERE id = ?
+                ''', (name, description, link, logo_url, category, pricing_model, key_features, gallery_images_json, is_featured, tool_id))
             conn.commit()
             flash('Tool updated successfully!', 'success')
             conn.close()
@@ -2104,6 +2229,275 @@ def debug_info():
         debug_info['requests_import_error'] = str(e)
     
     return jsonify(debug_info)
+
+# ============================================================================
+# Stack Builder Routes
+# ============================================================================
+
+from stack_builder import StackBuilder
+
+@app.route('/stack-builder')
+def stack_builder():
+    """Stack Builder main page"""
+    return render_template('stack_builder.html')
+
+@app.route('/generate-stack', methods=['POST'])
+def generate_stack():
+    """Generate AI workflow stack based on user prompt"""
+    try:
+        data = request.get_json()
+        prompt = data.get('prompt', '').strip()
+        
+        if not prompt:
+            return jsonify({
+                'success': False,
+                'error': 'no_prompt',
+                'message': 'Please describe what kind of AI workflow you want to build.'
+            })
+          # Initialize Stack Builder
+        stack_builder = StackBuilder()
+        
+        # Get database connection
+        conn = get_db_connection()
+        
+        # Get user ID if logged in
+        user_id = session.get('user_id')
+        
+        # Get client IP for usage tracking
+        client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+        if client_ip:
+            client_ip = client_ip.split(',')[0].strip()  # Handle multiple IPs
+        
+        # Generate workflow
+        result = stack_builder.build_stack_with_limits(
+            user_prompt=prompt,
+            db_connection=conn,
+            user_id=user_id,
+            session=session,
+            client_ip=client_ip
+        )
+        
+        # Close connection if it's SQLite
+        if hasattr(conn, 'close'):
+            conn.close()
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"Error in generate_stack: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'server_error',
+            'message': 'Something went wrong on our end. Please try again.'
+        })
+
+@app.route('/save-stack', methods=['POST'])
+def save_stack():
+    """Save generated stack for logged-in users"""
+    if 'user_id' not in session:
+        return jsonify({
+            'success': False,
+            'error': 'not_logged_in',
+            'message': 'Please log in to save your AI stacks.'
+        })
+    
+    try:
+        data = request.get_json()
+        workflow = data.get('workflow')
+        original_prompt = data.get('original_prompt', '')
+        
+        if not workflow:
+            return jsonify({
+                'success': False,
+                'error': 'no_workflow',
+                'message': 'No workflow data to save.'
+            })
+        
+        # Initialize Stack Builder
+        stack_builder = StackBuilder()
+        
+        # Get database connection
+        conn = get_db_connection()
+          # Save stack
+        success = stack_builder.save_stack(
+            user_id=session['user_id'],
+            prompt=original_prompt,
+            workflow=workflow,
+            db_connection=conn
+        )
+        
+        # Close connection if it's SQLite
+        if hasattr(conn, 'close'):
+            conn.close()
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'Stack saved successfully!'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'save_failed',
+                'message': 'Failed to save stack. Please try again.'
+            })
+            
+    except Exception as e:
+        print(f"Error in save_stack: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'server_error',
+            'message': 'Something went wrong while saving. Please try again.'
+        })
+
+@app.route('/my-stacks')
+def my_stacks():
+    """View user's saved stacks"""
+    if 'user_id' not in session:
+        flash('Please log in to view your saved stacks.', 'error')
+        return redirect(url_for('login'))
+    
+    try:
+        # Initialize Stack Builder
+        stack_builder = StackBuilder()
+        
+        # Get database connection
+        conn = get_db_connection()
+        
+        # Get user's stacks
+        stacks = stack_builder.get_user_stacks(
+            user_id=session['user_id'],
+            db_connection=conn
+        )
+        
+        # Close connection if it's SQLite
+        if hasattr(conn, 'close'):
+            conn.close()
+        
+        return render_template('my_stacks.html', stacks=stacks)
+        
+    except Exception as e:
+        print(f"Error in my_stacks: {e}")
+        flash('Error loading your stacks. Please try again.', 'error')
+        return redirect(url_for('index'))
+
+@app.route('/check-usage')
+def check_usage():
+    """Check usage limits for non-logged-in users"""
+    if 'user_id' in session:
+        return jsonify({
+            'logged_in': True,
+            'can_use': True,
+            'uses_remaining': 'unlimited'
+        })
+    
+    stack_builder = StackBuilder()
+    can_use, uses_remaining = stack_builder.track_free_usage(session)
+    
+    return jsonify({
+        'logged_in': False,
+        'can_use': can_use,
+        'uses_remaining': uses_remaining
+    })
+
+@app.route('/delete-stack/<int:stack_id>', methods=['DELETE'])
+def delete_stack(stack_id):
+    """Delete a user's saved stack"""
+    if 'user_id' not in session:
+        return jsonify({
+            'success': False,
+            'error': 'not_logged_in',
+            'message': 'Please log in to delete stacks.'
+        })
+    
+    try:
+        # Initialize Stack Builder (we'll add a delete method)
+        stack_builder = StackBuilder()
+        
+        # Get database connection
+        conn = get_db_connection()
+        
+        # Delete stack
+        success = stack_builder.delete_user_stack(
+            stack_id=stack_id,
+            user_id=session['user_id'],
+            db_connection=conn
+        )
+        
+        # Close connection if it's SQLite
+        if hasattr(conn, 'close'):
+            conn.close()
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'Stack deleted successfully!'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'delete_failed',
+                'message': 'Failed to delete stack or stack not found.'
+            })
+            
+    except Exception as e:
+        print(f"Error in delete_stack: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'server_error',
+            'message': 'Something went wrong while deleting. Please try again.'
+        })
+
+# ============================================================================
+
+@app.route('/api/usage-status')
+def usage_status():
+    """Get usage status for current user/session"""
+    try:
+        user_id = session.get('user_id')
+        
+        if user_id:
+            # Logged in users have unlimited usage
+            return jsonify({
+                'user_id': user_id,
+                'remaining_uses': 'unlimited',
+                'is_logged_in': True
+            })
+        else:
+            # Check free usage for non-logged-in users
+            from stack_builder import StackBuilder
+            stack_builder = StackBuilder()
+            
+            # Get client IP
+            client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+            if client_ip:
+                client_ip = client_ip.split(',')[0].strip()
+            
+            # Get database connection
+            conn = get_db_connection()
+            
+            # Check usage
+            can_use, uses_remaining = stack_builder.track_free_usage_by_ip(conn, client_ip)
+            
+            # Close connection if it's SQLite
+            if hasattr(conn, 'close'):
+                conn.close()
+            
+            return jsonify({
+                'user_id': None,
+                'remaining_uses': uses_remaining,
+                'can_use': can_use,
+                'is_logged_in': False
+            })
+            
+    except Exception as e:
+        print(f"Error checking usage status: {e}")
+        return jsonify({
+            'user_id': None,
+            'remaining_uses': 1,
+            'can_use': True,
+            'is_logged_in': False
+        })
 
 if __name__ == '__main__':
     # Initialize database

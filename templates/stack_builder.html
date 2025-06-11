@@ -1,0 +1,1128 @@
+{% extends "layout.html" %}
+
+{% block title %}AI Stack Builder - Neural Workflow Generator{% endblock %}
+
+{% block extra_css %}
+<style>    :root {
+        --primary-blue: #1a73e8;
+        --secondary-blue: #4285f4;
+        --accent-blue: #669df6;
+        --light-blue: #a8c5ff;
+        --dark-blue: #0d47a1;
+        --blue-gradient: linear-gradient(135deg, #1a73e8 0%, #4285f4 50%, #669df6 100%);
+        --neural-gradient: linear-gradient(135deg, #0d47a1 0%, #1a73e8 40%, #4285f4 70%, #669df6 100%);
+        --glow-blue: rgba(26, 115, 232, 0.4);
+        --glow-light: rgba(102, 157, 246, 0.3);
+        --glass-bg: rgba(255, 255, 255, 0.08);
+        --glass-border: rgba(255, 255, 255, 0.12);
+    }    body {
+        background: linear-gradient(135deg, #0a1425 0%, #0d2147 30%, #1a365d 60%, #2563eb 100%);
+        background-attachment: fixed;
+        overflow-x: hidden;
+        position: relative;
+    }
+
+    /* Premium Blue Background Effects */
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 20% 20%, rgba(26, 115, 232, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 80% 40%, rgba(37, 99, 235, 0.12) 0%, transparent 50%),
+            radial-gradient(circle at 40% 80%, rgba(59, 130, 246, 0.14) 0%, transparent 50%);
+        z-index: -2;
+        animation: floatingGradients 25s ease-in-out infinite;
+    }
+
+    body::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.02)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        z-index: -1;
+        opacity: 0.5;
+    }
+
+    @keyframes floatingGradients {
+        0%, 100% { 
+            transform: translateY(0px) rotate(0deg);
+            opacity: 0.7;
+        }
+        25% { 
+            transform: translateY(-20px) rotate(5deg);
+            opacity: 0.8;
+        }
+        50% { 
+            transform: translateY(-10px) rotate(-3deg);
+            opacity: 0.6;
+        }
+        75% { 
+            transform: translateY(-30px) rotate(7deg);
+            opacity: 0.9;
+        }
+    }    /* Glassmorphism containers */
+    .neural-container {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.3),
+            0 0 0 1px rgba(255, 255, 255, 0.05),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        position: relative;
+    }
+
+    .neural-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;        right: 0;
+        bottom: 0;
+        border-radius: 24px;
+        padding: 1px;
+        background: var(--blue-gradient);
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask-composite: xor;
+        opacity: 0.3;
+        pointer-events: none;
+    }
+
+    /* Header Section - Premium Gemini Style */
+    .ai-header {
+        text-align: center;
+        padding: 6rem 0 3rem;
+        position: relative;
+    }    .ai-title {
+        font-size: 4rem;
+        font-weight: 700;
+        background: linear-gradient(
+            135deg, 
+            #1e3a8a 0%, 
+            #3b82f6 25%, 
+            #60a5fa 50%, 
+            #93c5fd 75%, 
+            #dbeafe 90%, 
+            #ffffff 100%
+        );
+        background-size: 300% 300%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1.5rem;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+        position: relative;
+        animation: gradientShift 4s ease-in-out infinite;
+        filter: drop-shadow(0 0 40px rgba(59, 130, 246, 0.4));
+    }
+
+    .ai-title::before {
+        content: attr(data-text);
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+            135deg, 
+            rgba(59, 130, 246, 0.8) 0%, 
+            rgba(147, 197, 253, 0.6) 50%, 
+            rgba(219, 234, 254, 0.4) 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        filter: blur(1px);
+        opacity: 0.7;
+        z-index: -1;
+        animation: glowPulse 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes gradientShift {
+        0%, 100% {
+            background-position: 0% 50%;
+            filter: drop-shadow(0 0 40px rgba(59, 130, 246, 0.4));
+        }
+        25% {
+            background-position: 50% 0%;
+            filter: drop-shadow(0 0 50px rgba(147, 197, 253, 0.5));
+        }
+        50% {
+            background-position: 100% 50%;
+            filter: drop-shadow(0 0 60px rgba(219, 234, 254, 0.6));
+        }
+        75% {
+            background-position: 50% 100%;
+            filter: drop-shadow(0 0 50px rgba(96, 165, 250, 0.5));
+        }
+    }
+
+    @keyframes glowPulse {
+        0% {
+            opacity: 0.5;
+            transform: scale(1);
+        }
+        100% {
+            opacity: 0.8;
+            transform: scale(1.02);
+        }
+    }
+
+    .ai-subtitle {
+        font-size: 1.4rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 1rem;
+        font-weight: 400;
+        letter-spacing: 0.01em;
+    }
+
+    .ai-description {
+        font-size: 1.1rem;
+        color: rgba(255, 255, 255, 0.65);
+        max-width: 680px;
+        margin: 0 auto 2rem;
+        line-height: 1.6;
+        font-weight: 300;
+    }
+
+    /* Premium Input Section */
+    .prompt-section {
+        max-width: 900px;
+        margin: 0 auto 4rem;
+        padding: 0 2rem;
+    }
+
+    .neural-input-container {
+        position: relative;
+        margin-bottom: 2rem;
+    }
+
+    .neural-textarea {
+        width: 100%;
+        min-height: 160px;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 2rem;
+        color: #ffffff;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        resize: vertical;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        backdrop-filter: blur(20px);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .neural-textarea:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 
+            0 0 0 3px var(--glow-blue),
+            0 20px 60px rgba(26, 115, 232, 0.15),
+            inset 0 0 20px rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .neural-textarea::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+        font-style: normal;
+        font-weight: 300;
+    }
+
+    /* Prompt Suggestions - Gemini Style */
+    .prompt-suggestions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding: 0 1rem;
+    }
+
+    .suggestion-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        backdrop-filter: blur(15px);
+        position: relative;
+        overflow: hidden;
+    }    .suggestion-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--blue-gradient);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .suggestion-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--primary-blue);
+        box-shadow: 0 12px 48px rgba(26, 115, 232, 0.2);
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .suggestion-card:hover::before {
+        opacity: 1;
+    }
+
+    .suggestion-icon {
+        font-size: 1.5rem;
+        color: var(--primary-blue);
+        margin-bottom: 0.5rem;
+    }
+
+    .suggestion-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+    }
+
+    .suggestion-description {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.4;
+    }    /* Premium Generate Button */
+    .generate-section {
+        text-align: center;
+        margin-bottom: 4rem;
+    }    .neural-generate-btn {
+        position: relative;
+        background: var(--blue-gradient);
+        border: none;
+        border-radius: 16px;
+        padding: 1.2rem 3rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: white;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 
+            0 8px 32px var(--glow-blue),
+            0 0 0 1px rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        letter-spacing: 0.02em;
+    }
+
+    .neural-generate-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.6s;
+    }
+
+    .neural-generate-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 
+            0 12px 48px var(--glow-blue),
+            0 0 0 1px rgba(255, 255, 255, 0.2);
+    }
+
+    .neural-generate-btn:hover::before {
+        left: 100%;
+    }
+
+    .neural-generate-btn:active {
+        transform: translateY(-1px);
+    }
+
+    .neural-generate-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Loading Animation */
+    .neural-loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #ffffff;
+        animation: spin 1s linear infinite;
+        margin-right: 10px;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Premium Workflow Results */
+    .workflow-results {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }    .workflow-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem;
+        background: var(--glass-bg);
+        border-radius: 20px;
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        position: relative;
+        overflow: hidden;
+    }    .workflow-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--blue-gradient);
+        opacity: 0.8;
+    }
+
+    .workflow-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        background: var(--blue-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.8rem;
+        letter-spacing: -0.01em;
+    }
+
+    .workflow-description {
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .workflow-meta {
+        display: flex;
+        justify-content: center;
+        gap: 3rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1rem;
+        font-weight: 500;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.8rem 1.5rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .meta-item i {
+        color: var(--primary-blue);
+        font-size: 1.2rem;
+    }    /* Premium Workflow Steps */
+    .workflow-steps {
+        display: grid;
+        gap: 2.5rem;
+        margin-top: 3rem;
+    }
+
+    .workflow-step {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 2.5rem;
+        backdrop-filter: blur(20px);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }    .workflow-step::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--blue-gradient);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .workflow-step:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 60px rgba(26, 115, 232, 0.15);
+        border-color: var(--glass-border);
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .workflow-step:hover::before {
+        opacity: 1;
+    }    .step-number {
+        position: absolute;
+        top: 12px;
+        left: 2.5rem;
+        background: var(--blue-gradient);
+        color: white;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+        box-shadow: 
+            0 6px 20px var(--glow-blue),
+            0 0 0 3px rgba(255, 255, 255, 0.1);
+        z-index: 10;
+    }
+
+    .step-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 1.5rem 0 1rem;
+        padding-left: 1rem;
+        letter-spacing: -0.01em;
+    }
+
+    .step-description {
+        color: rgba(255, 255, 255, 0.8);
+        line-height: 1.7;
+        margin-bottom: 2rem;
+        padding-left: 1rem;
+        font-size: 1.05rem;
+    }
+
+    /* Premium Tool Cards with Logos */
+    .step-tools {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .tool-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 2rem;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        backdrop-filter: blur(15px);
+        position: relative;
+        overflow: hidden;
+    }    .tool-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--blue-gradient);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        border-radius: 20px;
+        z-index: -1;
+    }
+
+    .tool-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--primary-blue);
+        transform: translateY(-6px);
+        box-shadow: 0 16px 48px rgba(26, 115, 232, 0.2);
+    }
+
+    .tool-card:hover::before {
+        opacity: 0.1;
+    }
+
+    .tool-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+    }
+
+    .tool-info {
+        flex: 1;
+    }
+
+    .tool-logo {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--primary-blue);
+        margin-left: 1rem;
+        backdrop-filter: blur(10px);
+        flex-shrink: 0;
+    }
+
+    .tool-name {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.01em;
+    }    .tool-category {
+        font-size: 0.9rem;
+        color: #ffffff;
+        background: rgba(26, 115, 232, 0.25);
+        padding: 0.5rem 1.2rem;
+        border-radius: 20px;
+        display: inline-block;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        border: 1px solid rgba(26, 115, 232, 0.4);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .tool-reason {
+        color: rgba(255, 255, 255, 0.8);
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+    }
+
+    .tool-actions {
+        display: flex;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+    }
+
+    .tool-btn {
+        padding: 0.7rem 1.5rem;
+        border-radius: 12px;
+        text-decoration: none;
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        letter-spacing: 0.01em;
+    }    .tool-btn-primary {
+        background: var(--blue-gradient);
+        color: white !important;
+        border: none;
+        box-shadow: 0 4px 16px var(--glow-blue);
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .tool-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 24px var(--glow-blue);
+        color: white !important;
+
+        background: linear-gradient(135deg, #2563eb 0%, #4285f4 50%, #669df6 100%);
+    }
+
+    .tool-btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        font-weight: 600;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .tool-btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: var(--primary-blue);
+        color: #ffffff;
+    }    /* Messages */
+    .message {
+        padding: 1.5rem 2rem;
+        border-radius: 16px;
+        margin: 1.5rem auto;
+        max-width: 700px;
+        text-align: center;
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .message.error {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.3);
+        color: rgba(252, 165, 165, 0.9);
+    }    .message.success {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.3);
+        color: rgba(167, 243, 208, 0.9);
+    }
+
+    .message.info {
+        background: linear-gradient(135deg, rgba(26, 115, 232, 0.1) 0%, rgba(37, 99, 235, 0.15) 100%);
+        border-color: rgba(26, 115, 232, 0.3);
+        color: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 8px 32px rgba(26, 115, 232, 0.2);
+    }
+
+    /* Usage Status */
+    .usage-status {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 1.5rem;
+        background: var(--glass-bg);
+        border-radius: 16px;
+        backdrop-filter: blur(15px);
+        border: 1px solid var(--glass-border);
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Register Button Hover Effects */
+    a.btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(26, 115, 232, 0.5) !important;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .ai-title {
+            font-size: 2.8rem;
+        }
+        
+        .ai-subtitle {
+            font-size: 1.2rem;
+        }
+        
+        .prompt-section,
+        .workflow-results {
+            padding: 0 1rem;
+        }
+        
+        .workflow-meta {
+            gap: 1rem;
+        }
+        
+        .workflow-step {
+            padding: 2rem 1.5rem;
+        }
+        
+        .step-title {
+            font-size: 1.3rem;
+        }
+
+        .step-tools {
+            grid-template-columns: 1fr;
+        }
+
+        .prompt-suggestions {
+            grid-template-columns: 1fr;
+        }
+
+        .tool-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .tool-logo {
+            margin-left: 0;
+            align-self: flex-start;
+        }
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .workflow-step {
+        animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        opacity: 0;
+    }
+
+    .workflow-step:nth-child(1) { animation-delay: 0.1s; }
+    .workflow-step:nth-child(2) { animation-delay: 0.2s; }
+    .workflow-step:nth-child(3) { animation-delay: 0.3s; }
+    .workflow-step:nth-child(4) { animation-delay: 0.4s; }
+    .workflow-step:nth-child(5) { animation-delay: 0.5s; }
+
+    .suggestion-card {
+        animation: slideInLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        opacity: 0;
+    }
+
+    .suggestion-card:nth-child(1) { animation-delay: 0.1s; }
+    .suggestion-card:nth-child(2) { animation-delay: 0.2s; }
+    .suggestion-card:nth-child(3) { animation-delay: 0.3s; }
+    .suggestion-card:nth-child(4) { animation-delay: 0.4s; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- AI Header Section -->
+    <div class="ai-header">
+        <h1 class="ai-title" data-text="AI Stack Builder">AI Stack Builder</h1>
+        <p class="ai-subtitle">Build Premium AI Workflows in Seconds</p>
+        <p class="ai-description">
+            Describe your vision and watch our advanced AI architect craft the perfect tool stack for you. 
+            Powered by neural intelligence and curated from 600+ premium AI solutions.
+        </p>
+    </div>
+
+    <!-- Usage Status -->
+    <div id="usage-status" class="usage-status"></div>
+
+    <!-- Prompt Input Section -->
+    <div class="prompt-section">        <!-- Prompt Suggestions -->
+        <div class="prompt-suggestions">
+            <div class="suggestion-card" data-prompt="Create a complete social media marketing campaign with AI-generated content, automated posting, and performance analytics">
+                <div class="suggestion-icon"><i class="bi bi-megaphone"></i></div>
+                <div class="suggestion-title">Social Media Campaign</div>
+                <div class="suggestion-description">AI content creation + automated posting + analytics</div>
+            </div>
+            <div class="suggestion-card" data-prompt="Build an AI-powered e-learning platform with course generation, student assessments, and personalized learning paths">
+                <div class="suggestion-icon"><i class="bi bi-mortarboard"></i></div>
+                <div class="suggestion-title">E-Learning Platform</div>
+                <div class="suggestion-description">Course creation + assessments + personalized learning</div>
+            </div>
+            <div class="suggestion-card" data-prompt="Develop an AI customer service system with chatbots, sentiment analysis, and automated ticket routing">
+                <div class="suggestion-icon"><i class="bi bi-headset"></i></div>
+                <div class="suggestion-title">Customer Support</div>
+                <div class="suggestion-description">Chatbots + sentiment analysis + ticket management</div>
+            </div>
+            <div class="suggestion-card" data-prompt="Create a comprehensive content marketing workflow with AI writing, image generation, SEO optimization, and publication scheduling">
+                <div class="suggestion-icon"><i class="bi bi-pencil-square"></i></div>
+                <div class="suggestion-title">Content Marketing</div>
+                <div class="suggestion-description">AI writing + images + SEO + scheduling</div>
+            </div>
+        </div>
+
+        <div class="neural-input-container">
+            <textarea 
+                id="prompt-textarea" 
+                class="neural-textarea"
+                placeholder="Describe your AI workflow vision... (e.g., 'Create an AI-powered productivity suite for remote teams with automated task management and smart scheduling')"
+                maxlength="1000"
+            ></textarea>
+            <div class="input-glow"></div>
+        </div>
+        
+        <div class="generate-section">
+            <button id="generate-btn" class="neural-generate-btn">
+                <i class="bi bi-magic"></i>
+                Generate AI Stack
+            </button>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    <div id="message-container"></div>
+
+    <!-- Workflow Results -->
+    <div id="workflow-container" class="workflow-results" style="display: none;">
+        <div class="workflow-header neural-container">
+            <h2 id="workflow-title" class="workflow-title"></h2>
+            <!-- <p id="workflow-description" class="workflow-description"></p> -->
+            <div id="workflow-meta" class="workflow-meta"></div>
+        </div>
+        
+        <div id="workflow-steps" class="workflow-steps">
+            <!-- Steps will be populated by JavaScript -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const promptTextarea = document.getElementById('prompt-textarea');
+    const generateBtn = document.getElementById('generate-btn');
+    const workflowContainer = document.getElementById('workflow-container');
+    const messageContainer = document.getElementById('message-container');
+    const usageStatus = document.getElementById('usage-status');
+    const suggestionCards = document.querySelectorAll('.suggestion-card');
+    
+    let currentWorkflow = null;
+    let currentPrompt = null;
+
+    // Prompt suggestion functionality
+    suggestionCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const prompt = this.dataset.prompt;
+            promptTextarea.value = prompt;
+            promptTextarea.focus();
+            
+            // Add visual feedback
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 150);
+            
+            // Enable generate button
+            generateBtn.disabled = false;
+        });
+    });
+
+    // Character count and validation
+    promptTextarea.addEventListener('input', function() {
+        const remaining = 1000 - this.value.length;
+        if (remaining < 100) {
+            // Could add character count indicator here
+        }
+        generateBtn.disabled = this.value.trim().length < 10;
+    });
+
+    // Generate button click
+    generateBtn.addEventListener('click', function() {
+        const prompt = promptTextarea.value.trim();
+        if (prompt.length < 10) {
+            showMessage('Please provide a more detailed description (at least 10 characters).', 'error');
+            return;
+        }
+        generateWorkflow(prompt);
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'Enter') {
+            generateBtn.click();
+        }
+    });
+
+    function generateWorkflow(prompt) {
+        // Show loading state
+        generateBtn.disabled = true;
+        generateBtn.innerHTML = '<span class="neural-loading"></span>Generating AI Stack...';
+        messageContainer.innerHTML = '';
+        workflowContainer.style.display = 'none';
+        
+        fetch('/generate-stack', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ prompt: prompt })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentWorkflow = data.workflow;
+                currentPrompt = prompt;
+                displayWorkflow(data.workflow);
+                checkUsageStatus();            } else {
+                if (data.error === 'free_limit_reached') {
+                    showMessage(`
+                        <div style="text-align: center; padding: 1rem;">
+                            <div style="margin-bottom: 1rem;">
+                                <i class="bi bi-star" style="color: #fbbf24; font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                                <h4 style="margin: 0; color: rgba(255, 255, 255, 0.9);">Free Generation Used!</h4>
+                                <p style="margin: 0.5rem 0; color: rgba(255, 255, 255, 0.7);">Register for unlimited AI stack generations - it's completely free!</p>
+                            </div>
+                            <a href="/register" class="btn btn-primary" style="padding: 0.8rem 2rem; border-radius: 10px; background: var(--neural-gradient); border: none; color: white; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 6px 20px rgba(26, 115, 232, 0.4); transition: all 0.3s ease;">
+                                <i class="bi bi-person-plus"></i>
+                                Register for Free
+                            </a>
+                        </div>
+                    `, 'info');
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('AI system temporarily offline. Please try again in a moment.', 'error');
+        })        .finally(() => {
+            // Reset button state
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = '<i class="bi bi-magic"></i> Generate AI Stack';
+        });
+    }
+
+    // Simple, clean approach: Database logo first, fallback to generic icon
+    function getToolLogo(toolName, logoUrl = null) {
+        // PRIORITY 1: If we have a logo URL from the database, use that!
+        if (logoUrl && logoUrl.trim() && logoUrl !== 'null' && logoUrl !== '') {
+            return `<img src="${logoUrl}" alt="${toolName}" style="width: 32px; height: 32px; object-fit: contain; border-radius: 6px;" onerror="this.outerHTML='<i class=\\"bi bi-tools\\" style=\\"font-size: 1.5rem; color: var(--primary-blue);\\"></i>`;
+        }
+        
+        // FALLBACK: Use icon only if no logo URL available
+        return '<i class="bi bi-tools" style="font-size: 1.5rem; color: var(--primary-blue);"></i>';
+    }
+
+    function displayWorkflow(workflow) {
+        // Set header info - keeping only the small version as requested
+        document.getElementById('workflow-title').textContent = workflow.workflow_title;
+        // document.getElementById('workflow-description').textContent = workflow.workflow_description;
+        
+        // Set meta info
+        const metaContainer = document.getElementById('workflow-meta');
+        metaContainer.innerHTML = `
+            <div class="meta-item">
+                <i class="bi bi-clock"></i>
+                <span>${workflow.estimated_time || 'Variable'}</span>
+            </div>
+            <div class="meta-item">
+                <i class="bi bi-bar-chart"></i>
+                <span>${workflow.difficulty_level || 'Intermediate'}</span>
+            </div>
+            <div class="meta-item">
+                <i class="bi bi-list-check"></i>
+                <span>${workflow.steps.length} Steps</span>
+            </div>
+        `;
+        
+        // Display steps
+        const stepsContainer = document.getElementById('workflow-steps');
+        stepsContainer.innerHTML = '';
+        
+        workflow.steps.forEach((step, index) => {
+            const stepElement = document.createElement('div');
+            stepElement.className = 'workflow-step neural-container';
+              let toolsHtml = '';
+            if (step.recommended_tools && step.recommended_tools.length > 0) {
+                toolsHtml = `
+                    <div class="step-tools">
+                        ${step.recommended_tools.map(tool => `
+                            <div class="tool-card">
+                                <div class="tool-header">
+                                    <div class="tool-info">
+                                        <div class="tool-name">${tool.tool_name}</div>
+                                        ${tool.tool_category ? `<div class="tool-category">${tool.tool_category}</div>` : ''}
+                                    </div>
+                                    <div class="tool-logo">
+                                        ${getToolLogo(tool.tool_name, tool.logo_url)}
+                                    </div>
+                                </div>
+                                <div class="tool-reason">${tool.why_recommended}</div>
+                                ${tool.setup_notes ? `<div style="color: rgba(255, 255, 255, 0.6); font-size: 0.95rem; margin-top: 0.8rem; padding: 1rem; background: rgba(255, 255, 255, 0.03); border-radius: 12px;">${tool.setup_notes}</div>` : ''}
+                                <div class="tool-actions">
+                                    ${tool.tool_url ? `<a href="${tool.tool_url}" target="_blank" class="tool-btn tool-btn-primary">Launch Tool</a>` : ''}
+                                    ${tool.tool_id ? `<a href="/tool/${tool.tool_id}" class="tool-btn tool-btn-secondary">View Details</a>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                // Handle case where no tools are recommended
+                toolsHtml = `
+                    <div style="text-align: center; padding: 2rem; margin-top: 1.5rem; background: rgba(26, 115, 232, 0.08); border-radius: 16px; border: 1px solid rgba(26, 115, 232, 0.2);">
+                        <div style="color: var(--primary-blue); font-size: 2rem; margin-bottom: 1rem;">
+                            <i class="bi bi-info-circle"></i>
+                        </div>
+                        <div style="color: rgba(255, 255, 255, 0.9); font-weight: 600; margin-bottom: 0.5rem;">
+                            No specific tool recommended for this step
+                        </div>
+                        <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.95rem; line-height: 1.5;">
+                            This step can be completed using general tools or manual processes. Check our <a href="/tools" style="color: var(--primary-blue); text-decoration: none;">tools directory</a> for alternatives.
+                        </div>
+                    </div>
+                `;
+            }
+            
+            stepElement.innerHTML = `
+                <div class="step-number">${index + 1}</div>
+                <div class="step-title">${step.title}</div>
+                <div class="step-description">${step.description}</div>
+                ${toolsHtml}
+                ${step.expected_outcome ? `
+                    <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(26, 115, 232, 0.08); border-radius: 16px; border-left: 4px solid var(--primary-blue);">
+                        <div style="color: var(--primary-blue); font-weight: 700; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="bi bi-target"></i>
+                            Expected Outcome
+                        </div>
+                        <div style="color: rgba(255, 255, 255, 0.85); line-height: 1.6;">${step.expected_outcome}</div>
+                    </div>
+                ` : ''}
+            `;
+            
+            stepsContainer.appendChild(stepElement);
+        });
+          // Show the workflow with smooth animation
+        workflowContainer.style.display = 'block';
+        workflowContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }    function showMessage(message, type) {
+        messageContainer.innerHTML = `
+            <div class="message ${type}">
+                ${message}
+            </div>
+        `;
+        messageContainer.scrollIntoView({ behavior: 'smooth' });
+    }    function checkUsageStatus() {
+        fetch('/api/usage-status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.user_id) {
+                    usageStatus.innerHTML = `
+                        <div style="color: rgba(255, 255, 255, 0.8);">
+                            <i class="bi bi-infinity" style="color: var(--primary-blue); margin-right: 0.5rem;"></i>
+                            Unlimited AI generations available
+                        </div>
+                    `;                } else if (data.remaining_uses === 0) {
+                    // Show signup call-to-action when no free uses remaining
+                    usageStatus.innerHTML = `
+                        <div style="color: rgba(255, 255, 255, 0.9); padding: 1.5rem; background: linear-gradient(135deg, rgba(26, 115, 232, 0.1) 0%, rgba(37, 99, 235, 0.15) 100%); border-radius: 12px; border: 1px solid rgba(26, 115, 232, 0.2); text-align: center;">
+                            <div style="margin-bottom: 1.2rem;">
+                                <i class="bi bi-star" style="color: #fbbf24; margin-right: 0.5rem; font-size: 1.2rem;"></i>
+                                <strong>Free generation used!</strong> Register for unlimited generations - it's completely free!
+                            </div>
+                            <a href="/register" class="btn btn-primary" style="padding: 0.8rem 2rem; border-radius: 8px; background: var(--neural-gradient); border: none; color: white; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3); margin: 0 auto;">
+                                <i class="bi bi-person-plus"></i>
+                                Register Now
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    usageStatus.innerHTML = `
+                        <div style="color: rgba(255, 255, 255, 0.7);">
+                            <i class="bi bi-cpu" style="color: var(--primary-blue); margin-right: 0.5rem;"></i>
+                            ${data.remaining_uses} free AI generations remaining today
+                        </div>
+                    `;
+                }
+            })
+            .catch(err => console.error('Error checking usage:', err));
+    }
+
+    // Initial usage check
+    checkUsageStatus();
+    
+    // Disable generate button initially
+    generateBtn.disabled = true;
+});
+</script>
+{% endblock %}
