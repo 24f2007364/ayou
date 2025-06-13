@@ -1,0 +1,645 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Tool Submissions - Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .submission-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .submission-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .tool-logo {
+        width: 80px;
+        height: 80px;
+        border-radius: 10px;
+        object-fit: cover;
+        border: 2px solid #e9ecef;
+    }
+    
+    .tool-logo-placeholder {
+        width: 80px;
+        height: 80px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    
+    .status-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .status-pending {
+        background: rgba(255, 193, 7, 0.2);
+        color: #856404;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+      .btn-approve {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        color: white;
+        border-radius: 20px;
+        padding: 0.4rem 1rem;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-approve:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        color: white;
+    }
+    
+    .btn-edit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        border-radius: 20px;
+        padding: 0.4rem 1rem;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-edit:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        color: white;
+    }
+    
+    .btn-reject {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border: none;
+        color: white;
+        border-radius: 20px;
+        padding: 0.4rem 1rem;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-reject:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        color: white;
+    }
+    
+    .feature-tag {
+        background: rgba(102, 126, 234, 0.1);
+        color: #495057;
+        padding: 0.2rem 0.6rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        margin: 0.2rem;
+        display: inline-block;
+    }
+    
+    .category-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .pricing-badge {
+        background: rgba(23, 162, 184, 0.2);
+        color: #0c5460;
+        border: 1px solid rgba(23, 162, 184, 0.3);
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Tool Submissions</h1>
+    <div class="d-flex align-items-center">
+        <span class="badge bg-warning text-dark me-2">{{ submissions|length }} Pending</span>
+        <button class="btn btn-primary btn-sm" onclick="location.reload()">
+            <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+        </button>
+    </div>
+</div>
+
+{% if submissions %}
+    {% for submission in submissions %}
+    <div class="submission-card" id="submission-{{ submission.id }}">
+        <div class="row align-items-start">
+            <!-- Tool Logo and Basic Info -->
+            <div class="col-md-8">
+                <div class="d-flex">
+                    <div class="me-3">
+                        {% if submission.logo_url %}
+                            <img src="{{ submission.logo_url }}" alt="{{ submission.name }}" class="tool-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="tool-logo-placeholder" style="display: none;">
+                                {{ submission.name[0].upper() }}
+                            </div>
+                        {% else %}
+                            <div class="tool-logo-placeholder">
+                                {{ submission.name[0].upper() }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-2">
+                            <h4 class="mb-0 me-3">{{ submission.name }}</h4>
+                            <span class="status-badge status-pending">
+                                <i class="bi bi-clock me-1"></i>Pending Review
+                            </span>
+                        </div>
+                        
+                        <p class="text-muted mb-2">{{ submission.description }}</p>
+                        
+                        <div class="mb-2">
+                            <a href="{{ submission.link }}" target="_blank" class="text-decoration-none">
+                                <i class="bi bi-link-45deg me-1"></i>{{ submission.link }}
+                            </a>
+                        </div>
+                        
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="category-badge me-2">{{ submission.category }}</span>
+                            <span class="pricing-badge">{{ submission.pricing_model }}</span>
+                        </div>
+                        
+                        {% if submission.key_features %}
+                            {% set features = submission.key_features|from_json %}
+                            {% if features %}
+                            <div class="mb-2">
+                                <small class="text-muted fw-semibold">Key Features:</small><br>
+                                {% for feature in features %}
+                                    <span class="feature-tag">{{ feature }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        {% endif %}
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <i class="bi bi-person me-1"></i>
+                                    <strong>Submitter:</strong> {{ submission.submitter_email }}
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar me-1"></i>
+                                    <strong>Submitted:</strong> {{ submission.created_at|format_date }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+              <!-- Action Buttons -->
+            <div class="col-md-4">
+                <div class="d-flex flex-column gap-2">
+                    <button class="btn btn-edit" onclick="editSubmission({{ submission.id }})" data-bs-toggle="modal" data-bs-target="#editModal">
+                        <i class="bi bi-pencil-square me-1"></i>Edit & Review
+                    </button>
+                    
+                    <button class="btn btn-approve" onclick="approveSubmission({{ submission.id }})">
+                        <i class="bi bi-check-circle me-1"></i>Approve & Publish
+                    </button>
+                    
+                    <button class="btn btn-reject" onclick="rejectSubmission({{ submission.id }})">
+                        <i class="bi bi-x-circle me-1"></i>Reject
+                    </button>
+                    
+                    <a href="{{ submission.link }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-eye me-1"></i>Preview Tool
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="text-center py-5">
+        <div class="mb-4">
+            <i class="bi bi-inbox" style="font-size: 4rem; color: #6c757d;"></i>
+        </div>
+        <h4 class="text-muted">No Pending Submissions</h4>
+        <p class="text-muted">All tool submissions have been reviewed. New submissions will appear here.</p>    </div>
+{% endif %}
+
+<!-- Edit Tool Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Tool Submission</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editToolForm">
+                    <input type="hidden" id="editToolId" name="tool_id">
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editToolName" class="form-label fw-semibold">Tool Name</label>
+                            <input type="text" class="form-control" id="editToolName" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editToolCategory" class="form-label fw-semibold">Category</label>
+                            <select class="form-select" id="editToolCategory" name="category" required>
+                                <option value="Writing & Content">Writing & Content</option>
+                                <option value="Image Generation">Image Generation</option>
+                                <option value="Video Editing">Video Editing</option>
+                                <option value="Audio & Music">Audio & Music</option>
+                                <option value="Code & Development">Code & Development</option>
+                                <option value="Data & Analytics">Data & Analytics</option>
+                                <option value="Business & Finance">Business & Finance</option>
+                                <option value="Education & Learning">Education & Learning</option>
+                                <option value="Design & Creative">Design & Creative</option>
+                                <option value="Productivity">Productivity</option>
+                                <option value="Marketing & Sales">Marketing & Sales</option>
+                                <option value="Communication">Communication</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editToolPricing" class="form-label fw-semibold">Pricing Model</label>
+                            <select class="form-select" id="editToolPricing" name="pricing_model" required>
+                                <option value="Free">Free</option>
+                                <option value="Freemium">Freemium</option>
+                                <option value="Paid">Paid</option>
+                                <option value="Enterprise">Enterprise</option>
+                                <option value="Open Source">Open Source</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editToolUrl" class="form-label fw-semibold">Tool URL</label>
+                            <input type="url" class="form-control" id="editToolUrl" name="link" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editToolDescription" class="form-label fw-semibold">Description</label>
+                        <textarea class="form-control" id="editToolDescription" name="description" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editToolLogo" class="form-label fw-semibold">Logo URL</label>
+                        <input type="url" class="form-control" id="editToolLogo" name="logo_url" placeholder="https://example.com/logo.png">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editToolFeatures" class="form-label fw-semibold">Key Features</label>
+                        <div id="featuresContainer">
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control feature-input" placeholder="Enter a key feature">
+                                <button type="button" class="btn btn-outline-danger" onclick="removeFeature(this)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addFeature()">
+                            <i class="bi bi-plus"></i> Add Feature
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveToolEdits()">Save Changes</button>
+                <button type="button" class="btn btn-success" onclick="saveAndApprove()">Save & Approve</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast notifications -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="successToast" class="toast" role="alert">
+        <div class="toast-header bg-success text-white">
+            <i class="bi bi-check-circle me-2"></i>
+            <strong class="me-auto">Success</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="successToastBody">
+            Tool approved successfully!
+        </div>
+    </div>
+    
+    <div id="errorToast" class="toast" role="alert">
+        <div class="toast-header bg-danger text-white">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong class="me-auto">Error</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="errorToastBody">
+            Operation failed. Please try again.
+        </div>
+    </div>
+</div>
+
+<script>
+let currentSubmissions = {{ submissions|tojson }};
+
+async function editSubmission(submissionId) {
+    // Find the submission data
+    const submission = currentSubmissions.find(s => s.id === submissionId);
+    if (!submission) {
+        showErrorToast('Submission not found');
+        return;
+    }
+    
+    // Populate the form
+    document.getElementById('editToolId').value = submission.id;
+    document.getElementById('editToolName').value = submission.name || '';
+    document.getElementById('editToolCategory').value = submission.category || 'Other';
+    document.getElementById('editToolPricing').value = submission.pricing_model || 'Unknown';
+    document.getElementById('editToolUrl').value = submission.link || '';
+    document.getElementById('editToolDescription').value = submission.description || '';
+    document.getElementById('editToolLogo').value = submission.logo_url || '';
+    
+    // Populate features
+    const featuresContainer = document.getElementById('featuresContainer');
+    featuresContainer.innerHTML = '';
+    
+    let features = [];
+    try {
+        features = submission.key_features ? JSON.parse(submission.key_features) : [];
+    } catch (e) {
+        features = [];
+    }
+    
+    if (features.length === 0) {
+        features = [''];
+    }
+    
+    features.forEach(feature => {
+        addFeature(feature);
+    });
+}
+
+function addFeature(value = '') {
+    const container = document.getElementById('featuresContainer');
+    const div = document.createElement('div');
+    div.className = 'input-group mb-2';
+    div.innerHTML = `
+        <input type="text" class="form-control feature-input" placeholder="Enter a key feature" value="${value}">
+        <button type="button" class="btn btn-outline-danger" onclick="removeFeature(this)">
+            <i class="bi bi-trash"></i>
+        </button>
+    `;
+    container.appendChild(div);
+}
+
+function removeFeature(button) {
+    const container = document.getElementById('featuresContainer');
+    if (container.children.length > 1) {
+        button.parentElement.remove();
+    }
+}
+
+async function saveToolEdits() {
+    const formData = getFormData();
+    if (!formData) return;
+    
+    try {
+        const response = await fetch(`/admin/edit-submission/${formData.tool_id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update the submission in the current list
+            const index = currentSubmissions.findIndex(s => s.id === formData.tool_id);
+            if (index !== -1) {
+                currentSubmissions[index] = {...currentSubmissions[index], ...formData};
+                updateSubmissionCard(formData.tool_id, formData);
+            }
+            
+            // Close modal and show success
+            bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+            showSuccessToast('Tool submission updated successfully!');
+        } else {
+            showErrorToast(result.error || 'Failed to update submission');
+        }
+    } catch (error) {
+        showErrorToast('Network error. Please try again.');
+    }
+}
+
+async function saveAndApprove() {
+    const formData = getFormData();
+    if (!formData) return;
+    
+    try {
+        // First save the edits
+        const editResponse = await fetch(`/admin/edit-submission/${formData.tool_id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const editResult = await editResponse.json();
+        
+        if (editResult.success) {
+            // Then approve
+            const approveResponse = await fetch(`/admin/approve-submission/${formData.tool_id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            const approveResult = await approveResponse.json();
+            
+            if (approveResult.success) {
+                // Remove the submission card
+                document.getElementById(`submission-${formData.tool_id}`).remove();
+                
+                // Close modal and show success
+                bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                showSuccessToast('Tool updated and approved successfully!');
+                
+                // Update pending count
+                const badge = document.querySelector('.badge.bg-warning');
+                const currentCount = parseInt(badge.textContent.split(' ')[0]);
+                badge.textContent = `${currentCount - 1} Pending`;
+            } else {
+                showErrorToast(approveResult.error || 'Failed to approve submission');
+            }
+        } else {
+            showErrorToast(editResult.error || 'Failed to update submission');
+        }
+    } catch (error) {
+        showErrorToast('Network error. Please try again.');
+    }
+}
+
+function getFormData() {
+    const formData = {
+        tool_id: parseInt(document.getElementById('editToolId').value),
+        name: document.getElementById('editToolName').value.trim(),
+        category: document.getElementById('editToolCategory').value,
+        pricing_model: document.getElementById('editToolPricing').value,
+        link: document.getElementById('editToolUrl').value.trim(),
+        description: document.getElementById('editToolDescription').value.trim(),
+        logo_url: document.getElementById('editToolLogo').value.trim()
+    };
+    
+    // Collect features
+    const featureInputs = document.querySelectorAll('.feature-input');
+    const features = Array.from(featureInputs)
+        .map(input => input.value.trim())
+        .filter(value => value.length > 0);
+    
+    formData.key_features = JSON.stringify(features);
+    
+    // Validate required fields
+    if (!formData.name || !formData.description || !formData.link) {
+        showErrorToast('Please fill in all required fields');
+        return null;
+    }
+    
+    return formData;
+}
+
+function updateSubmissionCard(submissionId, data) {
+    const card = document.getElementById(`submission-${submissionId}`);
+    if (!card) return;
+    
+    // Update the displayed information
+    const nameElement = card.querySelector('h4');
+    if (nameElement) nameElement.textContent = data.name;
+    
+    const descElement = card.querySelector('.text-muted');
+    if (descElement && descElement.tagName === 'P') descElement.textContent = data.description;
+    
+    const categoryBadge = card.querySelector('.category-badge');
+    if (categoryBadge) categoryBadge.textContent = data.category;
+    
+    const pricingBadge = card.querySelector('.pricing-badge');
+    if (pricingBadge) pricingBadge.textContent = data.pricing_model;
+    
+    // Update features
+    const featuresContainer = card.querySelector('.mb-2');
+    if (featuresContainer && featuresContainer.querySelector('.feature-tag')) {
+        const features = JSON.parse(data.key_features || '[]');
+        const featuresHtml = features.map(feature => 
+            `<span class="feature-tag">${feature}</span>`
+        ).join('');
+        
+        const smallElement = featuresContainer.querySelector('small');
+        if (smallElement) {
+            smallElement.innerHTML = '<strong>Key Features:</strong><br>' + featuresHtml;
+        }
+    }
+}
+
+async function approveSubmission(submissionId) {
+    if (!confirm('Are you sure you want to approve this tool submission? It will be published to the platform.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/approve-submission/${submissionId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Remove the submission card
+            document.getElementById(`submission-${submissionId}`).remove();
+            
+            // Show success toast
+            document.getElementById('successToastBody').textContent = 'Tool approved and published successfully!';
+            new bootstrap.Toast(document.getElementById('successToast')).show();
+            
+            // Update pending count
+            const badge = document.querySelector('.badge.bg-warning');
+            const currentCount = parseInt(badge.textContent.split(' ')[0]);
+            badge.textContent = `${currentCount - 1} Pending`;
+        } else {
+            showErrorToast(result.error || 'Failed to approve submission');
+        }
+    } catch (error) {
+        showErrorToast('Network error. Please try again.');
+    }
+}
+
+async function rejectSubmission(submissionId) {
+    if (!confirm('Are you sure you want to reject this tool submission? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/reject-submission/${submissionId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Remove the submission card
+            document.getElementById(`submission-${submissionId}`).remove();
+            
+            // Show success toast
+            document.getElementById('successToastBody').textContent = 'Tool submission rejected.';
+            new bootstrap.Toast(document.getElementById('successToast')).show();
+            
+            // Update pending count
+            const badge = document.querySelector('.badge.bg-warning');
+            const currentCount = parseInt(badge.textContent.split(' ')[0]);
+            badge.textContent = `${currentCount - 1} Pending`;
+        } else {
+            showErrorToast(result.error || 'Failed to reject submission');
+        }
+    } catch (error) {
+        showErrorToast('Network error. Please try again.');
+    }
+}
+
+function showErrorToast(message) {
+    document.getElementById('errorToastBody').textContent = message;
+    new bootstrap.Toast(document.getElementById('errorToast')).show();
+}
+
+function showSuccessToast(message) {
+    document.getElementById('successToastBody').textContent = message;
+    new bootstrap.Toast(document.getElementById('successToast')).show();
+}
+</script>
+{% endblock %}

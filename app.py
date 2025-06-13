@@ -1016,8 +1016,59 @@ class SupabaseConnection:
     
     def commit(self):
         """Commit transaction (auto-committed in Supabase)"""
-        pass
+        pass    
+    def insert(self, table, data):
+        """Insert data into a table"""
+        try:
+            response = self.session.post(f"{self.base_url}/rest/v1/{table}", json=data)
+            if response.status_code in [200, 201]:
+                return {'success': True, 'data': response.json()}
+            else:
+                print(f"Insert failed: {response.status_code} - {response.text}")
+                return {'success': False, 'error': response.text}
+        except Exception as e:
+            print(f"Insert error: {e}")
+            return {'success': False, 'error': str(e)}
     
+    def select(self, table, columns='*', condition=''):
+        """Select data from a table"""
+        try:
+            url = f"{self.base_url}/rest/v1/{table}?select={columns}"
+            if condition:
+                url += f"&{condition}"
+            response = self.session.get(url)
+            if response.status_code == 200:
+                return {'success': True, 'data': response.json()}
+            else:
+                print(f"Select failed: {response.status_code} - {response.text}")
+                return {'success': False, 'data': []}
+        except Exception as e:
+            print(f"Select error: {e}")
+            return {'success': False, 'data': []}
+    
+    def update(self, table, data, condition):
+        """Update data in a table"""
+        try:
+            # Clean the condition - remove spaces and parentheses
+            if "=" in condition and "eq." not in condition:
+                # Convert SQL-style condition to Supabase format
+                parts = condition.replace(" ", "").split("=")
+                if len(parts) == 2:
+                    field = parts[0]
+                    value = parts[1]
+                    condition = f"{field}=eq.{value}"
+            
+            url = f"{self.base_url}/rest/v1/{table}?{condition}"
+            response = self.session.patch(url, json=data)
+            if response.status_code in [200, 204]:
+                return {'success': True}
+            else:
+                print(f"Update failed: {response.status_code} - {response.text}")
+                return {'success': False, 'error': response.text}
+        except Exception as e:
+            print(f"Update error: {e}")
+            return {'success': False, 'error': str(e)}
+
     def close(self):
         """Close connection"""
         pass
@@ -2496,8 +2547,178 @@ def usage_status():
             'user_id': None,
             'remaining_uses': 1,
             'can_use': True,
-            'is_logged_in': False
-        })
+            'is_logged_in': False        })
+
+# ============================================================================
+# SUBMIT TOOL ROUTES
+# ============================================================================
+
+from submit_tool import (
+    ToolSubmitter, save_tool_submission, get_pending_submissions,
+    approve_tool_submission, reject_tool_submission
+)
+
+@app.route('/submit-tool')
+def submit_tool():
+    """Display the submit tool page"""
+    return render_template('submit_tool.html')
+
+@app.route('/submit-tool', methods=['POST'])
+def submit_tool_post():
+    """Handle tool submission"""
+    try:
+        tool_url = request.form.get('tool_url', '').strip()
+        submitter_email = request.form.get('submitter_email', '').strip()
+        
+        if not tool_url or not submitter_email:
+            return jsonify({'success': False, 'error': 'Please provide both URL and email address'})
+        
+        # Validate email format
+        import re
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, submitter_email):
+            return jsonify({'success': False, 'error': 'Please provide a valid email address'})
+        
+        # Initialize tool submitter
+        tool_submitter = ToolSubmitter()
+        
+        # Submit tool
+        result = tool_submitter.submit_tool(tool_url, submitter_email)
+        
+        if result.get('success'):
+            # Save to database
+            conn = get_db_connection()
+            saved = save_tool_submission(result['data'], conn)
+            
+            # Close connection if it's SQLite
+            if hasattr(conn, 'close'):
+                conn.close()
+            
+            if saved:
+                return jsonify({
+                    'success': True, 
+                    'message': 'Tool submitted successfully! We will review it and notify you via email.'
+                })
+            else:
+                return jsonify({'success': False, 'error': 'Failed to save submission to database'})
+        else:
+            return jsonify({'success': False, 'error': result.get('error', 'Unknown error occurred')})
+            
+    except Exception as e:
+        print(f"Error in submit_tool_post: {e}")
+        return jsonify({'success': False, 'error': 'An error occurred while processing your submission'})
+
+@app.route('/admin/tool-submissions')
+@admin_required
+def admin_tool_submissions():
+    """Display pending tool submissions for admin review"""
+    try:
+        conn = get_db_connection()
+        submissions = get_pending_submissions(conn)
+        
+        # Close connection if it's SQLite
+        if hasattr(conn, 'close'):
+            conn.close()
+        
+        return render_template('admin/tool_submissions.html', submissions=submissions)
+        
+    except Exception as e:
+        print(f"Error in admin_tool_submissions: {e}")
+        flash('Error loading tool submissions', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/approve-submission/<int:submission_id>', methods=['POST'])
+@admin_required
+def admin_approve_submission(submission_id):
+    """Approve a tool submission"""
+    try:
+        conn = get_db_connection()
+        success = approve_tool_submission(submission_id, conn)
+        
+        # Close connection if it's SQLite
+        if hasattr(conn, 'close'):
+            conn.close()
+        
+        if success:
+            return jsonify({'success': True, 'message': 'Tool approved and published successfully'})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to approve submission. The tool may already exist in the database or there was a conflict. Please check if a tool with the same URL already exists.'})
+            
+    except Exception as e:
+        print(f"Error in admin_approve_submission: {e}")
+        return jsonify({'success': False, 'error': 'An error occurred while approving the submission. Please check the server logs for details.'})
+
+@app.route('/admin/reject-submission/<int:submission_id>', methods=['POST'])
+@admin_required
+def admin_reject_submission(submission_id):
+    """Reject a tool submission"""
+    try:
+        conn = get_db_connection()
+        success = reject_tool_submission(submission_id, conn)
+        
+        # Close connection if it's SQLite
+        if hasattr(conn, 'close'):
+            conn.close()
+        
+        if success:
+            return jsonify({'success': True, 'message': 'Tool submission rejected'})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to reject submission'})
+            
+    except Exception as e:
+        print(f"Error in admin_reject_submission: {e}")
+        return jsonify({'success': False, 'error': 'An error occurred while rejecting the submission'})
+
+@app.route('/admin/edit-submission/<int:submission_id>', methods=['POST'])
+@admin_required
+def admin_edit_submission(submission_id):
+    """Edit a tool submission"""
+    try:
+        data = request.json
+        
+        # Prepare update data
+        update_data = {
+            'name': data.get('name'),
+            'description': data.get('description'),
+            'link': data.get('link'),
+            'logo_url': data.get('logo_url'),
+            'category': data.get('category'),
+            'pricing_model': data.get('pricing_model'),
+            'key_features': data.get('key_features')
+        }
+        
+        # Remove None values
+        update_data = {k: v for k, v in update_data.items() if v is not None}
+        
+        conn = get_db_connection()
+          # Update submission
+        if hasattr(conn, 'session'):  # Check if it's SupabaseConnection
+            result = conn.update('tool_submissions', update_data, f"id=eq.{submission_id}")
+            success = result.get('success', False)
+        else:
+            cursor = conn.cursor()
+            set_clause = ', '.join([f"{k} = ?" for k in update_data.keys()])
+            values = list(update_data.values())
+            values.append(submission_id)
+            
+            cursor.execute(f"UPDATE tool_submissions SET {set_clause} WHERE id = ?", values)
+            conn.commit()
+            success = True
+        
+        # Close connection if it's SQLite
+        if hasattr(conn, 'close'):
+            conn.close()
+        
+        if success:
+            return jsonify({'success': True, 'message': 'Tool submission updated successfully'})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to update submission'})
+            
+    except Exception as e:
+        print(f"Error in admin_edit_submission: {e}")
+        return jsonify({'success': False, 'error': 'An error occurred while updating the submission'})
+
+# ============================================================================
 
 if __name__ == '__main__':
     # Initialize database

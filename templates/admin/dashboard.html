@@ -35,10 +35,13 @@
                     <a href="{{ url_for('admin_dashboard') }}" class="admin-menu-item active">
                         <i class="bi bi-speedometer2"></i>
                         <span>Dashboard</span>
-                    </a>
-                    <a href="{{ url_for('admin_add_tool') }}" class="admin-menu-item">
+                    </a>                    <a href="{{ url_for('admin_add_tool') }}" class="admin-menu-item">
                         <i class="bi bi-plus-circle"></i>
                         <span>Add Tool</span>
+                    </a>
+                    <a href="{{ url_for('admin_tool_submissions') }}" class="admin-menu-item">
+                        <i class="bi bi-inbox"></i>
+                        <span>Tool Submissions</span>
                     </a>
                     <a href="{{ url_for('admin_dashboard') }}#tools" class="admin-menu-item">
                         <i class="bi bi-tools"></i>
