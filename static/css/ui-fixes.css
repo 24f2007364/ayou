@@ -203,6 +203,16 @@ i[class*="bi-"], .bi {
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
 }
 
+/* Avatar with image from Google Auth */
+.user-avatar.with-image {
+    background-position: center !important;
+    background-size: cover !important;
+    background-repeat: no-repeat !important;
+    color: transparent !important;
+    text-shadow: none !important;
+    font-weight: normal !important;
+}
+
 /* Avatar color variations */
 .avatar-green {
     background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
@@ -1292,7 +1302,7 @@ i[class*="bi-"], .bi {
     background: rgba(248, 250, 252, 0.9) !important;
     padding: 0.6rem 1.2rem !important;
     border-radius: 12px !important;
-    margin: 0 0.3rem !important;
+    margin: 0.25rem 0.3rem !important;
     backdrop-filter: blur(10px) !important;
     border: 1px solid rgba(59, 130, 246, 0.15) !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;

@@ -1,0 +1,422 @@
+/* Auth Page Improvements */
+
+.auth-container {
+   
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 3rem 2.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.auth-logo {
+    width: 70px !important;
+    height: 70px !important;
+    margin-bottom: 1rem;
+}
+
+/* Google Button Styling with Brand Colors */
+.google-btn-primary {
+    background: linear-gradient(135deg, #4285f4 0%, #34a853 25%, #fbbc05 50%, #ea4335 75%, #4285f4 100%);
+    background-size: 300% 300%;
+    animation: gradientShift 6s ease infinite;
+    border: none;
+    border-radius: 32px;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(66, 133, 244, 0.3);
+}
+
+.google-btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.google-btn-primary:hover::before {
+    opacity: 1;
+}
+
+.google-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(66, 133, 244, 0.4);
+}
+
+.google-btn-primary:active {
+    transform: translateY(0);
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Google Icon Styling */
+.google-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+/* Secondary Button Styling */
+.email-toggle-btn {
+    background: none;
+    border: none;
+    color: #6b7280;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    padding: 8px 16px;
+    border-radius: 12px;
+    position: relative;
+}
+
+.email-toggle-btn:hover {
+    color: #4285f4;
+    background: rgba(66, 133, 244, 0.05);
+    text-decoration: none;
+}
+
+/* Email Form Styling */
+.email-form-container {
+    margin-top: 1.5rem;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.email-form-container.show {
+    opacity: 1;
+    max-height: 400px;
+}
+
+.auth-input {
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+.auth-input:focus {
+    outline: none;
+    border-color: #4285f4;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1);
+}
+
+.auth-input::placeholder {
+    color: #9ca3af;
+}
+
+.email-submit-btn {
+    background: linear-gradient(135deg, #4285f4 0%, #1a73e8 100%);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    padding: 14px 24px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(66, 133, 244, 0.2);
+}
+
+.email-submit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(66, 133, 244, 0.3);
+    background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
+}
+
+/* Links and Typography */
+.auth-link {
+    color: #4285f4;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.auth-link:hover {
+    color: #1a73e8;
+    text-decoration: none;
+}
+
+.auth-subtitle {
+    color: #6b7280;
+    font-size: 1rem;
+    margin-bottom: 2rem;
+}
+
+.auth-title {
+    color: #1f2937;
+    font-weight: 700;
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    .auth-container {
+        padding: 1rem;
+    }
+    
+    .auth-card {
+        padding: 2rem 1.5rem;
+        border-radius: 20px;
+        margin: 1rem;
+        width: calc(100% - 2rem);
+        max-width: none;
+    }
+    
+    .google-btn-primary {
+        font-size: 1rem;
+        padding: 14px 20px;
+    }
+    
+    .auth-title {
+        font-size: 1.5rem;
+    }
+    
+    .auth-subtitle {
+        font-size: 0.9rem;
+    }    /* Mobile Navbar Optimizations */
+    .navbar {
+        padding: 0.75rem 1rem !important;
+    }
+    
+    .navbar-brand {
+        font-size: 1.2rem !important;
+    }
+    
+    .navbar-logo {
+        width: 45px !important;
+        height: 45px !important;
+    }
+    
+    .navbar-toggler {
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        padding: 0.4rem 0.6rem !important;
+        font-size: 1.2rem !important;
+        border-radius: 8px !important;
+        background: rgba(255, 255, 255, 0.15) !important;
+        backdrop-filter: blur(10px) !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    .navbar-toggler:focus {
+        box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.3) !important;
+        border-color: rgba(255, 255, 255, 0.5) !important;
+    }
+    
+    .navbar-toggler:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+        border-color: rgba(255, 255, 255, 0.4) !important;
+    }
+    
+    .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(0, 0, 0, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+        width: 1.5em !important;
+        height: 1.5em !important;
+        vertical-align: middle !important;
+    }
+    
+    .navbar-collapse {
+        background-color: rgba(255, 255, 255, 0.95); /* Optional: match navbar or use a slightly different shade */
+        border-top: 1px solid rgba(0,0,0,0.1);
+        margin-top: 0.5rem; /* Add some space between toggler and items */
+        padding: 0.5rem 0; /* Add some vertical padding inside the collapsed menu */
+    }
+    
+    .navbar-nav {
+        width: 100% !important;
+    }
+    
+    .navbar-nav .nav-item {
+        width: 100%; /* Make nav items take full width */
+    }
+    
+    .navbar-nav .nav-link {
+        color: #374151 !important;
+        margin-bottom: 1rem !important;
+        padding: 0.75rem 1rem !important; /* Increase padding for better touch targets and spacing */
+        display: flex !important; /* Use flex to align icon and text */
+        align-items: center !important;
+        border-bottom: 1px solid rgba(0,0,0,0.05); /* Subtle separator */
+    }
+    
+    .navbar-nav .nav-item:last-child .nav-link {
+        border-bottom: none; /* Remove border from the last item */
+    }
+    
+    .navbar-nav .nav-link i {
+        font-size: 1.1rem !important;
+        margin-right: 0.75rem !important;
+    }
+    
+    .navbar-nav .nav-link .d-none.d-lg-inline {
+        display: inline !important;
+    }
+    
+    /* Mobile auth buttons in navbar */
+    .navbar .btn-primary {
+        width: 100% !important;
+        margin: 0.5rem 0 !important;
+        padding: 0.75rem 1rem !important;
+        border-radius: 12px !important;
+        font-weight: 600 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    .navbar .btn-primary i {
+        margin-right: 0.5rem !important;
+    }
+    
+    /* User dropdown in mobile */
+    .navbar .dropdown-toggle {
+        padding: 0.75rem 1rem !important;
+        border-radius: 8px !important;
+        background: rgba(59, 130, 246, 0.05) !important;
+        border: 1px solid rgba(59, 130, 246, 0.1) !important;
+        width: 100% !important;
+        margin: 0.5rem 0 !important;
+    }
+    
+    .navbar .user-avatar {
+        width: 35px !important;
+        height: 35px !important;
+        font-size: 0.9rem !important;
+    }
+    
+    .navbar .dropdown-menu {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(20px) !important;
+        border: none !important;
+        border-radius: 12px !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+        margin-top: 0.5rem !important;
+        width: 100% !important;
+    }
+    
+    .navbar .dropdown-item {
+        padding: 0.75rem 1rem !important;
+        border-radius: 8px !important;
+        margin: 0.25rem !important;
+        transition: all 0.3s ease !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    
+    .navbar .dropdown-item:hover {
+        background: rgba(59, 130, 246, 0.1) !important;
+        color: #3b82f6 !important;
+    }
+    
+    .navbar .dropdown-item i {
+        margin-right: 0.75rem !important;
+        font-size: 1rem !important;
+    }
+}
+
+/* Mobile Navbar Adjustments - Toggler Visibility */
+
+.navbar-toggler-icon {
+    display: inline-block !important; 
+    width: 1.5em !important; 
+    height: 1.5em !important; 
+    vertical-align: middle !important; 
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(0, 0, 0, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important; /* Fully opaque black icon */
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 100% !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    filter: none !important; /* Remove any potential filters */
+}
+
+.auth-container-mobile {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+/* Loading State */
+.btn-loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin-left: -10px;
+    margin-top: -10px;
+    border: 2px solid transparent;
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Smooth Animations */
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar-brand .navbar-logo {
+        height: 35px !important;
+    }
+    /* Further fine-tuning for very small screens if needed */
+}

@@ -33,7 +33,28 @@ body {
     color: #1e293b;
     background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 50%, #f0f4ff 100%);
     min-height: 100vh;
-    padding-top: 80px;
+    padding-top: 70px; /* Adjust if navbar height changes, ensures content starts below fixed navbar */
+    display: flex; /* Added to help with footer and main content flex-grow */
+    flex-direction: column; /* Added */
+}
+
+/* Flash Messages Styling */
+.flash-messages-container {
+    width: 100%;
+    max-width: 800px; /* Or your preferred max-width */
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 15px; /* Standard container padding */
+    position: relative; /* Changed from fixed to relative or static */
+    z-index: 1050; /* Keep high z-index if it needs to overlay some elements, but generally not needed if in flow */
+}
+
+.flash-messages-container .alert {
+    margin-bottom: 1rem; /* Spacing between multiple alerts */
+}
+
+main { /* Ensure main content takes up available space */
+    flex-grow: 1;
 }
 
 /* Glass Effect */

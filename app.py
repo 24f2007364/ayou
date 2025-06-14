@@ -9,8 +9,41 @@ import re
 import tempfile
 import json
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv() # This should be called as early as possible
+
+# Supabase integration
+import supabase as sb
+
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
+app.secret_key = os.environ.get('SECRET_KEY')
+
+# Supabase configuration - these must be set as environment variables
+SUPABASE_URL = os.environ.get('SUPABASE_URL')
+SUPABASE_ANON_KEY = os.environ.get('SUPABASE_ANON_KEY')
+SUPABASE_SERVICE_ROLE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
+
+# Initialize Supabase client
+supabase_client = None
+if SUPABASE_URL and SUPABASE_ANON_KEY:
+    try:
+        supabase_client = sb.create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+        print("Supabase client initialized successfully")
+    except Exception as e:
+        print(f"Error initializing Supabase client: {e}")
+        supabase_client = None
+else:
+    print("Supabase configuration missing. Set SUPABASE_URL and SUPABASE_ANON_KEY environment variables.")
+
+# Make Supabase URLs and keys available in templates
+@app.context_processor
+def inject_supabase_config():
+    print(f"DEBUG: Injecting Supabase config - URL: {SUPABASE_URL[:10] if SUPABASE_URL else 'Not Set'}, Key Set: {bool(SUPABASE_ANON_KEY)}")
+    return {
+        'supabase_url': SUPABASE_URL or '',
+        'supabase_anon_key': SUPABASE_ANON_KEY or ''
+    }
 
 # Session configuration for better security
 app.config.update(
@@ -55,7 +88,45 @@ def init_db():
     """Initialize database - Supabase for production, SQLite for local"""
     if os.environ.get('SUPABASE_URL') and os.environ.get('SUPABASE_ANON_KEY'):
         init_supabase_db()
-  
+    else:
+        init_sqlite_db()
+
+def init_sqlite_db():
+    """Initialize SQLite database tables"""
+    conn = sqlite3.connect(get_db_path())
+    conn.execute('''
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password_hash TEXT,
+        xp INTEGER DEFAULT 0,
+        rank TEXT DEFAULT 'AI Rookie',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        provider TEXT DEFAULT 'local',
+        provider_id TEXT,
+        avatar_url TEXT
+    )
+    ''')
+    
+    # Add OAuth columns to existing users table if they don't exist
+    try:
+        columns = conn.execute("PRAGMA table_info(users)").fetchall()
+        column_names = [col[1] for col in columns]
+        
+        if 'provider' not in column_names:
+            conn.execute("ALTER TABLE users ADD COLUMN provider TEXT DEFAULT 'local'")
+        if 'provider_id' not in column_names:
+            conn.execute("ALTER TABLE users ADD COLUMN provider_id TEXT")
+        if 'avatar_url' not in column_names:
+            conn.execute("ALTER TABLE users ADD COLUMN avatar_url TEXT")
+    except Exception as e:
+        print(f"Error updating SQLite schema: {e}")
+    
+    conn.commit()
+    conn.close()
+    
+    print("SQLite initialization complete")
 
 def init_supabase_db():
     """Initialize Supabase database tables"""
@@ -157,47 +228,84 @@ class SupabaseConnection:
             
             # USER OPERATIONS
             elif 'insert into users' in sql_lower and params:
-                user_data = {
-                    'username': params[0],
-                    'email': params[1],
-                    'password_hash': params[2]
-                }
+                user_data = {}
+                
+                # Handle OAuth user insertion
+                if 'provider' in sql_lower:
+                    # Format for OAuth users: (username, email, provider, provider_id, avatar_url)
+                    user_data = {
+                        'username': params[0],
+                        'email': params[1],
+                        'provider': params[2],
+                        'provider_id': params[3],
+                        'avatar_url': params[4] if params[4] else None,
+                        'password_hash': None  # Explicitly set password_hash to None for OAuth users
+                    }
+                else:
+                    # Format for regular users: (username, email, password_hash)
+                    user_data = {
+                        'username': params[0],
+                        'email': params[1],
+                        'password_hash': params[2]
+                    }
+                
                 response = self.session.post(f"{self.base_url}/rest/v1/users", json=user_data)
                 if response.status_code in [200, 201]:
                     self._result = response.json()
-                    print(f"User created successfully: {user_data['username']}")
+                    print(f"User created successfully: {user_data.get('username')}")
+                    # If Supabase returns the created user with ID, set lastrowid
+                    if self._result and isinstance(self._result, list) and len(self._result) > 0 and 'id' in self._result[0]:
+                        self.lastrowid = self._result[0]['id']
+                    elif self._result and isinstance(self._result, dict) and 'id' in self._result: # sometimes it's a dict
+                        self.lastrowid = self._result['id']
                 else:
                     print(f"User insert failed: {response.status_code} - {response.text}")
             
-            elif 'select id from users where username' in sql_lower and params:
-                username_or_email_1 = params[0]
-                username_or_email_2 = params[1] if len(params) > 1 else params[0]
+            # Update OAuth user information
+            elif 'update users set provider =' in sql_lower and params:
+                provider = params[0]
+                provider_id = params[1]
+                avatar_url = params[2]
+                user_id = params[3]
                 
-                # Try username first
-                response = self.session.get(f"{self.base_url}/rest/v1/users?username=eq.{username_or_email_1}&select=id")
-                if response.status_code == 200 and response.json():
-                    self._result = [{'id': response.json()[0]['id']}]
-                    return self
+                update_data = {
+                    'provider': provider,
+                    'provider_id': provider_id,
+                    'avatar_url': avatar_url if avatar_url else None
+                }
                 
-                # Try email
-                response = self.session.get(f"{self.base_url}/rest/v1/users?email=eq.{username_or_email_2}&select=id")
-                if response.status_code == 200 and response.json():
-                    self._result = [{'id': response.json()[0]['id']}]
+                response = self.session.patch(f"{self.base_url}/rest/v1/users?id=eq.{user_id}", json=update_data)
+                if response.status_code in [200, 201]:
+                    self._result = response.json()
                 else:
-                    self._result = []
-            
-            elif 'select * from users where username' in sql_lower and params:
+                    print(f"User update failed: {response.status_code} - {response.text}")
+                    
+            # Regular user operations (existing code)
+            elif 'select id from users where username' in sql_lower and params:
                 username_or_email = params[0]
                 
                 # Try username first
-                response = self.session.get(f"{self.base_url}/rest/v1/users?username=eq.{username_or_email}")
+                response = self.session.get(f"{self.base_url}/rest/v1/users?username=eq.{username_or_email}&select=*")
                 if response.status_code == 200 and response.json():
                     self._result = response.json()
                     return self
                 
-                # Try email
-                response = self.session.get(f"{self.base_url}/rest/v1/users?email=eq.{username_or_email}")
-                self._result = response.json() if response.status_code == 200 else []
+                # Try email (if username search failed or if it's an email) - this part might be redundant if a specific email handler is added
+                # For now, let's assume this is primarily for username.
+                # A specific email handler is better.
+                self._result = []
+
+
+            elif 'select * from users where email' in sql_lower and params: # ADDED HANDLER
+                email_param = params[0]
+                print(f"DEBUG: SupabaseConnection handling 'select * from users where email = {email_param}'")
+                response = self.session.get(f"{self.base_url}/rest/v1/users?email=eq.{email_param}&select=*")
+                if response.status_code == 200 and response.json():
+                    self._result = response.json()
+                    print(f"DEBUG: SupabaseConnection found user by email: {self._result}")
+                else:
+                    self._result = []
+                    print(f"DEBUG: SupabaseConnection user not found by email or error: {response.status_code} - {response.text}")
             
             elif 'select xp from users where id' in sql_lower and params:
                 user_id = params[0]
@@ -1231,9 +1339,12 @@ def login_user(user_data):
     session.permanent = True  # Make session permanent (respects PERMANENT_SESSION_LIFETIME)
     session['user_id'] = user_data['id']
     session['username'] = user_data['username']
+    session['email'] = user_data.get('email', '')
     session['rank'] = user_data.get('rank', 'Beginner')
     session['xp'] = user_data.get('xp', 0)
     session['admin'] = user_data.get('admin', False)
+    session['provider'] = user_data.get('provider', 'local')
+    session['avatar_url'] = user_data.get('avatar_url', '')
     session['last_activity'] = datetime.now().isoformat()
 
 def logout_user():
@@ -1370,6 +1481,14 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    # Check for Supabase session from callback
+    access_token = request.args.get('access_token')
+    if access_token:
+        # Handle in auth_callback route
+        return redirect(url_for('auth_callback', access_token=access_token, 
+                               refresh_token=request.args.get('refresh_token')))
+    
+    # Regular login form handling
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -1381,19 +1500,21 @@ def login():
         ).fetchone()
         conn.close()
         
-        if user and check_password_hash(user['password_hash'], password):
+        # Only check password if user exists and has a password_hash
+        # (OAuth users may not have a password set)
+        if user and user.get('password_hash') and check_password_hash(user['password_hash'], password):
             login_user(user)
             flash('Login successful!', 'success')
             return redirect(url_for('index'))
         else:
             flash('Invalid credentials', 'error')
-    
+      # Pass Supabase configuration to the template
     return render_template('login.html')
 
 @app.route('/logout')
 def logout():
     logout_user()
-    flash('You have been logged out', 'info')
+    # flash('You have been logged out', 'info')
     return redirect(url_for('index'))
 
 @app.route('/tools')
@@ -1512,7 +1633,7 @@ def rate_tool():
     
     data = request.get_json()
     if not data:
-        return jsonify({'error': 'No JSON data provided'}), 400
+        return jsonify({'error': 'No JSON data provided'}),  400
     
     tool_id = data.get('tool_id')
     rating = data.get('rating')
@@ -2719,6 +2840,185 @@ def admin_edit_submission(submission_id):
         return jsonify({'success': False, 'error': 'An error occurred while updating the submission'})
 
 # ============================================================================
+
+# Google OAuth Routes
+@app.route('/auth/callback')
+def auth_callback():
+    print("Auth Callback - Route Hit")
+    access_token = request.args.get('access_token')
+    refresh_token = request.args.get('refresh_token')
+    
+    print(f"Auth Callback - Received tokens: access={bool(access_token)}, refresh={bool(refresh_token)}")
+    if request.args:
+        # Log only a subset of args if they are too long, especially tokens
+        loggable_args = {k: (v[:20] + '...' if isinstance(v, str) and len(v) > 20 else v) for k, v in request.args.items()}
+        print(f"Auth Callback - All args (truncated): {loggable_args}")
+
+
+    if not supabase_client:
+        print("Auth Callback - Supabase client not initialized.")
+        # flash('Authentication service is currently unavailable. Please try again later.', 'danger') # Flash is for HTML responses
+        if request.headers.get('Accept') == 'application/json':
+            return jsonify(success=False, error='Authentication service unavailable.'), 500
+        flash('Authentication service is currently unavailable. Please try again later.', 'danger')
+        return redirect(url_for('login'))
+
+    if not access_token:
+        print("Auth Callback - No access token received.")
+        if request.headers.get('Accept') == 'application/json':
+            return jsonify(success=False, error='No access token received.'), 400
+        flash('Authentication failed: No access token received. Please try again.', 'danger')
+        return redirect(url_for('login'))
+
+    try:
+        print(f"Creating Supabase client with URL: {SUPABASE_URL[:10] if SUPABASE_URL else 'N/A'}...") # Log only part of URL
+        # Use the global supabase_client initialized at startup
+
+        print("Setting session with tokens...")
+        # Corrected: Use the set_session method of the global client's auth interface
+        supabase_client.auth.set_session(access_token, refresh_token)
+        print("Session set. Getting user data...")
+        
+        user_response = supabase_client.auth.get_user()
+        print(f"User response received: {bool(user_response)}")
+
+        if not user_response or not user_response.user:
+            print("Auth Callback - Failed to get user data from Supabase.")
+            if request.headers.get('Accept') == 'application/json':
+                return jsonify(success=False, error='Failed to retrieve user data from Supabase.'), 500
+            flash('Authentication failed: Could not retrieve user data. Please try again.', 'danger')
+            return redirect(url_for('login'))
+
+        user = user_response.user
+        print(f"User data extracted: {bool(user)}")
+        
+        user_email = user.email
+        # Prefer 'name' from user_metadata if 'full_name' is not present
+        user_name = user.user_metadata.get('full_name') or user.user_metadata.get('name') or user_email.split('@')[0]
+        user_avatar_url = user.user_metadata.get('avatar_url')
+        # Supabase user ID is user.id. This is the unique ID for the user in Supabase.
+        user_provider_id = user.id 
+        # If Google provides a specific 'provider_id' in user_metadata, you might prefer that for 'provider_id' column
+        # e.g., user_provider_id = user.user_metadata.get('provider_id', user.id)
+
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Check if user exists by email
+        print(f"Checking if user exists: {user_email}")
+        cursor.execute("SELECT * FROM users WHERE email = ?", (user_email,))
+        db_user = cursor.fetchone()
+
+        if db_user:
+            print(f"User {user_email} found in DB (ID: {db_user['id']}). Logging in.")
+            # User exists, log them in
+            session['user_id'] = db_user['id']
+            session['username'] = db_user['username']
+            # Update avatar and provider info if it has changed or if they logged in via Google
+            session['avatar_url'] = user_avatar_url or db_user['avatar_url'] # Prefer new Google avatar
+            session['provider'] = 'google' # If they are here, they used Google
+
+            if db_user['provider'] != 'google' or db_user['avatar_url'] != user_avatar_url or db_user['provider_id'] != user_provider_id:
+                try:
+                    print(f"Updating user {db_user['id']} OAuth info: provider_id={user_provider_id}, avatar_url={bool(user_avatar_url)}")
+                    cursor.execute("""
+                        UPDATE users SET provider = ?, provider_id = ?, avatar_url = ?
+                        WHERE id = ?
+                    """, ('google', user_provider_id, user_avatar_url, db_user['id']))
+                    conn.commit()
+                    print(f"User {db_user['id']} OAuth info updated successfully.")
+                except Exception as e_update:
+                    print(f"Error updating user's OAuth info for ID {db_user['id']}: {e_update}")
+                    # Continue login even if update fails for now
+
+        else:
+            print(f"User {user_email} not found. Creating new user.")
+            # New user, register them
+            try:
+                # Ensure username is unique
+                base_username = re.sub(r'[^a-zA-Z0-9_]', '', user_name).lower()
+                if not base_username: # Handle cases where name might be all special chars
+                    base_username = user_email.split('@')[0].lower()
+                
+                username_to_insert = base_username
+                counter = 1
+                while True:
+                    cursor.execute("SELECT id FROM users WHERE username = ?", (username_to_insert,))
+                    if not cursor.fetchone():
+                        break
+                    username_to_insert = f"{base_username}{counter}"
+                    counter += 1
+                
+                print(f"Creating new user: {username_to_insert}, {user_email}, provider_id={user_provider_id}")
+                cursor.execute("""
+                    INSERT INTO users (username, email, password_hash, provider, provider_id, avatar_url)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (username_to_insert, user_email, None, 'google', user_provider_id, user_avatar_url))
+                conn.commit()
+                
+                new_user_id = cursor.lastrowid
+                if not new_user_id and isinstance(conn, SupabaseConnection): 
+                    print("Attempting to retrieve new user ID from Supabase after insert...")
+                    cursor.execute("SELECT * FROM users WHERE email = ?", (user_email,)) # Re-fetch by email
+                    newly_created_user = cursor.fetchone()
+                    if newly_created_user:
+                        new_user_id = newly_created_user['id']
+                        print(f"Retrieved new user ID {new_user_id} for {user_email} from Supabase.")
+                    else:
+                        print(f"CRITICAL ERROR: Failed to retrieve newly created user {user_email} from Supabase after insert.")
+                        if request.headers.get('Accept') == 'application/json':
+                            return jsonify(success=False, error='Critical error during user registration (DB consistency).'), 500
+                        flash('Critical error during user registration. Please contact support.', 'danger')
+                        return redirect(url_for('login'))
+                
+                if new_user_id:
+                    session['user_id'] = new_user_id
+                    session['username'] = username_to_insert
+                    session['avatar_url'] = user_avatar_url
+                    session['provider'] = 'google'
+                    print(f"New user {username_to_insert} created with ID {new_user_id} and logged in.")
+                else:
+                    # This should ideally not be reached if DB operations are correct
+                    print(f"ERROR: Failed to get new_user_id after insert for {user_email}.")
+                    if request.headers.get('Accept') == 'application/json':
+                        return jsonify(success=False, error='Error creating user account (no ID).'), 500
+                    flash('Error creating user account. Please try again.', 'danger')
+                    return redirect(url_for('login'))
+
+            except Exception as e_insert:
+                print(f"Error inserting new OAuth user ({user_email}): {e_insert}")
+                import traceback
+                traceback.print_exc()
+                if request.headers.get('Accept') == 'application/json':
+                    return jsonify(success=False, error=f'Error registering user: {str(e_insert)}'), 500
+                flash('An error occurred while registering your account. Please try again.', 'danger')
+                return redirect(url_for('login'))
+        
+        if isinstance(conn, sqlite3.Connection): # Only close if it's SQLite
+            conn.close()
+        
+        print("Auth Callback - Success. User logged in/registered.")
+        # flash('Successfully logged in with Google!', 'success') # Flash is for HTML responses
+        
+        if request.headers.get('Accept') == 'application/json':
+            return jsonify(success=True, username=session.get('username'), user_id=session.get('user_id'))
+
+        # This redirect is for when Supabase redirects directly to /auth/callback
+        # For JS fetch, the JS will handle the redirect based on JSON response
+        flash('Successfully logged in with Google!', 'success')
+        next_url = request.args.get('next') or url_for('index')
+        return redirect(next_url)
+
+    except Exception as e:
+        print(f"Auth Callback - General Exception: {e}")
+        import traceback
+        traceback.print_exc()
+        error_message = f'An unexpected error occurred during Google sign-in: {str(e)}'
+        if request.headers.get('Accept') == 'application/json':
+            return jsonify(success=False, error=error_message), 500
+        flash(error_message, 'danger')
+        return redirect(url_for('login'))
 
 if __name__ == '__main__':
     # Initialize database

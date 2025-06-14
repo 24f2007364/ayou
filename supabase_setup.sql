@@ -5,10 +5,13 @@ CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(255) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
+    password_hash TEXT,
     xp INTEGER DEFAULT 0,
     rank VARCHAR(255) DEFAULT 'AI Rookie',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    provider VARCHAR(50) DEFAULT 'local',
+    provider_id TEXT,
+    avatar_url TEXT
 );
 
 -- Tools table
@@ -35,10 +38,19 @@ ALTER TABLE tools ADD COLUMN IF NOT EXISTS gallery_images TEXT;
 ALTER TABLE tools ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT FALSE;
 ALTER TABLE tools ADD COLUMN IF NOT EXISTS featured_since TIMESTAMP;
 
+-- Add new columns to existing users table for OAuth support
+ALTER TABLE users ADD COLUMN IF NOT EXISTS provider VARCHAR(50) DEFAULT 'local';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS provider_id TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL;
+
 -- Set default values for existing tools
 UPDATE tools SET key_features = '["AI-powered capabilities", "User-friendly interface", "Professional grade quality"]' WHERE key_features IS NULL;
 UPDATE tools SET gallery_images = '[]' WHERE gallery_images IS NULL;
 UPDATE tools SET is_featured = FALSE WHERE is_featured IS NULL;
+
+-- Set default provider for existing users
+UPDATE users SET provider = 'local' WHERE provider IS NULL;
 
 -- Ratings table
 CREATE TABLE IF NOT EXISTS ratings (
