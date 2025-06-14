@@ -161,7 +161,7 @@
                                 <a href="{{ tool.link }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill">
                                     <i class="bi bi-box-arrow-up-right me-1"></i>Visit
                                 </a>
-                                <a href="{{ url_for('tool_detail', tool_id=tool.id) }}" class="btn btn-primary btn-sm rounded-pill">
+                                <a href="{{ url_for('tool_detail', tool_name=tool.name) }}" class="btn btn-primary btn-sm rounded-pill">
                                     Details
                                 </a>
                             </div>
@@ -265,7 +265,7 @@
                                class="btn btn-sm btn-outline-primary btn-visit" 
                                data-bs-toggle="tooltip" title="Visit {{ tool.name }}">
                                 <i class="bi bi-box-arrow-up-right"></i><span>Visit</span>
-                            </a><a href="{{ url_for('tool_detail', tool_id=tool.id) }}" 
+                            </a><a href="{{ url_for('tool_detail', tool_name=tool.name) }}" 
                                class="btn btn-sm btn-primary">
                                 Details
                             </a>

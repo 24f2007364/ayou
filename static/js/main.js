@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // If icon dimensions are 0 or very small, font didn't load properly
         if (iconWidth < 10 || iconHeight < 10) {
-            console.warn('Bootstrap Icons may not be loading properly, attempting reload...');
+            // console.warn('Bootstrap Icons may not be loading properly, attempting reload...');
             // Try to reload the font with a different source
             const iconLink = document.createElement('link');
             iconLink.rel = 'stylesheet';

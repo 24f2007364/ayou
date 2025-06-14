@@ -470,7 +470,7 @@
                         <div class="related-tools">
                             {% for related_tool in related_tools %}
                             <div class="related-tool-item">
-                                <a href="{{ url_for('tool_detail', tool_id=related_tool.id) }}" class="d-flex align-items-center text-decoration-none">
+                                <a href="{{ url_for('tool_detail', tool_name=related_tool.name) }}" class="d-flex align-items-center text-decoration-none">
                                     <img src="{{ related_tool.logo_url or '/static/images/default-tool.png' }}" 
                                          alt="{{ related_tool.name }}" class="related-tool-logo me-3">
                                     <div class="flex-grow-1">
@@ -725,12 +725,12 @@
 </style>
 
 <script>
-    console.log("Tool ID:", "{{ tool.id if tool.id else 'null' }}");
+    // console.log("Tool ID:", "{{ tool.id if tool.id else 'null' }}");
 // Initialize star rating functionality
 function initializeStarRating() {
     const ratingStars = document.getElementById('ratingStars');
     if (!ratingStars) {
-        console.log("Rating stars element not found");
+        // console.log("Rating stars element not found");
         return;
     }
     
@@ -738,7 +738,7 @@ function initializeStarRating() {
     const ratingInput = document.getElementById('ratingValue');
     const ratingText = document.getElementById('ratingText');
     
-    console.log("Initializing star rating - Stars found:", stars.length, "Rating input:", ratingInput);
+    // console.log("Initializing star rating - Stars found:", stars.length, "Rating input:", ratingInput);
     
     const ratingTexts = {
         1: "Poor - Not recommended",
@@ -750,7 +750,7 @@ function initializeStarRating() {
     
     // Initialize with current rating if any
     const currentRating = parseInt(ratingInput.value) || 0;
-    console.log("Current rating value:", currentRating);
+    // console.log("Current rating value:", currentRating);
     if (currentRating > 0) {
         updateStarDisplay(currentRating);
         ratingText.textContent = ratingTexts[currentRating];
@@ -846,7 +846,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (ratingForm) {
         ratingForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            console.log("Form submission prevented - using AJAX instead");
+            // console.log("Form submission prevented - using AJAX instead");
             return false;
         });
     }
@@ -865,14 +865,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Check if button is disabled
             if (btn.disabled) {
-                console.log('Button is disabled');
+                // console.log('Button is disabled');
                 return;
             }
             
             const commentId = btn.dataset.commentId;
             const reactionType = btn.dataset.reactionType;
             
-            console.log('Reaction button clicked:', { commentId, reactionType, btn });
+            // console.log('Reaction button clicked:', { commentId, reactionType, btn });
             
             if (!commentId || !reactionType) {
                 console.error('Missing reaction data:', { commentId, reactionType });
@@ -935,13 +935,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Submit new comment
 function submitComment() {
-    console.log("=== SUBMIT COMMENT CALLED ===");
+    // console.log("=== SUBMIT COMMENT CALLED ===");
     
     const form = document.getElementById('commentForm');
     const textarea = document.getElementById('commentText');
     const comment = textarea.value.trim();
     
-    console.log("Comment text:", comment);
+    // console.log("Comment text:", comment);
     
     if (!comment) {
         alert('Please enter a comment');
@@ -958,10 +958,10 @@ function submitComment() {
     xhr.setRequestHeader('Content-Type', 'application/json');
     
     xhr.onreadystatechange = function() {
-        console.log("Comment Submit ReadyState:", xhr.readyState, "Status:", xhr.status);
+        // console.log("Comment Submit ReadyState:", xhr.readyState, "Status:", xhr.status);
         
         if (xhr.readyState === 4) {
-            console.log("Comment Submit Response:", xhr.responseText);
+            // console.log("Comment Submit Response:", xhr.responseText);
             
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalContent;
@@ -991,13 +991,13 @@ function submitComment() {
         comment: comment
     });
     
-    console.log("Sending comment data:", data);
+    // console.log("Sending comment data:", data);
     xhr.send(data);
 }
 
 // Test Comment AJAX Function
 function testCommentAjax() {
-    console.log("=== COMMENT SUBMISSION STARTED ===");
+    // console.log("=== COMMENT SUBMISSION STARTED ===");
     
     const form = document.getElementById('commentForm');
     const textarea = document.getElementById('commentText');
@@ -1019,10 +1019,10 @@ function testCommentAjax() {
     xhr.setRequestHeader('Content-Type', 'application/json');
     
     xhr.onreadystatechange = function() {
-        console.log("Comment AJAX ReadyState:", xhr.readyState, "Status:", xhr.status);
+        // console.log("Comment AJAX ReadyState:", xhr.readyState, "Status:", xhr.status);
         
         if (xhr.readyState === 4) {
-            console.log("Comment Response:", xhr.responseText);
+            // console.log("Comment Response:", xhr.responseText);
             
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalContent;
@@ -1052,13 +1052,13 @@ function testCommentAjax() {
         comment: comment
     });
     
-    console.log("Sending comment data:", data);
+    // console.log("Sending comment data:", data);
     xhr.send(data);
 }
 
 // React to comment
 function reactToComment(commentId, reactionType, btnElement) {
-    console.log('reactToComment called:', { commentId, reactionType, btnElement });
+    // console.log('reactToComment called:', { commentId, reactionType, btnElement });
     
     // Disable the clicked button temporarily
     btnElement.disabled = true;
@@ -1069,7 +1069,7 @@ function reactToComment(commentId, reactionType, btnElement) {
     
     xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
-            console.log('Reaction response:', xhr.status, xhr.responseText);
+            // console.log('Reaction response:', xhr.status, xhr.responseText);
             
             // Re-enable button
             btnElement.disabled = false;
@@ -1077,7 +1077,7 @@ function reactToComment(commentId, reactionType, btnElement) {
             if (xhr.status === 200) {
                 try {
                     const response = JSON.parse(xhr.responseText);
-                    console.log('Parsed response:', response);
+                    // console.log('Parsed response:', response);
                     
                     if (response.success) {
                         // Find the reaction section containing all buttons
@@ -1106,7 +1106,7 @@ function reactToComment(commentId, reactionType, btnElement) {
                                 angryBtn.querySelector('.reaction-count').textContent = response.angry_count;
                                 laughBtn.querySelector('.reaction-count').textContent = response.laugh_count;
                                 
-                                console.log('UI updated successfully');
+                                // console.log('UI updated successfully');
                             } else {
                                 console.error('Could not find reaction buttons');
                             }
@@ -1133,7 +1133,7 @@ function reactToComment(commentId, reactionType, btnElement) {
         reaction_type: reactionType
     });
     
-    console.log('Sending reaction data:', data);
+    // console.log('Sending reaction data:', data);
     xhr.send(data);
 }
 
@@ -1294,7 +1294,7 @@ function showRatingModal() {
 
 // Submit rating using AJAX
 function submitRating() {
-    console.log("submitRating() called - using AJAX");
+    // console.log("submitRating() called - using AJAX");
     
     const rating = document.getElementById('ratingValue').value;
     const review = document.getElementById('reviewText').value;
@@ -1302,7 +1302,7 @@ function submitRating() {
     const form = document.getElementById('ratingForm');
     const toolId = parseInt(form.getAttribute('data-tool-id'));
     
-    console.log("Rating data:", { toolId, rating, review: review.trim() });
+    // console.log("Rating data:", { toolId, rating, review: review.trim() });
     
     if (!rating) {
         alert('Please select a rating before submitting.');
@@ -1318,19 +1318,19 @@ function submitRating() {
     xhr.open('POST', '/rate_tool', true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     
-    console.log("Sending AJAX request to /rate_tool");
+    // console.log("Sending AJAX request to /rate_tool");
     
     xhr.onreadystatechange = function() {
-        console.log("ReadyState:", xhr.readyState, "Status:", xhr.status);
+        // console.log("ReadyState:", xhr.readyState, "Status:", xhr.status);
         
         if (xhr.readyState === 4) {
-            console.log("Response Text:", xhr.responseText);
-            console.log("Response Headers:", xhr.getAllResponseHeaders());
+            // console.log("Response Text:", xhr.responseText);
+            // console.log("Response Headers:", xhr.getAllResponseHeaders());
             
             if (xhr.status === 200) {
                 try {
                     const response = JSON.parse(xhr.responseText);
-                    console.log("Parsed Response:", response);
+                    // console.log("Parsed Response:", response);
                     
                     if (response.success) {
                         submitBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Thank you!';
@@ -1372,7 +1372,7 @@ function submitRating() {
         review: review.trim()
     });
     
-    console.log("Sending data:", data);
+    // console.log("Sending data:", data);
     xhr.send(data);
 }
 
@@ -1396,25 +1396,25 @@ function testAjaxOperation() {
     testBtn.disabled = true;
     testBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Submitting...';
     
-    console.log("=== AJAX SUBMISSION STARTED ===");
-    console.log("Tool ID:", toolId);
-    console.log("Rating:", rating);
-    console.log("Review:", review);
+    // console.log("=== AJAX SUBMISSION STARTED ===");
+    // console.log("Tool ID:", toolId);
+    // console.log("Rating:", rating);
+    // console.log("Review:", review);
     
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/rate_tool', true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     
     xhr.onreadystatechange = function() {
-        console.log("ReadyState:", xhr.readyState, "Status:", xhr.status);
+        // console.log("ReadyState:", xhr.readyState, "Status:", xhr.status);
         
         if (xhr.readyState === 4) {
-            console.log("Response Text:", xhr.responseText);
+            // console.log("Response Text:", xhr.responseText);
             
             if (xhr.status === 200) {
                 try {
                     const response = JSON.parse(xhr.responseText);
-                    console.log("Parsed Response:", response);
+                    // console.log("Parsed Response:", response);
                     
                     if (response.success) {
                         testBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Thank you!';
@@ -1449,7 +1449,7 @@ function testAjaxOperation() {
         tool_id: toolId,
         rating: parseInt(rating),
         review: review.trim()
-    });      console.log("Sending data:", data);
+    });      // console.log("Sending data:", data);
     xhr.send(data);
 }
 

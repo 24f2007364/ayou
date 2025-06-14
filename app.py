@@ -28,22 +28,24 @@ SUPABASE_SERVICE_ROLE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
 supabase_client = None
 if SUPABASE_URL and SUPABASE_ANON_KEY:
     try:
-        supabase_client = sb.create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
-        print("Supabase client initialized successfully")
+        supabase_client = sb.create_client(SUPABASE_URL, SUPABASE_ANON_KEY) # Initialize the client
+        print("Supabase client initialized successfully.")
     except Exception as e:
         print(f"Error initializing Supabase client: {e}")
-        supabase_client = None
 else:
     print("Supabase configuration missing. Set SUPABASE_URL and SUPABASE_ANON_KEY environment variables.")
 
 # Make Supabase URLs and keys available in templates
-@app.context_processor
-def inject_supabase_config():
-    print(f"DEBUG: Injecting Supabase config - URL: {SUPABASE_URL[:10] if SUPABASE_URL else 'Not Set'}, Key Set: {bool(SUPABASE_ANON_KEY)}")
-    return {
-        'supabase_url': SUPABASE_URL or '',
-        'supabase_anon_key': SUPABASE_ANON_KEY or ''
-    }
+# @app.context_processor
+# def inject_supabase_config():
+# return dict(supabase_url=SUPABASE_URL, supabase_anon_key=SUPABASE_ANON_KEY)
+
+@app.route('/config')
+def get_config():
+    return jsonify({
+        'supabaseUrl': SUPABASE_URL,
+        'supabaseAnonKey': SUPABASE_ANON_KEY
+    })
 
 # Session configuration for better security
 app.config.update(
@@ -482,6 +484,19 @@ class SupabaseConnection:
                         if tool.get('category'):
                             categories.add(tool['category'])
                     self._result = [{'category': cat} for cat in sorted(categories)]
+                else:
+                    self._result = []
+            
+            elif ('select *, coalesce(average_rating, 0)' in sql_lower and
+                  'from tools where name =' in sql_lower and params): # ADDED for fetching by name
+                # Tool detail query by name
+                tool_name = params[0]
+                response = self.session.get(f"{self.base_url}/rest/v1/tools?name=eq.{tool_name}&select=*") # Query by name
+                if response.status_code == 200 and response.json():
+                    tool_data = response.json()[0]
+                    tool_data['average_rating'] = tool_data.get('average_rating') or 0
+                    tool_data['total_ratings'] = tool_data.get('total_ratings') or 0
+                    self._result = [tool_data]
                 else:
                     self._result = []
             
@@ -1563,14 +1578,17 @@ def tools():
     return render_template('tools.html', tools=tools, featured_tools=featured_tools, categories=categories, 
                          current_search=search, current_category=category, current_sort=sort)
 
-@app.route('/tool/<int:tool_id>')
-def tool_detail(tool_id):
+@app.route('/tool/<string:tool_name>') # Changed from <int:tool_id>
+def tool_detail(tool_name): # Changed from tool_id
     conn = get_db_connection()
     
-    tool = conn.execute('SELECT *, COALESCE(average_rating, 0) as average_rating, COALESCE(total_ratings, 0) as total_ratings FROM tools WHERE id = ?', (tool_id,)).fetchone()
+    # Fetch tool by name instead of ID
+    tool = conn.execute('SELECT *, COALESCE(average_rating, 0) as average_rating, COALESCE(total_ratings, 0) as total_ratings FROM tools WHERE name = ?', (tool_name,)).fetchone()
     if not tool:
         flash('Tool not found', 'error')
         return redirect(url_for('tools'))
+    
+    tool_id = tool['id'] # We still need tool_id for other queries
     
     # Get ratings and reviews
     ratings = conn.execute('''
@@ -1600,6 +1618,7 @@ def tool_detail(tool_id):
             JOIN users u ON c.user_id = u.id
             LEFT JOIN comment_reactions cr ON c.id = cr.comment_id AND cr.user_id = ?
             WHERE c.parent_id = ?
+           
             ORDER BY c.created_at ASC
         '''
         replies = conn.execute(replies_query, (user_id_for_reactions, comment_dict['id'])).fetchall()
