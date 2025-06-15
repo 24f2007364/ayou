@@ -11,6 +11,34 @@
 {% block twitter_description %}{{ tool.description[:160] if tool.description else 'Discover and review ' + tool.name + ' on AI Exchange' }}{% endblock %}
 {% block twitter_image %}{{ tool.logo_url if tool.logo_url else 'https://www.aiexchange.tech/static/images/og-image.png' }}{% endblock %}
 
+{% block head %}
+{{ super() }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{ tool.name }}",
+  "description": "{{ tool.description }}",
+  "image": "{{ tool.logo_url }}",
+  "brand": {
+    "@type": "Brand",
+    "name": "AI Exchange"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "{{ tool.pricing_model }}",
+    "priceCurrency": "USD",
+    "availability": "http://schema.org/InStock"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ tool.average_rating }}",
+    "reviewCount": "{{ tool.total_ratings }}"
+  }
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-0">
     <!-- Hero Section with Tool Overview -->

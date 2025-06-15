@@ -42,6 +42,20 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui-fixes.css') }}">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2565189816556806"
      crossorigin="anonymous"></script>
+     <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Explore AI Tools",
+  "description": "Discover, compare, and review the best AI tools for your needs, including tools for modern LLMs. World's no1 and best AI tool directory",
+  "url": "{{ request.url }}",
+  "image": "{{ url_for('static', filename='images/og-image.png') }}",
+  "author": {
+    "@type": "Organization",
+    "name": "AI Exchange"
+  }
+}
+</script>
     {% block extra_css %}{% endblock %}
 </head>
 <!-- Google tag (gtag.js) -->
