@@ -11,8 +11,7 @@
 {% block twitter_description %}{{ tool.description[:160] if tool.description else 'Discover and review ' + tool.name + ' on AI Exchange' }}{% endblock %}
 {% block twitter_image %}{{ tool.logo_url if tool.logo_url else 'https://www.aiexchange.tech/static/images/og-image.png' }}{% endblock %}
 
-{% block head %}
-{{ super() }}
+{% block json_ld_schema %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -26,9 +25,10 @@
   },
   "offers": {
     "@type": "Offer",
-    "price": "{{ tool.pricing_model }}",
+    "price":"20",
     "priceCurrency": "USD",
     "availability": "http://schema.org/InStock"
+
   },
   "aggregateRating": {
     "@type": "AggregateRating",
@@ -37,6 +37,11 @@
   }
 }
 </script>
+{% endblock json_ld_schema %}
+
+{% block head %}
+{{ super() }}
+{# Remove the old script tag if it exists, otherwise it will be duplicated #}
 {% endblock %}
 
 {% block content %}

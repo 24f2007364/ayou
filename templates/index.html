@@ -1,6 +1,48 @@
 {% extends "layout.html" %}
 
-{% block title %}AI Exchange – Find the Best AI Tools & Directories{% endblock %}
+{% block title %}AI Exchange – Your Premier AI Tool Directory & Search Engine{% endblock %}
+
+{% block og_title %}AI Exchange – Best AI Tools, Directories & Search{% endblock %}
+{% block og_description %}Discover the top AI tools for coding, image generation, and more. AI Exchange helps you find, compare, and review the best artificial intelligence resources.{% endblock %}
+{% block og_url %}{{ url_for('index', _external=True) | replace('http://', 'https://') }}{% endblock %}
+
+{% block twitter_title %}AI Exchange – Premier AI Tool Directory{% endblock %}
+{% block twitter_description %}Find and compare the best AI tools with AI Exchange. Your ultimate guide to artificial intelligence resources.{% endblock %}
+
+{% block json_ld_schema %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "AI Exchange",
+  "url": "{{ url_for('index', _external=True) | replace('http://', 'https://') }}",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "{{ url_for('tools', _external=True) | replace('http://', 'https://') }}?search={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "AI Exchange",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ url_for('static', filename='images/logo-withbg.png', _external=True) }}",
+      "width": 200, {# Adjust to your logo's actual width #}
+      "height": 50  {# Adjust to your logo's actual height #}
+    }
+  },
+  "description": "AI Exchange is your ultimate AI tool directory and search engine. Find the best AI tools for coding, image generation, writing, and more. Search, explore, compare, and review AI tools instantly.",
+  "image": "{{ url_for('static', filename='images/og-image.png', _external=True) }}",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ url_for('index', _external=True) | replace('http://', 'https://') }}"
+   }
+}
+</script>
+{% endblock json_ld_schema %}
 
 {% block content %}
 <!-- Hero Section -->

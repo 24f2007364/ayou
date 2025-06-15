@@ -15,13 +15,15 @@
     <meta property="og:image:height" content="{% block og_image_height %}630{% endblock %}" />
     <meta property="og:image:type" content="{% block og_image_type %}image/png{% endblock %}" />
     <meta property="og:site_name" content="AI Exchange" />
-    
-    <link rel="icon" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon.ico') }}">    
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
-    
+
+    <!-- Favicons - Simplified and Recommended -->
+    <link rel="icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon/favicon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon/favicon.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}"> {# Recommended for PWA features & more control #}
+    <meta name="theme-color" content="#ffffff"> {# Example theme color #}
+
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="{% block twitter_title %}AI Exchange – Find the Best AI Tools & Directories{% endblock %}" />
@@ -42,20 +44,32 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui-fixes.css') }}">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2565189816556806"
      crossorigin="anonymous"></script>
+    {% block json_ld_schema %}
      <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebPage",
-  "name": "Explore AI Tools",
-  "description": "Discover, compare, and review the best AI tools for your needs, including tools for modern LLMs. World's no1 and best AI tool directory",
-  "url": "{{ request.url }}",
-  "image": "{{ url_for('static', filename='images/og-image.png') }}",
-  "author": {
-    "@type": "Organization",
-    "name": "AI Exchange"
-  }
-}
-</script>
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "{% block page_schema_name %}{% if self.title() %}{{ self.title() }}{% else %}AI Exchange{% endif %}{% endblock %}",
+      "description": "{% block page_schema_description %}Discover, compare, and review the best AI tools for your needs, including tools for modern LLMs. World's no1 and best AI tool directory{% endblock %}",
+      "url": "{{ request.url | replace('http://', 'https://') }}", {# Ensure HTTPS #}
+      "image": "{{ url_for('static', filename='images/og-image.png', _external=True) }}",
+      "author": {
+        "@type": "Organization",
+        "name": "AI Exchange"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "AI Exchange",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "{{ url_for('static', filename='images/logo-withbg.png', _external=True) }}",
+          "width": 200, 
+          "height": 50  
+        }
+      }
+    }
+    </script>
+    {% endblock json_ld_schema %}
     {% block extra_css %}{% endblock %}
 </head>
 <!-- Google tag (gtag.js) -->
