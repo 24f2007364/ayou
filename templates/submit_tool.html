@@ -460,12 +460,38 @@
         font-weight: 500;
         cursor: pointer;
     }
-    
-    /* Enhanced Submit Section */
+      /* Enhanced Submit Section */
     .submit-section {
         margin-top: 3rem;
         text-align: center;
-    }    
+    }
+    
+    /* Validation Message */
+    .validation-message {
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        border: 1px solid #fca5a5;
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #dc2626;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+        /* animation: shake 0.5s ease-in-out; */ /* Temporarily removed for diagnostics */
+    }
+    
+    .validation-message i {
+        font-size: 1.2rem;
+        color: #dc2626;
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
     .submit-btn {
         background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
         background-size: 200% 200%;
@@ -625,33 +651,53 @@
         cursor: not-allowed;
         transform: none;
         box-shadow: 0 4px 16px rgba(37, 99, 235, 0.1);
-    }
-    
+    }    
     .submit-btn:disabled::before {
         display: none;
     }
     
-    .loading-state {
-        display: none;
+    #loadingState.loading-state {
+        display: none; /* Hide by default */
         text-align: center;
-        padding: 3rem 2rem;
+        padding: 4rem 2rem; 
+        min-height: 200px; 
         color: #3b82f6;
-        background: rgba(248, 250, 252, 0.8);
+        background: rgba(248, 250, 252, 0.95); /* Default intended background */
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border-radius: 20px;
-        border: 2px solid rgba(59, 130, 246, 0.1);
-        box-shadow: 0 8px 32px rgba(37, 99, 235, 0.06);
+        border: 2px solid rgba(59, 130, 246, 0.2);
+        box-shadow: 
+            0 8px 32px rgba(37, 99, 235, 0.1),
+            0 4px 16px rgba(37, 99, 235, 0.05);
+        margin: 2rem 0;
+        position: relative; 
+        z-index: 1050; 
+    }
+    
+    /* This .show rule for the original #loadingState is now less critical 
+       if the dynamic loader is the primary method, but keep for potential fallback/other uses */
+    #loadingState.loading-state.show {
+        display: flex !important; 
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        /* Styles from base are inherited, can add overrides if needed */
     }
     
     .spinner {
-        width: 48px;
-        height: 48px;
-        border: 4px solid rgba(59, 130, 246, 0.1);
-        border-top: 4px solid #3b82f6;
+        width: 48px !important; 
+        height: 48px !important; 
+        display: block !important; 
+        border: 4px solid rgba(59, 130, 246, 0.1) !important;
+        border-top: 4px solid #3b82f6 !important; /* Ensure border-top is distinct for spinning effect */
         border-radius: 50%;
         animation: spin 1s linear infinite;
         margin: 0 auto 1.5rem;
+        background-color: transparent !important; 
+        box-sizing: border-box !important;
     }
     
     @keyframes spin {
@@ -667,12 +713,14 @@
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-    }
-    
-    .message-success {
+    }    .message-success {
         background: rgba(220, 252, 231, 0.9);
         border: 2px solid rgba(34, 197, 94, 0.2);
         color: #065f46;
+    }
+    
+    .message-success.show {
+        display: block !important;
     }
     
     .message-error {
@@ -977,22 +1025,25 @@
                         </div>
                         <div class="form-help">Select the country where your tool was created or is based</div>
                     </div>
-                    
-                    <!-- Terms Checkbox -->
+                      <!-- Terms Checkbox -->
                     <div class="checkbox-section">
                         <div class="custom-checkbox">
-                            <input type="checkbox" id="agreeTerms" class="checkbox-input" required>
+                            <input type="checkbox" id="agreeTerms" name="agreeTerms" class="checkbox-input">
                             <div class="checkbox-custom">
                                 <i class="bi bi-check"></i>
                             </div>
                             <label for="agreeTerms" class="checkbox-label">
                                 I confirm that the information provided is accurate and I have the right to submit this tool for listing on AI Exchange.
-                            </label>
-                        </div>
-                    </div>
+                            </label>                    </div>
                     
                     <!-- Submit Button -->
                     <div class="submit-section">
+                        <!-- Validation Message -->
+                        <div class="validation-message" id="checkboxValidationMessage" style="display: none;">
+                            <i class="bi bi-exclamation-circle"></i>
+                            <span>Please check the box above to confirm the information before proceeding</span>
+                        </div>
+                        
                         <button type="submit" class="submit-btn" id="submitBtn">
                             <div class="btn-content">
                                 <i class="bi bi-upload"></i>
@@ -1002,12 +1053,10 @@
                         </button>
                     </div>
                 </form>
-                
-                <!-- Loading State -->
+                  <!-- Loading State - Original, will be mostly ignored by JS for now -->
                 <div class="loading-state" id="loadingState">
+                    Original Loading Div Content
                     <div class="spinner"></div>
-                    <p>Processing your submission...</p>
-                    <small>This may take a few moments as we analyze your tool</small>
                 </div>
                 
                 <!-- Success Message -->
@@ -1064,50 +1113,166 @@
 </section>
 
 <script>
+// Real-time validation for checkbox
+const agreeTermsCheckbox = document.getElementById('agreeTerms');
+const validationMessage = document.getElementById('checkboxValidationMessage');
+
+// Hide validation message when checkbox is checked
+agreeTermsCheckbox.addEventListener('change', function() {
+    if (this.checked) {
+        validationMessage.style.display = 'none';
+    }
+});
+
 document.getElementById('submitForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
+    // Get form elements once at the beginning
     const form = e.target;
-    const formData = new FormData(form);
-    const submitBtn = document.getElementById('submitBtn');
     const loadingState = document.getElementById('loadingState');
     const successMessage = document.getElementById('successMessage');
     const errorMessage = document.getElementById('errorMessage');
+    const formSection = form.parentElement; // Get the parent .form-section
+
+    // Check if the agreement checkbox is checked FIRST
+    if (!agreeTermsCheckbox.checked) {
+        // Ensure form is visible and loading state is hidden
+        form.style.display = 'block';
+        loadingState.style.display = 'none';
+        successMessage.style.display = 'none';
+        errorMessage.style.display = 'none';
+        
+        // Show validation message
+        validationMessage.style.display = 'flex';
+        
+        // Scroll to the validation message
+        validationMessage.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+        });
+        
+        // Hide the message after 5 seconds
+        setTimeout(() => {
+            validationMessage.style.display = 'none';
+        }, 5000);
+        
+        return; // Stop form submission completely
+    }
     
-    // Hide messages
+    // Hide validation message if checkbox is checked
+    validationMessage.style.display = 'none';
+    
+    const formData = new FormData(form);
+    
+    // Hide messages and original form
     successMessage.style.display = 'none';
-    errorMessage.style.display = 'none';
+    errorMessage.style.display = 'none';    
+    form.style.display = 'none'; 
     
-    // Show loading
-    form.style.display = 'none';
-    loadingState.style.display = 'block';
+    // === DYNAMIC LOADING INDICATOR ===
+    let dynamicLoader = document.createElement('div');
+    dynamicLoader.setAttribute('id', 'dynamicLoaderElement');
+    
+    // Base positioning and layering
+    dynamicLoader.style.position = 'fixed';
+    dynamicLoader.style.top = '50%';
+    dynamicLoader.style.left = '50%';
+    dynamicLoader.style.transform = 'translate(-50%, -50%)';
+    dynamicLoader.style.zIndex = '100000'; // Ensure it's on top
+    dynamicLoader.style.textAlign = 'center';
+
+    // Appearance (mimicking the original #loadingState's intended look)
+    dynamicLoader.style.backgroundColor = 'rgba(248, 250, 252, 0.95)';
+    dynamicLoader.style.color = '#3b82f6';
+    dynamicLoader.style.padding = '4rem 2rem';
+    dynamicLoader.style.borderRadius = '20px';
+    dynamicLoader.style.border = '2px solid rgba(59, 130, 246, 0.2)';
+    dynamicLoader.style.boxShadow = '0 8px 32px rgba(37, 99, 235, 0.1), 0 4px 16px rgba(37, 99, 235, 0.05)';
+    dynamicLoader.style.minHeight = '200px';
+    dynamicLoader.style.display = 'flex';
+    dynamicLoader.style.flexDirection = 'column';
+    dynamicLoader.style.alignItems = 'center';
+    dynamicLoader.style.justifyContent = 'center';
+    dynamicLoader.style.boxSizing = 'border-box';
+    dynamicLoader.style.maxWidth = '90vw'; // Prevent it from being too wide on large screens
+    dynamicLoader.style.width = 'auto'; // Let content define width up to maxWidth
+
+    // Create and append spinner
+    let spinner = document.createElement('div');
+    spinner.className = 'spinner'; // Uses the existing .spinner CSS
+    dynamicLoader.appendChild(spinner);
+
+    // Create and append primary message
+    let pMessage = document.createElement('p');
+    pMessage.textContent = 'Processing your submission...';
+    pMessage.style.fontSize = '1.1rem';
+    pMessage.style.fontWeight = '600';
+    pMessage.style.marginBottom = '0.5rem';
+    pMessage.style.color = '#3b82f6'; // Ensure text color matches intended design
+    dynamicLoader.appendChild(pMessage);
+
+    // Create and append secondary message
+    let pSmallMessage = document.createElement('small');
+    pSmallMessage.textContent = 'Our AI is analyzing your tool. This may take a few moments.';
+    pSmallMessage.style.color = '#6b7280';
+    pSmallMessage.style.fontSize = '0.9rem';
+    dynamicLoader.appendChild(pSmallMessage);
+
+    document.body.appendChild(dynamicLoader);
+    
+    console.log('Dynamic loader with new styles appended to body.');
+    console.log('Dynamic loader offsetHeight:', dynamicLoader.offsetHeight);
+    console.log('Dynamic loader computed display:', window.getComputedStyle(dynamicLoader).display);
+
+    // Hide the original #loadingState div, just in case
+    const originalLoadingState = document.getElementById('loadingState');
+    if (originalLoadingState) {
+        originalLoadingState.style.display = 'none';
+        originalLoadingState.classList.remove('show');
+    }
     
     try {
-        const response = await fetch('/submit-tool', {
+        const minimumLoadingTime = new Promise(resolve => setTimeout(resolve, 1500)); // 1.5 seconds minimum
+        const fetchPromise = fetch('/submit-tool', {
             method: 'POST',
             body: formData
         });
-        
+
+        const [response] = await Promise.all([fetchPromise, minimumLoadingTime]);
         const result = await response.json();
         
-        loadingState.style.display = 'none';
-        
+        // Remove dynamic loader
+        if (dynamicLoader.parentNode === document.body) {
+            document.body.removeChild(dynamicLoader);
+            console.log('Dynamic loader removed.');
+        }
+
+        // Show original form again
+        form.style.display = 'block'; 
+
         if (result.success) {
             successMessage.style.display = 'block';
-            form.reset();
-            // Scroll to success message
+            successMessage.classList.add('show');
+            setTimeout(() => form.reset(), 100);
             successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+                successMessage.classList.remove('show');
+            }, 10000);
         } else {
-            form.style.display = 'block';
             errorMessage.style.display = 'block';
             document.getElementById('errorText').textContent = result.error || 'Please check your URL and try again.';
             errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     } catch (error) {
-        loadingState.style.display = 'none';
+        console.error('Error during submission or dynamic loader handling:', error);
+        if (dynamicLoader && dynamicLoader.parentNode === document.body) {
+            document.body.removeChild(dynamicLoader);
+            console.log('Dynamic loader removed due to error.');
+        }
         form.style.display = 'block';
         errorMessage.style.display = 'block';
-        document.getElementById('errorText').textContent = 'Network error. Please try again.';
+        document.getElementById('errorText').textContent = 'Network error or issue with loading display. Please try again.';
         errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 });

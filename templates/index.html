@@ -4,75 +4,39 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="hero-section">
+<section class="homepage-hero-section">    <div class="hero-background"></div>
+    <div class="hero-overlay"></div>
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 hero-content">                <h1 class="display-4 fw-bold mb-4">
-                    <span class="text-primary">AI for You, Me and All</span> Discover Amazing Tools
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <div class="hero-badge mb-4">
+                    <span class="badge-text"><i class="bi bi-stars me-2"></i>Curated AI Tools, All in One Place</span>
+                </div>
+                <h1 class="hero-title mb-4">
+                    <span class="gradient-text">Discover the Best AI Tools - Instantly</span>
+                    <br><span class="hero-subtitle">Explore. Compare. Build. All Things AI.</span>
                 </h1>
-                <p class="lead mb-4 text-muted">
-                    Welcome to AI Exchange! Join our vibrant community of AI enthusiasts.                    Rate, review, and discover cutting-edge AI tools. Earn XP and climb the leaderboard!
-                </p>                <div class="d-flex gap-3 mb-4">
-                    <a href="{{ url_for('tools') }}" class="btn btn-primary btn-lg rounded-pill px-4">
-                        <i class="bi bi-grid me-2"></i>Explore Tools
+                <p class="hero-description mb-4">
+                    Explore, compare, and build your AI stack with the internet’s smartest directory.
+Join a growing community of makers, devs, and dreamers building the future with AI.
+                </p>
+                <div class="hero-actions mb-5">
+                    <a href="{{ url_for('tools') }}" class="btn btn-hero-primary me-3">
+                        <span class="btn-text">Explore Tools</span>
+                        <i class="bi bi-arrow-right btn-icon ms-2"></i>
                     </a>
-                    <a href="{{ url_for('stack_builder') }}" class="btn btn-outline-primary btn-lg rounded-pill px-4">
-                        <i class="bi bi-layers me-2"></i>Build AI Stack
+                    <a href="{{ url_for('stack_builder') }}" class="btn btn-hero-secondary">
+                        <i class="bi bi-layers me-2"></i>Build Your AI Stack
                     </a>
                 </div>
-                <div class="d-flex align-items-center gap-4 text-muted">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-people-fill text-primary me-2"></i>
-                        <span>Active Community</span>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-star-fill text-warning me-2"></i>
-                        <span>Verified Reviews</span>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-trophy-fill text-primary me-2"></i>
-                        <span>Gamified Experience</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6 text-center">
-                <div class="position-relative">
-                    <div class="glass-card p-4 d-inline-block">
-                        <div class="row g-3">
-                            <div class="col-4">                                <div class="stats-card">
-                                    <div class="stats-icon">
-                                        <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="AI Exchange Logo" class="stats-logo">
-                                    </div>
-                                    <h4 class="fw-bold text-primary mb-0">1100+</h4>
-                                    <small class="text-muted">AI Tools</small>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="stats-card">
-                                    <div class="stats-icon">
-                                        <i class="bi bi-people"></i>
-                                    </div>                                    <h4 class="fw-bold text-primary mb-0">1.1K+</h4>
-                                    <small class="text-muted">Registered Users</small>
-                                </div>
-                            </div>
-                            <div class="col-4">                                <div class="stats-card">
-                                    <div class="stats-icon">
-                                        <i class="bi bi-eye"></i>
-                                    </div>
-                                    <h4 class="fw-bold text-primary mb-0">10K+</h4>
-                                    <small class="text-muted">Daily Page Views</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        
             </div>
         </div>
     </div>
 </section>
 
 <!-- Quick Search -->
-<section class="container mb-5">
+<section class="container my-5 py-5">
     <div class="search-section">
         <div class="text-center mb-4">
             <h3 class="fw-bold mb-2">Find Your Perfect AI Tool</h3>

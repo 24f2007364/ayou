@@ -83,10 +83,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         });
-    });
-
-    // Add loading states to forms
-    const forms = document.querySelectorAll('form');
+    });    // Add loading states to forms (except submit tool form which has its own handler)
+    const forms = document.querySelectorAll('form:not(#submitForm)');
     forms.forEach(form => {
         form.addEventListener('submit', function() {
             const submitBtn = form.querySelector('button[type="submit"]');

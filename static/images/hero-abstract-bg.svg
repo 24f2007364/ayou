@@ -1,0 +1,72 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.8" />
+      <stop offset="50%" style="stop-color:#764ba2;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#f093fb;stop-opacity:0.4" />
+    </linearGradient>
+    <linearGradient id="grad2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4facfe;stop-opacity:0.7" />
+      <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:0.5" />
+    </linearGradient>
+    <linearGradient id="grad3" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#43e97b;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#38f9d7;stop-opacity:0.4" />
+    </linearGradient>
+    <filter id="blur">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3"/>
+    </filter>
+  </defs>
+  
+  <!-- Background base -->
+  <rect width="1920" height="1080" fill="#f8faff"/>
+  
+  <!-- Abstract floating shapes -->
+  <circle cx="300" cy="200" r="150" fill="url(#grad1)" filter="url(#blur)">
+    <animate attributeName="cy" values="200;180;200" dur="6s" repeatCount="indefinite"/>
+  </circle>
+  
+  <ellipse cx="1600" cy="300" rx="200" ry="120" fill="url(#grad2)" filter="url(#blur)">
+    <animate attributeName="cx" values="1600;1620;1600" dur="8s" repeatCount="indefinite"/>
+  </ellipse>
+  
+  <path d="M800,100 Q1000,200 1200,100 T1600,200" stroke="url(#grad1)" stroke-width="3" fill="none" opacity="0.5">
+    <animate attributeName="d" values="M800,100 Q1000,200 1200,100 T1600,200;M800,120 Q1000,180 1200,120 T1600,180;M800,100 Q1000,200 1200,100 T1600,200" dur="10s" repeatCount="indefinite"/>
+  </path>
+  
+  <circle cx="1400" cy="700" r="100" fill="url(#grad3)" filter="url(#blur)">
+    <animate attributeName="r" values="100;120;100" dur="5s" repeatCount="indefinite"/>
+  </circle>
+  
+  <polygon points="200,800 350,700 500,850 350,950" fill="url(#grad2)" opacity="0.6" filter="url(#blur)">
+    <animateTransform attributeName="transform" type="rotate" values="0 350 825;360 350 825" dur="20s" repeatCount="indefinite"/>
+  </polygon>
+  
+  <!-- Neural network inspired connections -->
+  <g opacity="0.3">
+    <line x1="300" y1="200" x2="800" y2="400" stroke="#667eea" stroke-width="2"/>
+    <line x1="800" y1="400" x2="1400" y2="300" stroke="#4facfe" stroke-width="2"/>
+    <line x1="1400" y1="300" x2="1600" y2="600" stroke="#43e97b" stroke-width="2"/>
+    
+    <circle cx="300" cy="200" r="8" fill="#667eea"/>
+    <circle cx="800" cy="400" r="8" fill="#4facfe"/>
+    <circle cx="1400" cy="300" r="8" fill="#43e97b"/>
+    <circle cx="1600" cy="600" r="8" fill="#f093fb"/>
+  </g>
+  
+  <!-- Floating particles -->
+  <g opacity="0.4">
+    <circle cx="600" cy="150" r="4" fill="#667eea">
+      <animate attributeName="cy" values="150;130;150" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="1100" cy="250" r="3" fill="#4facfe">
+      <animate attributeName="cx" values="1100;1120;1100" dur="6s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="1300" cy="500" r="5" fill="#43e97b">
+      <animate attributeName="cy" values="500;480;500" dur="5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="400" cy="600" r="4" fill="#f093fb">
+      <animate attributeName="cx" values="400;420;400" dur="7s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+</svg>

@@ -168,11 +168,7 @@ def get_db_connection():
     else:
         print("DEBUG: Using SQLite (no Supabase env vars)")
     
-    # Use SQLite for local development or fallback
-    db_path = get_db_path()
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    return conn
+
 
 class SupabaseConnection:
     """Supabase database connection using REST API"""
@@ -466,6 +462,17 @@ class SupabaseConnection:
                     if param_idx < len(params) and 'category =' in sql_lower:
                         category = params[param_idx]
                         filters.append(f"category=eq.{category}")
+                        param_idx += 1
+                    
+                    if param_idx < len(params) and 'country_of_origin =' in sql_lower:
+                        country = params[param_idx]
+                        filters.append(f"country_of_origin=eq.{country}")
+                        param_idx += 1
+                    
+                    if param_idx < len(params) and 'pricing_model =' in sql_lower:
+                        price_model = params[param_idx]
+                        filters.append(f"pricing_model=eq.{price_model}")
+                        param_idx += 1
                 
                 if filters:
                     url += "&" + "&".join(filters)
@@ -499,6 +506,30 @@ class SupabaseConnection:
                             categories.add(tool['category'])
                     self._result = [{'category': cat} for cat in sorted(categories)]
                 else:
+                    self._result = []
+            
+            elif 'select distinct country_of_origin from tools where country_of_origin is not null' in sql_lower:
+                response = self.session.get(f"{self.base_url}/rest/v1/tools?select=country_of_origin&country_of_origin=not.is.null&country_of_origin=neq.Unknown")
+                if response.status_code == 200:
+                    countries = set()
+                    for tool in response.json():
+                        if tool.get('country_of_origin') and tool.get('country_of_origin') != 'Unknown':
+                            countries.add(tool['country_of_origin'])
+                    self._result = [{'country_of_origin': country} for country in sorted(countries)]
+                else:
+                    print(f"Country query failed: {response.status_code} - {response.text}")
+                    self._result = []
+                    
+            elif 'select distinct pricing_model from tools where pricing_model is not null' in sql_lower:
+                response = self.session.get(f"{self.base_url}/rest/v1/tools?select=pricing_model&pricing_model=not.is.null")
+                if response.status_code == 200:
+                    pricing_models = set()
+                    for tool in response.json():
+                        if tool.get('pricing_model'):
+                            pricing_models.add(tool['pricing_model'])
+                    self._result = [{'pricing_model': model} for model in sorted(pricing_models)]
+                else:
+                    print(f"Pricing model query failed: {response.status_code} - {response.text}")
                     self._result = []
             
             elif ('select *, coalesce(average_rating, 0)' in sql_lower and
@@ -1551,6 +1582,7 @@ def tools():
     search = request.args.get('search', '')
     category = request.args.get('category', '')
     country = request.args.get('country', '')
+    pricing_model = request.args.get('price', '')  # Keep parameter as 'price' for backward compatibility
     sort = request.args.get('sort', 'rating')  # Default sort by rating
     conn = get_db_connection()
     
@@ -1578,6 +1610,10 @@ def tools():
         query += ' AND country_of_origin = ?'
         params.append(country)
     
+    if pricing_model:
+        query += ' AND pricing_model = ?'
+        params.append(pricing_model)
+    
     # Handle sorting
     if sort == 'newest':
         query += ' ORDER BY created_at DESC'
@@ -1585,7 +1621,7 @@ def tools():
         query += ' ORDER BY name ASC'
     elif sort == 'reviews':
         query += ' ORDER BY total_ratings DESC, COALESCE(average_rating, 0) DESC'
-    else:  # Default to rating
+    else:     # Default to rating
         query += ' ORDER BY COALESCE(average_rating, 0) DESC, total_ratings DESC'
     
     tools = conn.execute(query, params).fetchall()
@@ -1594,18 +1630,27 @@ def tools():
     categories = conn.execute('SELECT DISTINCT category FROM tools').fetchall()
     
     # Get all countries (only those that have tools)
-    countries = conn.execute('SELECT DISTINCT country_of_origin FROM tools WHERE country_of_origin IS NOT NULL AND country_of_origin != "Unknown" ORDER BY country_of_origin').fetchall()
+    countries = conn.execute("SELECT DISTINCT country_of_origin FROM tools WHERE country_of_origin IS NOT NULL AND country_of_origin != 'Unknown' ORDER BY country_of_origin").fetchall()
     
+
+    
+    # Get all pricing models
+    pricing_models = conn.execute("SELECT DISTINCT pricing_model FROM tools WHERE pricing_model IS NOT NULL ORDER BY pricing_model").fetchall()
+    
+    # Debug: Print available pricing models
+    print("Available pricing models:", [model['pricing_model'] for model in pricing_models] if pricing_models else "None found")
     conn.close()
-    return render_template('tools.html', tools=tools, featured_tools=featured_tools, categories=categories, countries=countries,
-                         current_search=search, current_category=category, current_country=country, current_sort=sort)
+    return render_template('tools.html', tools=tools, featured_tools=featured_tools, categories=categories, 
+                          countries=countries, pricing_models=pricing_models,
+                          current_search=search, current_category=category, current_country=country, 
+                          current_price=pricing_model, current_sort=sort)
 
 @app.route('/tool/<string:tool_name>') # Changed from <int:tool_id>
 def tool_detail(tool_name): # Changed from tool_id
     conn = get_db_connection()
     
     # Fetch tool by name instead of ID
-    tool = conn.execute('SELECT *, COALESCE(average_rating, 0) as average_rating, COALESCE(total_ratings, 0) as total_ratings FROM tools WHERE name = ?', (tool_name,)).fetchone()
+    tool = conn.execute('SELECT *, COALESCE(average_rating, 0) as average_rating, COALESCE(total_ratings, 0) FROM tools WHERE name = ?', (tool_name,)).fetchone()
     if not tool:
         flash('Tool not found', 'error')
         return redirect(url_for('tools'))
@@ -1621,6 +1666,8 @@ def tool_detail(tool_name): # Changed from tool_id
     ''', (tool_id,)).fetchall()      # Get comments with user reactions and replies structure
     comments_query = '''
         SELECT c.*, u.username, u.rank,
+
+
                COALESCE(cr.reaction_type, '') as user_reaction
         FROM comments c
         JOIN users u ON c.user_id = u.id
