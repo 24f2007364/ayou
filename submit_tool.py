@@ -421,11 +421,11 @@ JSON Response:
                 "link": url,
                 "logo_url": "",
                 "category": "Other",
-                "pricing_model": "Unknown",
-                "key_features": [],
+                "pricing_model": "Unknown",                "key_features": [],
                 "scraped_content": f"Website: {url}"
-            }    
-    def submit_tool(self, url: str, email: str) -> Dict[str, Any]:
+            }
+    
+    def submit_tool(self, url: str, email: str, country_of_origin: str = "Unknown") -> Dict[str, Any]:
         """
         Complete tool submission process
         """
@@ -467,11 +467,12 @@ JSON Response:
                 "total_ratings": 0,
                 "is_featured": False,
                 "submitter_email": email,
+                "country_of_origin": country_of_origin,
                 "status": "pending",  # pending, approved, rejected
                 "created_at": datetime.now().isoformat()
             }
             
-            print(f"DEBUG: Final tool data prepared for: {final_data['name']}")
+            print(f"DEBUG: Final tool data prepared for: {final_data['name']} from {country_of_origin}")
             
             return {
                 "success": True,
@@ -715,8 +716,7 @@ def save_tool_submission(data: Dict[str, Any], db_conn) -> bool:
         else:
             # For SQLite (fallback)
             cursor = db_conn.cursor()
-            
-            # Create table if it doesn't exist
+              # Create table if it doesn't exist
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS tool_submissions (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -732,6 +732,7 @@ def save_tool_submission(data: Dict[str, Any], db_conn) -> bool:
                     total_ratings INTEGER DEFAULT 0,
                     is_featured BOOLEAN DEFAULT FALSE,
                     submitter_email TEXT NOT NULL,
+                    country_of_origin TEXT NOT NULL DEFAULT 'Unknown',
                     status TEXT DEFAULT 'pending',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
@@ -825,8 +826,7 @@ def approve_tool_submission(submission_id: int, db_conn) -> bool:
             if existing:
                 print(f"DEBUG: Tool with URL {submission['link']} already exists with ID: {existing[0]}")
                 return False
-        
-        # Prepare data for tools table - only include fields that exist in tools table
+          # Prepare data for tools table - only include fields that exist in tools table
         tool_data = {
             'name': submission['name'],
             'description': submission['description'],
@@ -837,7 +837,9 @@ def approve_tool_submission(submission_id: int, db_conn) -> bool:
             'average_rating': submission.get('average_rating', 0),
             'total_ratings': submission.get('total_ratings', 0),
             'key_features': submission.get('key_features', '[]'),
-            'gallery_images': submission.get('gallery_images', '[]'),            'is_featured': submission.get('is_featured', False)
+            'gallery_images': submission.get('gallery_images', '[]'),
+            'country_of_origin': submission.get('country_of_origin', 'Unknown'),
+            'is_featured': submission.get('is_featured', False)
             # Note: id, submitter_email, status, created_at are excluded
             # Note: featured_since will be set by database default (NULL)
         }

@@ -118,11 +118,20 @@
         font-size: 0.85rem;
         font-weight: 500;
     }
-    
-    .pricing-badge {
+      .pricing-badge {
         background: rgba(23, 162, 184, 0.2);
         color: #0c5460;
         border: 1px solid rgba(23, 162, 184, 0.3);
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .country-badge {
+        background: rgba(13, 110, 253, 0.2);
+        color: #084298;
+        border: 1px solid rgba(13, 110, 253, 0.3);
         padding: 0.3rem 0.8rem;
         border-radius: 15px;
         font-size: 0.85rem;
@@ -177,10 +186,14 @@
                                 <i class="bi bi-link-45deg me-1"></i>{{ submission.link }}
                             </a>
                         </div>
-                        
-                        <div class="d-flex align-items-center mb-2">
+                          <div class="d-flex align-items-center mb-2">
                             <span class="category-badge me-2">{{ submission.category }}</span>
-                            <span class="pricing-badge">{{ submission.pricing_model }}</span>
+                            <span class="pricing-badge me-2">{{ submission.pricing_model }}</span>
+                            {% if submission.country_of_origin %}
+                                <span class="country-badge">
+                                    <i class="bi bi-globe me-1"></i>{{ submission.country_of_origin }}
+                                </span>
+                            {% endif %}
                         </div>
                         
                         {% if submission.key_features %}
@@ -280,8 +293,7 @@
                             </select>
                         </div>
                     </div>
-                    
-                    <div class="row">
+                      <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="editToolPricing" class="form-label fw-semibold">Pricing Model</label>
                             <select class="form-select" id="editToolPricing" name="pricing_model" required>
@@ -293,6 +305,70 @@
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
+                            <label for="editToolCountry" class="form-label fw-semibold">Country of Origin</label>
+                            <select class="form-select" id="editToolCountry" name="country_of_origin" required>
+                                <option value="">Select country...</option>
+                                <option value="United States">United States</option>
+                                <option value="United Kingdom">United Kingdom</option>
+                                <option value="Canada">Canada</option>
+                                <option value="Australia">Australia</option>
+                                <option value="Germany">Germany</option>
+                                <option value="France">France</option>
+                                <option value="Netherlands">Netherlands</option>
+                                <option value="Sweden">Sweden</option>
+                                <option value="Denmark">Denmark</option>
+                                <option value="Norway">Norway</option>
+                                <option value="Finland">Finland</option>
+                                <option value="Switzerland">Switzerland</option>
+                                <option value="Austria">Austria</option>
+                                <option value="Belgium">Belgium</option>
+                                <option value="Ireland">Ireland</option>
+                                <option value="Spain">Spain</option>
+                                <option value="Italy">Italy</option>
+                                <option value="Portugal">Portugal</option>
+                                <option value="Japan">Japan</option>
+                                <option value="South Korea">South Korea</option>
+                                <option value="Singapore">Singapore</option>
+                                <option value="Hong Kong">Hong Kong</option>
+                                <option value="Taiwan">Taiwan</option>
+                                <option value="China">China</option>
+                                <option value="India">India</option>
+                                <option value="Israel">Israel</option>
+                                <option value="United Arab Emirates">United Arab Emirates</option>
+                                <option value="Brazil">Brazil</option>
+                                <option value="Mexico">Mexico</option>
+                                <option value="Argentina">Argentina</option>
+                                <option value="Chile">Chile</option>
+                                <option value="Colombia">Colombia</option>
+                                <option value="Estonia">Estonia</option>
+                                <option value="Latvia">Latvia</option>
+                                <option value="Lithuania">Lithuania</option>
+                                <option value="Poland">Poland</option>
+                                <option value="Czech Republic">Czech Republic</option>
+                                <option value="Hungary">Hungary</option>
+                                <option value="Slovenia">Slovenia</option>
+                                <option value="Croatia">Croatia</option>
+                                <option value="Romania">Romania</option>
+                                <option value="Bulgaria">Bulgaria</option>
+                                <option value="Greece">Greece</option>
+                                <option value="Cyprus">Cyprus</option>
+                                <option value="Malta">Malta</option>
+                                <option value="Luxembourg">Luxembourg</option>
+                                <option value="Iceland">Iceland</option>
+                                <option value="New Zealand">New Zealand</option>
+                                <option value="South Africa">South Africa</option>
+                                <option value="Russia">Russia</option>
+                                <option value="Ukraine">Ukraine</option>
+                                <option value="Belarus">Belarus</option>
+                                <option value="Kazakhstan">Kazakhstan</option>
+                                <option value="Turkey">Turkey</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
                             <label for="editToolUrl" class="form-label fw-semibold">Tool URL</label>
                             <input type="url" class="form-control" id="editToolUrl" name="link" required>
                         </div>
@@ -368,12 +444,12 @@ async function editSubmission(submissionId) {
         showErrorToast('Submission not found');
         return;
     }
-    
-    // Populate the form
+      // Populate the form
     document.getElementById('editToolId').value = submission.id;
     document.getElementById('editToolName').value = submission.name || '';
     document.getElementById('editToolCategory').value = submission.category || 'Other';
     document.getElementById('editToolPricing').value = submission.pricing_model || 'Unknown';
+    document.getElementById('editToolCountry').value = submission.country_of_origin || 'Unknown';
     document.getElementById('editToolUrl').value = submission.link || '';
     document.getElementById('editToolDescription').value = submission.description || '';
     document.getElementById('editToolLogo').value = submission.logo_url || '';

@@ -193,7 +193,7 @@ class StackBuilder:
         tools_json = json.dumps(clean_tools, indent=2)
         
         prompt = f"""
-You are an AI Stack Builder expert. Your task is to analyze a user's request and create a step-by-step workflow using the available AI tools.
+You are an AI Stack Builder expert. Your task is to analyze a user\\'s request and create a step-by-step workflow using the available AI tools.
 
 USER REQUEST: "{user_prompt}"
 
@@ -201,7 +201,7 @@ AVAILABLE TOOLS:
 {tools_json}
 
 INSTRUCTIONS:
-1. Analyze the user's request and break it down into logical steps
+1. Analyze the user\\'s request and break it down into logical steps
 2. For each step, recommend the most suitable tool(s) from the available tools
 3. Provide a clear, actionable workflow
 4. Focus on tools with higher ratings when multiple options exist
@@ -251,7 +251,7 @@ IMPORTANT:
                     'content': prompt
                 }
             ],
-            'temperature': 0.3,  # Lower temperature for more consistent results
+            'temperature': 0.0,  # Lower temperature for more consistent results
             'max_tokens': 2048        }
         
         try:
@@ -276,43 +276,57 @@ IMPORTANT:
         """Parse Groq API response and extract workflow"""
         try:
             content = response['choices'][0]['message']['content']
-            print(f"DEBUG: Raw Groq response content: {content[:200]}...")
+            print(f"DEBUG: Raw Groq response content: {content[:500]}...") # Log more content
+
+            # Attempt to extract JSON robustly
+            # Regex to find JSON block, allowing for ```json ... ``` or just { ... }
+            match = re.search(r"```json\s*(\{.*?\})\s*```|(\{.*?\})", content, re.DOTALL)
             
-            # Extract JSON from the response
-            # Sometimes the model wraps JSON in markdown code blocks
-            if '```json' in content:
-                json_start = content.find('```json') + 7
-                json_end = content.find('```', json_start)
-                if json_end == -1:  # No closing ```
-                    json_end = len(content)
-                json_content = content[json_start:json_end].strip()
-            elif '{' in content and '}' in content:
-                json_start = content.find('{')
-                # Find the last } that closes the main object
-                brace_count = 0
-                json_end = json_start
-                for i, char in enumerate(content[json_start:], json_start):
-                    if char == '{':
-                        brace_count += 1
-                    elif char == '}':
-                        brace_count -= 1
-                        if brace_count == 0:
-                            json_end = i + 1
-                            break
-                json_content = content[json_start:json_end]
+            if not match:
+                print("DEBUG: No JSON structure found in response using regex")
+                # Fallback: try to find the first '{' and last '}'
+                json_start_fallback = content.find('{')
+                json_end_fallback = content.rfind('}')
+                if json_start_fallback != -1 and json_end_fallback != -1 and json_start_fallback < json_end_fallback:
+                    json_content = content[json_start_fallback : json_end_fallback + 1]
+                    print(f"DEBUG: Extracted JSON content using fallback: {json_content[:200]}...")
+                else:
+                    print("DEBUG: Fallback JSON extraction also failed.")
+                    return None
             else:
-                print("DEBUG: No JSON structure found in response")
+                # Get the content of the first non-None group
+                json_content = next(g for g in match.groups() if g is not None)
+                print(f"DEBUG: Extracted JSON content using regex: {json_content[:200]}...")
+
+            # Pre-processing: Attempt to fix common JSON errors
+            # 1. Replace problematic newlines within strings (common issue)
+            # This regex looks for newlines not preceded or followed by a quote, comma, brace or bracket
+            # and not at the start/end of the string, then replaces them with a space.
+            # It's a heuristic and might need refinement.
+            # json_content = re.sub(r'(?<![\"{}[\],\s])\n(?![\"{}[\],\s])', ' ', json_content)
+            
+            # 2. Ensure proper escaping of backslashes and quotes (more advanced, be careful)
+            # json_content = json_content.replace('\\', '\\\\') # Escape backslashes
+            # json_content = re.sub(r'(?<!\\)"', '\\"', json_content) # Escape unescaped quotes - very tricky
+
+            try:
+                workflow_data = json.loads(json_content)
+                print("DEBUG: Successfully parsed JSON")
+                return workflow_data
+            except json.JSONDecodeError as e:
+                print(f"Error parsing Groq response JSON: {e}")
+                # Log the problematic part of the JSON
+                # The error object 'e' has lineno, colno, pos attributes
+                start = max(0, e.pos - 30)
+                end = min(len(json_content), e.pos + 30)
+                problematic_snippet = json_content[start:end]
+                print(f"DEBUG: Problematic JSON snippet (around char {e.pos}, line {e.lineno}, col {e.colno}): ...{problematic_snippet}...")
                 return None
             
-            print(f"DEBUG: Extracted JSON content: {json_content[:200]}...")
-            
-            # Try to parse the JSON
-            workflow_data = json.loads(json_content)
-            print("DEBUG: Successfully parsed JSON")
-            return workflow_data
-            
         except Exception as e:
-            print(f"Error parsing Groq response: {e}")
+            print(f"Error in parse_groq_response (outer try-except): {e}")
+            import traceback
+            print(f"DEBUG: Full traceback for parse_groq_response: {traceback.format_exc()}")
             return None
     
     def build_stack(self, user_prompt: str, db_connection) -> Dict:
@@ -342,7 +356,8 @@ IMPORTANT:
             
             print("DEBUG: Step 4 - Calling Groq API")
             # Step 4: Call Groq API
-            groq_response = self.call_groq_api(groq_prompt)            
+            groq_response = self.call_groq_api(groq_prompt) 
+            print(groq_response)           
             if not groq_response:
                 return {
                     'success': False,
@@ -680,20 +695,29 @@ IMPORTANT:
             max_free_uses = 1 
             
             # Get today's date
-            from datetime import datetime, date
-            today = date.today().isoformat()
+            from datetime import date # Removed datetime import as it's not used here
+            today = date.today().isoformat() # e.g., '2023-10-26'
             
-            if hasattr(db_connection, 'execute'):  # SupabaseConnection
+            current_uses = 0
+            if hasattr(db_connection, 'session'):  # SupabaseConnection
                 # For Supabase, check usage table
+                # The unique constraint is on (ip_address, usage_date)
                 response = db_connection.session.get(
                     f"{db_connection.base_url}/rest/v1/free_usage?ip_address=eq.{client_ip}&usage_date=eq.{today}&select=usage_count"
                 )
                 
                 if response.status_code == 200:
                     data = response.json()
-                    current_uses = data[0]['usage_count'] if data else 0
+                    if data: # If a record exists
+                        current_uses = data[0]['usage_count']
+                    # If no data, current_uses remains 0, which is correct
                 else:
-                    current_uses = 0
+                    # Log error but proceed as if no uses (safer for user, but needs monitoring)
+                    print(f"DEBUG: Supabase API error when fetching free_usage: {response.status_code} - {response.text}")
+                    # Fallback to allowing use if Supabase check fails, to avoid blocking users due to API issues.
+                    # Consider if this is the desired behavior or if it should be more restrictive.
+                    # For now, if Supabase fails, we assume 0 uses to not block the user.
+                    current_uses = 0 
             else:
                 # For SQLite
                 cursor = db_connection.execute(
@@ -701,17 +725,20 @@ IMPORTANT:
                     (client_ip, today)
                 )
                 result = cursor.fetchone()
-                current_uses = result['usage_count'] if result else 0
+                if result:
+                    current_uses = result['usage_count']
             
             can_use = current_uses < max_free_uses
-            uses_remaining = max_free_uses - current_uses
+            uses_remaining = max(0, max_free_uses - current_uses) # Ensure uses_remaining is not negative
             
-            print(f"DEBUG: IP {client_ip} has used {current_uses}/{max_free_uses} today")
+            print(f"DEBUG: IP {client_ip} has used {current_uses}/{max_free_uses} today. Can use: {can_use}")
             return can_use, uses_remaining
             
         except Exception as e:
-            print(f"DEBUG: Error tracking IP usage: {e}")
-            # If we can't track, allow usage
+            print(f"DEBUG: Error tracking IP usage: {e}. Allowing usage as a fallback.")
+            import traceback
+            print(f"DEBUG: Full traceback for track_free_usage_by_ip: {traceback.format_exc()}")
+            # If we can't track, allow usage by default.
             return True, 1
 
     def increment_free_usage_by_ip(self, db_connection, client_ip: str):
@@ -722,35 +749,42 @@ IMPORTANT:
             from datetime import date
             today = date.today().isoformat()
             
-            if hasattr(db_connection, 'execute'):  # SupabaseConnection
-                # For Supabase
-                # First try to get existing record
-                response = db_connection.session.get(
-                    f"{db_connection.base_url}/rest/v1/free_usage?ip_address=eq.{client_ip}&usage_date=eq.{today}"
+            if hasattr(db_connection, 'session'):  # SupabaseConnection
+                # Check if a record for this IP and date already exists
+                get_response = db_connection.session.get(
+                    f"{db_connection.base_url}/rest/v1/free_usage?ip_address=eq.{client_ip}&usage_date=eq.{today}&select=id,usage_count"
                 )
-                
-                if response.status_code == 200 and response.json():
-                    # Update existing record
-                    current_count = response.json()[0]['usage_count']
-                    new_count = current_count + 1
-                    record_id = response.json()[0]['id']
-                    
-                    update_response = db_connection.session.patch(
-                        f"{db_connection.base_url}/rest/v1/free_usage?id=eq.{record_id}",
-                        json={'usage_count': new_count}
-                    )
-                    print(f"DEBUG: Updated IP usage to {new_count}")
+
+                if get_response.status_code == 200:
+                    data = get_response.json()
+                    if data: # Record exists, update it
+                        record_id = data[0]['id']
+                        current_count = data[0]['usage_count']
+                        new_count = current_count + 1
+                        
+                        patch_response = db_connection.session.patch(
+                            f"{db_connection.base_url}/rest/v1/free_usage?id=eq.{record_id}",
+                            json={'usage_count': new_count}
+                        )
+                        if patch_response.status_code in [200, 204]:
+                            print(f"DEBUG: Supabase: Updated IP usage for {client_ip} to {new_count}")
+                        else:
+                            print(f"DEBUG: Supabase: Failed to update IP usage for {client_ip}. Status: {patch_response.status_code} - {patch_response.text}")
+                    else: # No record exists, insert a new one
+                        post_response = db_connection.session.post(
+                            f"{db_connection.base_url}/rest/v1/free_usage",
+                            json={
+                                'ip_address': client_ip,
+                                'usage_date': today,
+                                'usage_count': 1 # Initial count is 1
+                            }
+                        )
+                        if post_response.status_code == 201: # 201 Created
+                            print(f"DEBUG: Supabase: Created new IP usage record for {client_ip}")
+                        else:
+                            print(f"DEBUG: Supabase: Failed to create IP usage record for {client_ip}. Status: {post_response.status_code} - {post_response.text}")
                 else:
-                    # Create new record
-                    create_response = db_connection.session.post(
-                        f"{db_connection.base_url}/rest/v1/free_usage",
-                        json={
-                            'ip_address': client_ip,
-                            'usage_date': today,
-                            'usage_count': 1
-                        }
-                    )
-                    print(f"DEBUG: Created new IP usage record")
+                    print(f"DEBUG: Supabase: Error checking existing IP usage for {client_ip}. Status: {get_response.status_code} - {get_response.text}")
             else:
                 # For SQLite
                 # Try to update existing record
@@ -760,19 +794,21 @@ IMPORTANT:
                 )
                 
                 if cursor.rowcount == 0:
-                    # Insert new record
+                    # Insert new record if update didn't affect any rows
                     db_connection.execute(
                         "INSERT INTO free_usage (ip_address, usage_date, usage_count) VALUES (?, ?, 1)",
                         (client_ip, today)
                     )
-                    print(f"DEBUG: Created new IP usage record for {client_ip}")
+                    print(f"DEBUG: SQLite: Created new IP usage record for {client_ip}")
                 else:
-                    print(f"DEBUG: Updated IP usage for {client_ip}")
+                    print(f"DEBUG: SQLite: Updated IP usage for {client_ip}")
                 
                 db_connection.commit()
                 
         except Exception as e:
             print(f"DEBUG: Error incrementing IP usage: {e}")
+            import traceback
+            print(f"DEBUG: Full traceback for increment_free_usage_by_ip: {traceback.format_exc()}")
 
     def build_stack_with_limits(self, user_prompt: str, db_connection, user_id: int = None, session=None, client_ip: str = None) -> Dict:
         """Build stack with usage limits for non-logged-in users"""

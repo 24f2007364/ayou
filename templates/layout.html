@@ -4,24 +4,29 @@
 <meta name="description" content="AI Exchange is your ultimate AI tool directory. Find the best AI for coding, images & more. Search, explore & compare AI tools instantly.">    
 <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}AI Exchange – Find the Best AI Tools & Directories{% endblock %}</title>
-    <!-- Favicons -->
-     <meta property="og:title" content="AI Exchange – Find the Best AI Tools & Directories" />
-<meta property="og:description" content="Explore the best AI tools, directories, and search engines. From coding to image generation – find, compare, and rank top AI tools." />
-   <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://www.aiexchange.tech/" />
-    <meta property="og:image" content="https://www.aiexchange.tech/static/og-image.png" />
+    <title>{% block title %}AI Exchange – Find the Best AI Tools & Directories{% endblock %}</title>    <!-- Favicons -->
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="{% block og_title %}AI Exchange – Find the Best AI Tools & Directories{% endblock %}" />
+    <meta property="og:description" content="{% block og_description %}Explore the best AI tools, directories, and search engines. From coding to image generation – find, compare, and rank top AI tools.{% endblock %}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="{% block og_url %}https://www.aiexchange.tech/{% endblock %}" />
+    <meta property="og:image" content="{% block og_image %}https://www.aiexchange.tech/static/images/og-image.png{% endblock %}" />
+    <meta property="og:image:width" content="{% block og_image_width %}1200{% endblock %}" />
+    <meta property="og:image:height" content="{% block og_image_height %}630{% endblock %}" />
+    <meta property="og:image:type" content="{% block og_image_type %}image/png{% endblock %}" />
     <meta property="og:site_name" content="AI Exchange" />
+    
     <link rel="icon" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon.ico') }}">    
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
     
+    <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="AI Exchange – Find the Best AI Tools & Directories" />
-    <meta name="twitter:description" content="Explore AI tools for coding, image generation, and more. Find, compare, and review with AI Exchange." />
-    <meta name="twitter:image" content="https://www.aiexchange.tech/static/og-image.png" />     
+    <meta name="twitter:title" content="{% block twitter_title %}AI Exchange – Find the Best AI Tools & Directories{% endblock %}" />
+    <meta name="twitter:description" content="{% block twitter_description %}Explore AI tools for coding, image generation, and more. Find, compare, and review with AI Exchange.{% endblock %}" />
+    <meta name="twitter:image" content="{% block twitter_image %}https://www.aiexchange.tech/static/images/og-image.png{% endblock %}" />
     <!-- Supabase Configuration -->
     
     

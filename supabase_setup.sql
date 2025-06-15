@@ -29,6 +29,27 @@ CREATE TABLE IF NOT EXISTS tools (
     gallery_images TEXT, -- JSON array of image URLs
     is_featured BOOLEAN DEFAULT FALSE,
     featured_since TIMESTAMP,
+    country_of_origin VARCHAR(255) DEFAULT 'Unknown',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tool submissions table (for pending admin approval)
+CREATE TABLE IF NOT EXISTS tool_submissions (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    link TEXT NOT NULL,
+    logo_url TEXT,
+    category VARCHAR(255) NOT NULL,
+    pricing_model VARCHAR(255) NOT NULL,
+    key_features TEXT, -- JSON array of key features
+    gallery_images TEXT, -- JSON array of image URLs
+    average_rating DECIMAL(3,2) DEFAULT 0,
+    total_ratings INTEGER DEFAULT 0,
+    is_featured BOOLEAN DEFAULT FALSE,
+    submitter_email VARCHAR(255) NOT NULL,
+    country_of_origin VARCHAR(255) NOT NULL DEFAULT 'Unknown',
+    status VARCHAR(50) DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -37,6 +58,7 @@ ALTER TABLE tools ADD COLUMN IF NOT EXISTS key_features TEXT;
 ALTER TABLE tools ADD COLUMN IF NOT EXISTS gallery_images TEXT;
 ALTER TABLE tools ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT FALSE;
 ALTER TABLE tools ADD COLUMN IF NOT EXISTS featured_since TIMESTAMP;
+ALTER TABLE tools ADD COLUMN IF NOT EXISTS country_of_origin VARCHAR(255) DEFAULT 'Unknown';
 
 -- Add new columns to existing users table for OAuth support
 ALTER TABLE users ADD COLUMN IF NOT EXISTS provider VARCHAR(50) DEFAULT 'local';

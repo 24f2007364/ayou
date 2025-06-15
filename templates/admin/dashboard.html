@@ -168,8 +168,7 @@
                                 </td>
                                 <td>{{ tool.rating_count }}</td>
                                 <td>{{ tool.created_at[:10] if tool.created_at else 'N/A' }}</td>
-                                <td>
-                                    <div class="admin-actions">                                        <a href="{{ url_for('tool_detail', tool_id=tool.id) }}" 
+                                <td>                                    <div class="admin-actions">                                        <a href="{{ url_for('tool_detail', tool_name=tool.name) }}" 
                                            class="btn btn-sm btn-outline-primary" title="View">
                                             <i class="bi bi-eye"></i>
                                         </a>
@@ -257,9 +256,8 @@
                                 {% endfor %}
                             </div>
                         </div>                        <div class="admin-review-content">
-                            <p>{{ review.review[:100] if review.review else 'No review text' }}...</p>
-                            <small class="text-muted">
-                                For: <a href="{{ url_for('tool_detail', tool_id=review.tool_id) }}">{{ review.tool_name }}</a>
+                            <p>{{ review.review[:100] if review.review else 'No review text' }}...</p>                            <small class="text-muted">
+                                For: <a href="{{ url_for('tool_detail', tool_name=review.tool_name) }}">{{ review.tool_name }}</a>
                             </small>
                         </div>
                         <div class="admin-review-actions">

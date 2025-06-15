@@ -110,8 +110,7 @@ def init_sqlite_db():
         avatar_url TEXT
     )
     ''')
-    
-    # Add OAuth columns to existing users table if they don't exist
+      # Add OAuth columns to existing users table if they don't exist
     try:
         columns = conn.execute("PRAGMA table_info(users)").fetchall()
         column_names = [col[1] for col in columns]
@@ -123,7 +122,22 @@ def init_sqlite_db():
         if 'avatar_url' not in column_names:
             conn.execute("ALTER TABLE users ADD COLUMN avatar_url TEXT")
     except Exception as e:
-        print(f"Error updating SQLite schema: {e}")
+        print(f"Error updating SQLite users schema: {e}")
+    
+    # Add new columns to tools table if it exists
+    try:
+        # Check if tools table exists
+        cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='tools'")
+        if cursor.fetchone():
+            # Table exists, check for new columns
+            columns = conn.execute("PRAGMA table_info(tools)").fetchall()
+            column_names = [col[1] for col in columns]
+            
+            if 'country_of_origin' not in column_names:
+                conn.execute("ALTER TABLE tools ADD COLUMN country_of_origin TEXT DEFAULT 'Unknown'")
+                print("Added country_of_origin column to tools table")
+    except Exception as e:
+        print(f"Error updating SQLite tools schema: {e}")
     
     conn.commit()
     conn.close()
@@ -1536,6 +1550,7 @@ def logout():
 def tools():
     search = request.args.get('search', '')
     category = request.args.get('category', '')
+    country = request.args.get('country', '')
     sort = request.args.get('sort', 'rating')  # Default sort by rating
     conn = get_db_connection()
     
@@ -1559,6 +1574,10 @@ def tools():
         query += ' AND category = ?'
         params.append(category)
     
+    if country:
+        query += ' AND country_of_origin = ?'
+        params.append(country)
+    
     # Handle sorting
     if sort == 'newest':
         query += ' ORDER BY created_at DESC'
@@ -1574,9 +1593,12 @@ def tools():
     # Get all categories
     categories = conn.execute('SELECT DISTINCT category FROM tools').fetchall()
     
+    # Get all countries (only those that have tools)
+    countries = conn.execute('SELECT DISTINCT country_of_origin FROM tools WHERE country_of_origin IS NOT NULL AND country_of_origin != "Unknown" ORDER BY country_of_origin').fetchall()
+    
     conn.close()
-    return render_template('tools.html', tools=tools, featured_tools=featured_tools, categories=categories, 
-                         current_search=search, current_category=category, current_sort=sort)
+    return render_template('tools.html', tools=tools, featured_tools=featured_tools, categories=categories, countries=countries,
+                         current_search=search, current_category=category, current_country=country, current_sort=sort)
 
 @app.route('/tool/<string:tool_name>') # Changed from <int:tool_id>
 def tool_detail(tool_name): # Changed from tool_id
@@ -2709,9 +2731,10 @@ def submit_tool_post():
     try:
         tool_url = request.form.get('tool_url', '').strip()
         submitter_email = request.form.get('submitter_email', '').strip()
+        country_of_origin = request.form.get('country_of_origin', '').strip()
         
-        if not tool_url or not submitter_email:
-            return jsonify({'success': False, 'error': 'Please provide both URL and email address'})
+        if not tool_url or not submitter_email or not country_of_origin:
+            return jsonify({'success': False, 'error': 'Please provide URL, email address, and country of origin'})
         
         # Validate email format
         import re
@@ -2722,8 +2745,8 @@ def submit_tool_post():
         # Initialize tool submitter
         tool_submitter = ToolSubmitter()
         
-        # Submit tool
-        result = tool_submitter.submit_tool(tool_url, submitter_email)
+        # Submit tool with country of origin
+        result = tool_submitter.submit_tool(tool_url, submitter_email, country_of_origin)
         
         if result.get('success'):
             # Save to database
