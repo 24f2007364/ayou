@@ -1,0 +1,764 @@
+/* Modern Navbar Styles */
+
+:root {
+    --navbar-height: 72px;
+    --navbar-padding: 1rem 0;
+    --navbar-bg: rgba(255, 255, 255, 0.95);
+    --navbar-border: rgba(59, 130, 246, 0.1);
+    --navbar-shadow: 0 4px 24px rgba(59, 130, 246, 0.08);
+    --navbar-backdrop: blur(20px);
+    
+    /* Navigation colors */
+    --nav-text: #64748b;
+    --nav-text-hover: #1e293b;
+    --nav-text-active: #3b82f6;
+    --nav-bg-hover: rgba(59, 130, 246, 0.05);
+    --nav-bg-active: rgba(59, 130, 246, 0.1);
+    
+    /* Brand colors */
+    --brand-text: #1e293b;
+    --brand-accent: #032a67;
+    
+    /* Button colors */
+    --btn-primary-bg: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    --btn-primary-hover: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    --btn-secondary-bg: rgba(59, 130, 246, 0.1);
+    --btn-secondary-text: #3b82f6;
+    --btn-secondary-hover: rgba(59, 130, 246, 0.15);
+    
+    /* Avatar and dropdown */
+    --avatar-size: 40px;
+    --avatar-border: 2px solid rgba(255, 255, 255, 0.8);
+    --dropdown-bg: rgba(255, 255, 255, 0.98);
+    --dropdown-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    --dropdown-border: rgba(0, 0, 0, 0.08);
+    
+    /* Mobile menu */
+    --mobile-menu-bg: rgba(255, 255, 255, 0.98);
+    --mobile-menu-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+/* Reset body padding for new navbar height */
+body {
+    padding-top: var(--navbar-height) !important;
+}
+
+/* Modern Navbar Container */
+.modern-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030;
+    height: var(--navbar-height);
+    background: var(--navbar-bg);
+    backdrop-filter: var(--navbar-backdrop);
+    -webkit-backdrop-filter: var(--navbar-backdrop);
+    border-bottom: 1px solid var(--navbar-border);
+    box-shadow: var(--navbar-shadow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-navbar.scrolled {
+    --navbar-bg: rgba(255, 255, 255, 0.98);
+    --navbar-shadow: 0 8px 32px rgba(59, 130, 246, 0.12);
+}
+
+.navbar-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--navbar-padding);
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+/* Brand Section */
+.navbar-brand-modern {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--brand-text);
+    transition: all 0.3s ease;
+    z-index: 1040;
+}
+
+.navbar-brand-modern:hover {
+    color: var(--brand-accent);
+    text-decoration: none;
+}
+
+.navbar-logo-modern {
+    height: 40px;
+    width: auto;
+    margin-right: 12px;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.navbar-brand-modern:hover .navbar-logo-modern {
+    transform: scale(1.05);
+}
+
+/* Navigation Menu */
+.navbar-nav-modern {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 8px;
+}
+
+.nav-item-modern {
+    position: relative;
+}
+
+.nav-link-modern {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--brand-accent) !important;
+    text-decoration: none !important;
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-link-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--nav-bg-hover);
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+}
+
+.nav-link-modern:hover::before {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.nav-link-modern:hover {
+    color: var(--nav-text-hover) !important;
+    text-decoration: none !important;
+    transform: translateY(-1px);
+}
+
+.nav-link-modern.active {
+    color: var(--nav-text-active);
+    background: var(--nav-bg-active);
+}
+
+.nav-icon-modern {
+    margin-right: 8px;
+    font-size: 16px;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.nav-link-modern:hover .nav-icon-modern {
+    opacity: 1;
+}
+
+/* User Actions Section */
+.navbar-actions-modern {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Modern Buttons */
+.btn-modern {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-modern-primary {
+    background: var(--btn-primary-bg);
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-modern-primary:hover {
+    background: var(--btn-primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+    color: white !important;
+    text-decoration: none;
+}
+
+.btn-modern-primary span,
+.btn-modern-primary i {
+    color: white !important;
+}
+
+.btn-modern-secondary {
+    background: var(--btn-secondary-bg);
+    color: var(--btn-secondary-text);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.btn-modern-secondary:hover {
+    background: var(--btn-secondary-hover);
+    transform: translateY(-1px);
+    color: var(--btn-secondary-text);
+    text-decoration: none;
+}
+
+.btn-icon-modern {
+    margin-right: 8px;
+    font-size: 16px;
+}
+
+/* User Dropdown */
+.user-dropdown-modern {
+    position: relative;
+}
+
+.user-trigger-modern {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--nav-text);
+    transition: all 0.3s ease;
+    background: rgba(59, 130, 246, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.user-trigger-modern:hover {
+    background: rgba(59, 130, 246, 0.1);
+    transform: translateY(-1px);
+    color: var(--nav-text);
+    text-decoration: none;
+}
+
+.user-avatar-modern {
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    margin-right: 12px;
+    border: var(--avatar-border);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    overflow: hidden;
+}
+
+.user-avatar-modern.with-image {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.user-info-modern {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-right: 8px;
+}
+
+.username-modern {
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.2;
+    color: var(--nav-text-hover);
+}
+
+.user-rank-modern {
+    font-size: 12px;
+    color: var(--nav-text);
+    opacity: 0.8;
+}
+
+.dropdown-arrow-modern {
+    font-size: 12px;
+    transition: transform 0.3s ease;
+}
+
+.user-dropdown-modern.show .dropdown-arrow-modern {
+    transform: rotate(180deg);
+}
+
+/* Dropdown Menu */
+.dropdown-menu-modern {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 200px;
+    background: var(--dropdown-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--dropdown-border);
+    border-radius: 16px;
+    box-shadow: var(--dropdown-shadow);
+    padding: 8px 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.95);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1050;
+}
+
+.dropdown-menu-modern.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+.dropdown-item-modern {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: var(--nav-text);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.dropdown-item-modern:hover {
+    background: var(--nav-bg-hover);
+    color: var(--nav-text-hover);
+    text-decoration: none;
+}
+
+.dropdown-item-modern i {
+    margin-right: 12px;
+    font-size: 16px;
+    opacity: 0.7;
+}
+
+.dropdown-divider-modern {
+    height: 1px;
+    background: var(--dropdown-border);
+    margin: 8px 0;
+}
+
+/* Mobile Menu Toggle */
+.mobile-menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.mobile-menu-toggle:hover {
+    background: var(--nav-bg-hover);
+}
+
+.hamburger-line {
+    width: 20px;
+    height: 2px;
+    background: var(--nav-text);
+    margin: 2px 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 1px;
+}
+
+.mobile-menu-toggle.active .hamburger-line:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.mobile-menu-toggle.active .hamburger-line:nth-child(2) {
+    opacity: 0;
+}
+
+.mobile-menu-toggle.active .hamburger-line:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+}
+
+/* Mobile Menu */
+.mobile-menu {
+    position: fixed;
+    top: var(--navbar-height);
+    left: 0;
+    right: 0;
+    background: var(--mobile-menu-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--dropdown-border);
+    box-shadow: var(--mobile-menu-shadow);
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-20px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1020;
+}
+
+.mobile-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.mobile-nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.mobile-nav-item {
+    margin-bottom: 8px;
+}
+
+.mobile-nav-link {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    color: var(--nav-text);
+    text-decoration: none;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.mobile-nav-link:hover {
+    background: var(--nav-bg-hover);
+    color: var(--nav-text-hover);
+    text-decoration: none;
+}
+
+.mobile-nav-link i {
+    margin-right: 12px;
+    font-size: 18px;
+}
+
+.mobile-actions {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--dropdown-border);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Notification System Styles */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    max-width: 400px;
+    background: var(--dropdown-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--dropdown-border);
+    border-radius: 12px;
+    box-shadow: var(--dropdown-shadow);
+    z-index: 1060;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.notification-content {
+    display: flex;
+    align-items: flex-start;
+    padding: 16px 20px;
+    gap: 12px;
+}
+
+.notification-message {
+    flex: 1;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--nav-text-hover);
+    line-height: 1.4;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    color: var(--nav-text);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+.notification-close:hover {
+    background: var(--nav-bg-hover);
+    color: var(--nav-text-hover);
+}
+
+/* Notification variants */
+.notification-success {
+    border-left: 4px solid #10b981;
+}
+
+.notification-error {
+    border-left: 4px solid #ef4444;
+}
+
+.notification-warning {
+    border-left: 4px solid #f59e0b;
+}
+
+.notification-info {
+    border-left: 4px solid #3b82f6;
+}
+
+@media (max-width: 576px) {
+    .notification {
+        left: 20px;
+        right: 20px;
+        max-width: none;
+        top: 16px;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 991.98px) {
+    .navbar-nav-modern {
+        display: none;
+    }
+    
+    .mobile-menu-toggle {
+        display: flex;
+    }
+    
+    .navbar-actions-modern .btn-modern:not(.btn-modern-primary) {
+        display: none;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar-container {
+        padding: 0.75rem 1rem;
+    }
+    
+    .navbar-brand-modern {
+        font-size: 1.25rem;
+    }
+    
+    .navbar-logo-modern {
+        height: 32px;
+    }
+    
+    .user-info-modern {
+        display: none;
+    }
+    
+    .user-avatar-modern {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+}
+
+/* Theme variations for user avatars */
+.user-avatar-modern.theme-1 { background: linear-gradient(135deg, #e91e63, #f06292); }
+.user-avatar-modern.theme-2 { background: linear-gradient(135deg, #9c27b0, #ba68c8); }
+.user-avatar-modern.theme-3 { background: linear-gradient(135deg, #673ab7, #9575cd); }
+.user-avatar-modern.theme-4 { background: linear-gradient(135deg, #3f51b5, #7986cb); }
+.user-avatar-modern.theme-5 { background: linear-gradient(135deg, #2196f3, #64b5f6); }
+.user-avatar-modern.theme-6 { background: linear-gradient(135deg, #03a9f4, #4fc3f7); }
+.user-avatar-modern.theme-7 { background: linear-gradient(135deg, #00bcd4, #4dd0e1); }
+.user-avatar-modern.theme-8 { background: linear-gradient(135deg, #009688, #4db6ac); }
+.user-avatar-modern.theme-9 { background: linear-gradient(135deg, #4caf50, #81c784); }
+.user-avatar-modern.theme-10 { background: linear-gradient(135deg, #ff9800, #ffb74d); }
+
+/* Animation enhancements */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.mobile-menu.show {
+    animation: slideDown 0.3s ease-out;
+}
+
+/* Focus states for accessibility */
+.nav-link-modern:focus,
+.btn-modern:focus,
+.user-trigger-modern:focus {
+    outline: 2px solid var(--brand-accent);
+    outline-offset: 2px;
+}
+
+/* Backdrop overlay for mobile menu */
+.mobile-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1010;
+}
+
+.mobile-backdrop.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Global link decoration override for navbar and footer */
+.modern-navbar a,
+.modern-navbar a:hover,
+.modern-navbar a:focus,
+.modern-navbar a:active,
+.modern-navbar a:visited,
+.mobile-menu a,
+.mobile-menu a:hover,
+.mobile-menu a:focus,
+.mobile-menu a:active,
+.mobile-menu a:visited {
+    text-decoration: none !important;
+}
+
+/* Universal link decoration override for all navigation elements */
+nav a,
+nav a:hover,
+nav a:focus,
+nav a:active,
+nav a:visited,
+.navbar a,
+.navbar a:hover,
+.navbar a:focus,
+.navbar a:active,
+.navbar a:visited,
+.dropdown-menu a,
+.dropdown-menu a:hover,
+.dropdown-menu a:focus,
+.dropdown-menu a:active,
+.dropdown-menu a:visited {
+    text-decoration: none !important;
+}
+
+/* Override Bootstrap's default link hover underline */
+a:hover {
+    text-decoration: none !important;
+}
+
+/* Ensure buttons styled as links don't show underlines */
+.btn,
+.btn:hover,
+.btn:focus,
+.btn:active,
+button,
+button:hover,
+button:focus,
+button:active {
+    text-decoration: none !important;
+}
+
+/* Ensure dropdown items don't show underlines */
+.dropdown-item-modern,
+.dropdown-item-modern:hover,
+.dropdown-item-modern:focus,
+.dropdown-item-modern:active {
+    text-decoration: none !important;
+}
+
+/* Ensure mobile nav links don't show underlines */
+.mobile-nav-link,
+.mobile-nav-link:hover,
+.mobile-nav-link:focus,
+.mobile-nav-link:active {
+    text-decoration: none !important;
+}
+
+/* Ensure buttons don't show underlines */
+.btn-modern,
+.btn-modern:hover,
+.btn-modern:focus,
+.btn-modern:active {
+    text-decoration: none !important;
+}
+
+/* User trigger link styling */
+.user-trigger-modern,
+.user-trigger-modern:hover,
+.user-trigger-modern:focus,
+.user-trigger-modern:active {
+    text-decoration: none !important;
+}
+
+/* Brand link styling */
+.navbar-brand-modern,
+.navbar-brand-modern:hover,
+.navbar-brand-modern:focus,
+.navbar-brand-modern:active {
+    text-decoration: none !important;
+}
+
+/* Footer link decoration override */
+.modern-footer a,
+.modern-footer a:hover,
+.modern-footer a:focus,
+.modern-footer a:active,
+.modern-footer a:visited {
+    text-decoration: none !important;
+}
+
+/* Remove the underline effect from footer links */
+.footer-links a::before {
+    display: none !important;
+}
+
+/* Ensure newsletter and other footer links don't show underlines */
+.footer-brand a,
+.footer-brand a:hover,
+.footer-section a,
+.footer-section a:hover,
+.footer-bottom a,
+.footer-bottom a:hover {
+    text-decoration: none !important;
+}

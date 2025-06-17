@@ -39,9 +39,9 @@
     <!-- Google Fonts - Outfit -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=DM Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+      <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui-fixes.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern-navbar.css') }}">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2565189816556806"
      crossorigin="anonymous"></script>
     {% block json_ld_schema %}
@@ -81,82 +81,191 @@
 
   gtag('config', 'G-N26Q5J2Q3R');
 </script>
-<body>    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNavbar">
-        <div class="container">            <a class="navbar-brand fw-bold fs-3" href="{{ url_for('index') }}">
-                <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="AI Exchange Logo" class="navbar-logo me-2">
+<body>    
+    <!-- Modern Navbar -->
+    <nav class="modern-navbar" id="modernNavbar">
+        <div class="navbar-container">
+            <!-- Brand -->
+            <a href="{{ url_for('index') }}" class="navbar-brand-modern">
+                <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="AI Exchange Logo" class="navbar-logo-modern">
+                <span class="d-none" style="display: none;">AI Exchange</span>
             </a>
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <!-- Desktop Navigation -->
+            <ul class="navbar-nav-modern">
+                <li class="nav-item-modern">
+                    <a href="{{ url_for('index') }}" class="nav-link-modern">
+                        <i class="bi bi-house nav-icon-modern"></i>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li class="nav-item-modern">
+                    <a href="{{ url_for('tools') }}" class="nav-link-modern">
+                        <i class="bi bi-grid-3x3-gap nav-icon-modern"></i>
+                        <span>Tools</span>
+                    </a>
+                </li>
+                <li class="nav-item-modern">
+                    <a href="{{ url_for('stack_builder') }}" class="nav-link-modern">
+                        <i class="bi bi-layers nav-icon-modern"></i>
+                        <span>Stack Builder</span>
+                    </a>
+                </li>
+                <li class="nav-item-modern">
+                    <a href="{{ url_for('submit_tool') }}" class="nav-link-modern">
+                        <i class="bi bi-plus-circle nav-icon-modern"></i>
+                        <span>Submit Tool</span>
+                    </a>
+                </li>
+                <li class="nav-item-modern">
+                    <a href="{{ url_for('leaderboard') }}" class="nav-link-modern">
+                        <i class="bi bi-trophy nav-icon-modern"></i>
+                        <span>Leaderboard</span>
+                    </a>
+                </li>                <li class="nav-item-modern">
+                    <a href="{{ url_for('support') }}" class="nav-link-modern">
+                        <i class="bi bi-heart nav-icon-modern"></i>
+                        <span>Support</span>
+                    </a>
+                </li>
+                <!-- <li class="nav-item-modern">
+                    <a href="{{ url_for('advertise') }}" class="nav-link-modern">
+                        <i class="bi bi-megaphone nav-icon-modern"></i>
+                        <span>Advertise</span>
+                    </a>
+                </li> -->
+            </ul>
             
-            <div class="collapse navbar-collapse" id="navbarNav">                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">
-                            <i class="bi bi-house me-1"></i><span class="d-sm-inline">Home</span>
+            <!-- User Actions -->
+            <div class="navbar-actions-modern">
+                {% if session.user_id %}
+                    <!-- User Dropdown -->
+                    <div class="user-dropdown-modern">
+                        <a href="#" class="user-trigger-modern">
+                            {% if session.avatar_url %}
+                                <div class="user-avatar-modern with-image" data-username="{{ session.username }}" style="background-image: url('{{ session.avatar_url }}')"></div>
+                            {% else %}
+                                <div class="user-avatar-modern" data-username="{{ session.username }}">{{ session.username[0].upper() }}</div>
+                            {% endif %}
+                            <div class="user-info-modern">
+                                <span class="username-modern">{{ session.username }}</span>
+                                <span class="user-rank-modern">{{ session.rank }}</span>
+                            </div>
+                            <i class="bi bi-chevron-down dropdown-arrow-modern"></i>
                         </a>
-                    </li>                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('tools') }}">
-                            <i class="bi bi-grid me-1"></i><span class="d-sm-inline">Tools</span>
-                        </a>                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('stack_builder') }}">
-                            <i class="bi bi-layers me-1"></i><span class="d-sm-inline">Stack</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('submit_tool') }}">
-                            <i class="bi bi-plus-circle me-1"></i><span class="d-sm-inline">Submit</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('leaderboard') }}">
-                            <i class="bi bi-trophy me-1"></i><span class="d-sm-inline">Ranks</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('support') }}">
-                            <i class="bi bi-heart me-1"></i><span class="d-sm-inline">Support</span>
-                        </a>
-                    </li>
-                </ul>
+                        
+                        <div class="dropdown-menu-modern">
+                            <a href="#" class="dropdown-item-modern">
+                                <i class="bi bi-person"></i>
+                                <span>Profile</span>
+                            </a>
+                            <a href="{{ url_for('my_stacks') }}" class="dropdown-item-modern">
+                                <i class="bi bi-layers"></i>
+                                <span>My AI Stacks</span>
+                            </a>
+                            <div class="dropdown-divider-modern"></div>
+                            <a href="{{ url_for('logout') }}" class="dropdown-item-modern">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Logout</span>
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Login/Register Buttons -->
+                    <a href="{{ url_for('login') }}" class="btn-modern btn-modern-secondary">
+                        <i class="bi bi-box-arrow-in-right btn-icon-modern"></i>
+                        <span>Login</span>
+                    </a>
+                    <a href="{{ url_for('register') }}" class="btn-modern btn-modern-primary">
+                        <i class="bi bi-person-plus btn-icon-modern"></i>
+                        <span>Sign Up</span>
+                    </a>
+                {% endif %}
                 
-                <ul class="navbar-nav">
-                    {% if session.user_id %}                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
-                                {% if session.avatar_url %}
-                                <div class="user-avatar me-2 with-image" data-username="{{ session.username }}" style="background-image: url('{{ session.avatar_url }}')"></div>
-                                {% else %}
-                                <div class="user-avatar me-2" data-username="{{ session.username }}">{{ session.username[0].upper() }}</div>
-                                {% endif %}
-                                <div class="d-flex flex-column align-items-start">
-                                    <span class="fw-semibold username">{{ session.username }}</span>
-                                    <small class="text-muted">{{ session.rank }}</small>
-                                </div>
-                            </a>                            <ul class="dropdown-menu dropdown-menu-end glass-effect">
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profile</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('my_stacks') }}"><i class="bi bi-layers me-2"></i>My AI Stacks</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
-                            </ul>
-                        </li>
-                    {% else %}
-                        <li class="nav-item me-2">
-                            <a class="nav-link" href="{{ url_for('login') }}">
-                                <i class="bi bi-box-arrow-in-right me-1"></i><span class="d-sm-inline">Login</span>
-                            </a>
-                        </li>
-                        <li class="nav-item me-2">
-                            <a class="btn btn-primary mt-1 rounded-pill px-3" href="{{ url_for('register') }}">
-                                <i class="bi bi-person-plus me-1"></i><span class="d-sm-inline">Sign Up</span>
-                            </a>
-                        </li>
-                    {% endif %}
-                </ul>
+                <!-- Mobile Menu Toggle -->
+                <button class="mobile-menu-toggle" aria-label="Toggle mobile menu">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
             </div>
         </div>
     </nav>
+    
+    <!-- Mobile Menu -->
+    <div class="mobile-menu">
+        <ul class="mobile-nav-list">
+            <li class="mobile-nav-item">
+                <a href="{{ url_for('index') }}" class="mobile-nav-link">
+                    <i class="bi bi-house"></i>
+                    <span>Home</span>
+                </a>
+            </li>
+            <li class="mobile-nav-item">
+                <a href="{{ url_for('tools') }}" class="mobile-nav-link">
+                    <i class="bi bi-grid-3x3-gap"></i>
+                    <span>Tools</span>
+                </a>
+            </li>
+            <li class="mobile-nav-item">
+                <a href="{{ url_for('stack_builder') }}" class="mobile-nav-link">
+                    <i class="bi bi-layers"></i>
+                    <span>Stack Builder</span>
+                </a>
+            </li>
+            <li class="mobile-nav-item">
+                <a href="{{ url_for('submit_tool') }}" class="mobile-nav-link">
+                    <i class="bi bi-plus-circle"></i>
+                    <span>Submit Tool</span>
+                </a>
+            </li>
+            <li class="mobile-nav-item">
+                <a href="{{ url_for('leaderboard') }}" class="mobile-nav-link">
+                    <i class="bi bi-trophy"></i>
+                    <span>Leaderboard</span>
+                </a>
+            </li>            <li class="mobile-nav-item">
+                <a href="{{ url_for('support') }}" class="mobile-nav-link">
+                    <i class="bi bi-heart"></i>
+                    <span>Support</span>
+                </a>
+            </li>
+            <!-- <li class="mobile-nav-item">
+                <a href="{{ url_for('advertise') }}" class="mobile-nav-link">
+                    <i class="bi bi-megaphone"></i>
+                    <span>Advertise</span>
+                </a>
+            </li> -->
+        </ul>
+        
+        {% if session.user_id %}
+            <div class="mobile-actions">
+                <a href="#" class="mobile-nav-link">
+                    <i class="bi bi-person"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="{{ url_for('my_stacks') }}" class="mobile-nav-link">
+                    <i class="bi bi-layers"></i>
+                    <span>My AI Stacks</span>
+                </a>
+                <a href="{{ url_for('logout') }}" class="mobile-nav-link">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        {% else %}
+            <div class="mobile-actions">
+                <a href="{{ url_for('login') }}" class="btn-modern btn-modern-secondary">
+                    <i class="bi bi-box-arrow-in-right btn-icon-modern"></i>
+                    <span>Login</span>
+                </a>
+                <a href="{{ url_for('register') }}" class="btn-modern btn-modern-primary">
+                    <i class="bi bi-person-plus btn-icon-modern"></i>
+                    <span>Sign Up</span>
+                </a>
+            </div>
+        {% endif %}
+    </div>
 
     <!-- Flash Messages Container - Positioned below navbar -->
     <div class="flash-messages-container container">
@@ -289,9 +398,9 @@
     <script>
         // Explicitly define the global supabase client
         window.supabaseJs = supabase;
-    </script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    </script>    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modern-navbar.js') }}"></script>
     
     {% block extra_js %}{% endblock %}
 </body>

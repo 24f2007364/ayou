@@ -196,19 +196,48 @@ class SupabaseConnection:
         """Execute SQL-like operations via Supabase REST API"""
         sql_lower = sql.lower().strip()
         
-        try:            # SELECT COUNT(*) queries
-            if 'select count(*) from tools' in sql_lower:
+        try:            # SELECT COUNT(*) queries - handle both 'count(*)' and 'count(*) as count' formats
+            if ('select count(*) from tools' in sql_lower or 
+                'select count(*) as count from tools' in sql_lower):
                 if 'data_import_completed' in sql_lower:
                     response = self.session.get(f"{self.base_url}/rest/v1/tools?name=eq.DATA_IMPORT_COMPLETED&select=id")
+                    if response.status_code == 200:
+                        data = response.json()
+                        self._result = [(len(data),)]
+                    else:
+                        self._result = [(0,)]
                 else:
-                    response = self.session.get(f"{self.base_url}/rest/v1/tools?select=id")
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    self._result = [(len(data),)]
-                else:                    self._result = [(0,)]
+                    # Use the PostgreSQL function for accurate count
+                    try:
+                        response = self.session.post(
+                            f"{self.base_url}/rest/v1/rpc/get_tools_count",
+                            json={}
+                        )
+                        if response.status_code == 200:
+                            count = response.json()
+                            print(f"DEBUG: PostgreSQL function returned count: {count}")
+                            self._result = [(count,)]
+                        else:
+                            print(f"DEBUG: PostgreSQL function call failed: {response.status_code} - {response.text}")
+                            # Fallback to REST API count
+                            response = self.session.get(f"{self.base_url}/rest/v1/tools?select=id")
+                            if response.status_code == 200:
+                                data = response.json()
+                                self._result = [(len(data),)]
+                            else:
+                                self._result = [(0,)]
+                    except Exception as e:
+                        print(f"DEBUG: Exception calling PostgreSQL function: {e}")
+                        # Fallback to REST API count
+                        response = self.session.get(f"{self.base_url}/rest/v1/tools?select=id")
+                        if response.status_code == 200:
+                            data = response.json()
+                            self._result = [(len(data),)]
+                        else:
+                            self._result = [(0,)]
             
-            elif 'select count(*) from comments' in sql_lower:
+            elif ('select count(*) from comments' in sql_lower or 
+                  'select count(*) as count from comments' in sql_lower):
                 response = self.session.get(f"{self.base_url}/rest/v1/comments?select=id")
                 if response.status_code == 200:
                     data = response.json()
@@ -216,7 +245,8 @@ class SupabaseConnection:
                 else:
                     self._result = [(0,)]
             
-            elif 'select count(*) from users' in sql_lower:
+            elif ('select count(*) from users' in sql_lower or 
+                  'select count(*) as count from users' in sql_lower):
                 response = self.session.get(f"{self.base_url}/rest/v1/users?select=id")
                 if response.status_code == 200:
                     data = response.json()
@@ -224,7 +254,8 @@ class SupabaseConnection:
                 else:
                     self._result = [(0,)]
             
-            elif 'select count(*) from ratings' in sql_lower:
+            elif ('select count(*) from ratings' in sql_lower or 
+                  'select count(*) as count from ratings' in sql_lower):
                 if 'where review is not null and review !=' in sql_lower:
                     # Count ratings with non-empty reviews
                     response = self.session.get(f"{self.base_url}/rest/v1/ratings?review=not.is.null&review=neq.&select=id")
@@ -1613,8 +1644,7 @@ def tools():
     if pricing_model:
         query += ' AND pricing_model = ?'
         params.append(pricing_model)
-    
-    # Handle sorting
+      # Handle sorting
     if sort == 'newest':
         query += ' ORDER BY created_at DESC'
     elif sort == 'name':
@@ -1622,10 +1652,29 @@ def tools():
     elif sort == 'reviews':
         query += ' ORDER BY total_ratings DESC, COALESCE(average_rating, 0) DESC'
     else:     # Default to rating
-        query += ' ORDER BY COALESCE(average_rating, 0) DESC, total_ratings DESC'
-    
+        query += ' ORDER BY COALESCE(average_rating, 0) DESC, total_ratings DESC'    
     tools = conn.execute(query, params).fetchall()
+      # Get total count of all tools (without filters for the main count)
+    try:
+        count_result = conn.execute('SELECT COUNT(*) as count FROM tools').fetchone()
+        print(f"DEBUG: Count query result: {count_result}, type: {type(count_result)}")
+        
+        # Handle different return types (SQLite returns dict-like Row, Supabase returns tuple)
+        if count_result is None:
+            print("WARNING: Count query returned None")
+            total_tools_count = 0
+        elif isinstance(count_result, tuple):
+            total_tools_count = count_result[0]  # Supabase returns (count,)
+            print(f"DEBUG: Supabase tuple result, count: {total_tools_count}")
+        else:
+            total_tools_count = count_result['count']  # SQLite returns Row object
+            print(f"DEBUG: SQLite row result, count: {total_tools_count}")
+    except Exception as e:
+        print(f"ERROR: Failed to get tools count: {e}")
+        total_tools_count = 0
     
+    # Get filtered count (for search results)
+    filtered_count = len(tools)
     # Get all categories
     categories = conn.execute('SELECT DISTINCT category FROM tools').fetchall()
     
@@ -1636,14 +1685,16 @@ def tools():
     
     # Get all pricing models
     pricing_models = conn.execute("SELECT DISTINCT pricing_model FROM tools WHERE pricing_model IS NOT NULL ORDER BY pricing_model").fetchall()
-    
-    # Debug: Print available pricing models
+      # Debug: Print available pricing models
     print("Available pricing models:", [model['pricing_model'] for model in pricing_models] if pricing_models else "None found")
+    print(f"DEBUG: Final total_tools_count being passed to template: {total_tools_count}")
+    print(f"DEBUG: Final filtered_count being passed to template: {filtered_count}")
     conn.close()
-    return render_template('tools.html', tools=tools, featured_tools=featured_tools, categories=categories, 
+    return render_template('tools.html', tools=tools, featured_tools=featured_tools, categories=categories,
                           countries=countries, pricing_models=pricing_models,
                           current_search=search, current_category=category, current_country=country, 
-                          current_price=pricing_model, current_sort=sort)
+                          current_price=pricing_model, current_sort=sort,
+                          total_tools_count=total_tools_count, filtered_count=filtered_count)
 
 @app.route('/tool/<string:tool_name>') # Changed from <int:tool_id>
 def tool_detail(tool_name): # Changed from tool_id
@@ -2035,6 +2086,10 @@ def leaderboard():
 @app.route('/support')
 def support():
     return render_template('support.html')
+
+@app.route('/advertise')
+def advertise():
+    return render_template('advertise.html')
 
 # Admin routes
 @app.route('/super-admin', methods=['GET', 'POST'])

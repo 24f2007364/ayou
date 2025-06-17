@@ -33,7 +33,7 @@ body {
     color: #1e293b;
     background: linear-gradient(135deg, #f0f7ff 0%, #e0f1ff 50%, #f0fbff 100%);
     min-height: 100vh;
-    padding-top: 70px; /* Adjust if navbar height changes, ensures content starts below fixed navbar */
+    /* Modern navbar will handle padding-top */
     display: flex; /* Added to help with footer and main content flex-grow */
     flex-direction: column; /* Added */
 }
@@ -75,7 +75,7 @@ main { /* Ensure main content takes up available space */
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-/* Navbar */
+/* Legacy Navbar Styles - Disabled for Modern Navbar
 #mainNavbar {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
@@ -103,6 +103,7 @@ main { /* Ensure main content takes up available space */
     color: var(--primary-blue) !important;
     background: rgba(37, 99, 235, 0.1);
 }
+*/
 
 /* Logo Styling */
 .navbar-logo {
@@ -2355,7 +2356,7 @@ main { /* Ensure main content takes up available space */
     font-size: 2.5rem;
     font-weight: bold;
     overflow: hidden;
-    box-shadow: 0 8px 30px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 8px 30px rgba(37, 99, 246, 0.3);
 }
 
 .profile-image-enhanced {
@@ -4700,7 +4701,7 @@ html {
     font-weight: 700;
     cursor: pointer;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    width: 100%;
+    width:  100%;
     height: 70px;
     box-shadow: 
         0 12px 40px rgba(37, 99, 235, 0.3),
@@ -4839,3 +4840,47 @@ html {
 /* ========================================
    END OF SUBMIT TOOL FORM STYLES
 ======================================== */
+
+/* Tool Card Content Overflow Fixes */
+.tool-card .flex-grow-1 {
+    min-width: 0; /* Allow flex item to shrink */
+    overflow: hidden; /* Prevent overflow */
+}
+
+.tool-card .d-flex.flex-wrap {
+    max-width: 100%; /* Ensure badges don't exceed container width */
+}
+
+.tool-card .badge {
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px; /* Limit individual badge width */
+}
+
+.tool-card .badge.bg-secondary {
+    max-width: 100px; /* Slightly smaller for country badges */
+}
+
+/* Featured tool card specific fixes */
+.featured-tool-card .flex-grow-1 {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.featured-tool-card .d-flex.flex-wrap {
+    max-width: 100%;
+}
+
+.featured-tool-card .badge {
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+}
+
+.featured-tool-card .badge.bg-secondary {
+    max-width: 100px;
+}

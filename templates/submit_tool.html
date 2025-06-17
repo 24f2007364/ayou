@@ -383,8 +383,7 @@
     .checkbox-section {
         margin: 3rem 0;
     }
-    
-    .custom-checkbox {
+      .custom-checkbox {
         display: flex;
         align-items: flex-start;
         gap: 1rem;
@@ -398,6 +397,8 @@
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
+        cursor: pointer;
+        width: 100%;
     }
     
     .custom-checkbox::before {
@@ -452,12 +453,14 @@
         opacity: 1;
         transform: scale(1);
     }
-    
-    .checkbox-label {
+      .checkbox-label {
         font-size: 0.95rem;
         color: #475569;
         line-height: 1.6;
         font-weight: 500;
+        cursor: pointer;
+        flex: 1;
+    }
         cursor: pointer;
     }
       /* Enhanced Submit Section */
@@ -1024,17 +1027,18 @@
                             <div class="input-underline"></div>
                         </div>
                         <div class="form-help">Select the country where your tool was created or is based</div>
-                    </div>
-                      <!-- Terms Checkbox -->
+                    </div>                      <!-- Terms Checkbox -->
                     <div class="checkbox-section">
-                        <div class="custom-checkbox">
+                        <label for="agreeTerms" class="custom-checkbox">
                             <input type="checkbox" id="agreeTerms" name="agreeTerms" class="checkbox-input">
                             <div class="checkbox-custom">
                                 <i class="bi bi-check"></i>
                             </div>
-                            <label for="agreeTerms" class="checkbox-label">
+                            <span class="checkbox-label">
                                 I confirm that the information provided is accurate and I have the right to submit this tool for listing on AI Exchange.
-                            </label>                    </div>
+                            </span>
+                        </label>
+                    </div>
                     
                     <!-- Submit Button -->
                     <div class="submit-section">

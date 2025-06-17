@@ -149,14 +149,16 @@
 
     <!-- Results -->
     {% if tools %}
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="fw-bold mb-0">
+        <div class="d-flex justify-content-between align-items-center mb-4">            <h3 class="fw-bold mb-0">
                 {% if current_search or current_category %}
                     Search Results
+                    <span class="text-muted fs-6">({{ filtered_count }} of {{ total_tools_count }} tools)</span>
                 {% else %}
                     All AI Tools
+                    <span class="text-muted fs-6">({{ total_tools_count }} tools)</span>
                 {% endif %}
-                <span class="text-muted fs-6">({{ tools|length }} tools)</span>
+                <!-- DEBUG: Remove this after testing -->
+            
             </h3>
             <div class="d-flex gap-2">                <div class="dropdown">
                     <button class="btn btn-outline-secondary dropdown-toggle btn-sm" type="button" data-bs-toggle="dropdown">
@@ -203,23 +205,22 @@
                                 {% else %}
                                     <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="AI Exchange" class="w-100 h-100 object-fit-contain">
                                 {% endif %}
-                            </div>
-                            <div class="flex-grow-1">
+                            </div>                            <div class="flex-grow-1">
                                 <h5 class="fw-bold mb-1">{{ tool.name }}</h5>
-                                <div class="d-flex align-items-center mb-2">
-                                    <div class="rating-display me-2">
-                                        {% for i in range(5) %}
-                                            {% if tool.average_rating and i < tool.average_rating %}
-                                                <i class="bi bi-star-fill text-warning"></i>
-                                            {% else %}
-                                                <i class="bi bi-star text-muted"></i>
-                                            {% endif %}
-                                        {% endfor %}
-                                        <small class="text-muted ms-1">({{ tool.total_ratings or 0 }})</small>
-                                    </div>
+                                <div class="rating-display mb-2">
+                                    {% for i in range(5) %}
+                                        {% if tool.average_rating and i < tool.average_rating %}
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                        {% else %}
+                                            <i class="bi bi-star text-muted"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <small class="text-muted ms-1">({{ tool.total_ratings or 0 }})</small>
+                                </div>
+                                <div class="d-flex flex-wrap gap-1">
                                     <span class="badge bg-primary rounded-pill">{{ tool.category }}</span>
                                     {% if tool.country_of_origin and tool.country_of_origin != 'Unknown' %}
-                                        <span class="badge bg-secondary rounded-pill ms-1" title="Country of Origin">
+                                        <span class="badge bg-secondary rounded-pill" title="Country of Origin">
                                             <i class="bi bi-globe me-1"></i>{{ tool.country_of_origin }}
                                         </span>
                                     {% endif %}
@@ -284,29 +285,30 @@
                             {% else %}
                                 <img src="{{ url_for('static', filename='images/logo-nobg.png') }}" alt="AI Exchange" class="w-100 h-100 object-fit-contain">
                             {% endif %}
-                        </div>
-                        <div class="flex-grow-1">
+                        </div>                        <div class="flex-grow-1">
                             <h5 class="fw-bold mb-1">{{ tool.name }}</h5>
-                            <div class="d-flex align-items-center mb-2">
-                                <div class="rating-display me-2">                                    {% for i in range(5) %}
-                                        {% if tool.average_rating and i < tool.average_rating %}
-                                            <i class="bi bi-star-fill text-warning"></i>
-                                        {% else %}
-                                            <i class="bi bi-star text-muted"></i>
-                                        {% endif %}
-                                    {% endfor %}
-                                    {% if tool.total_ratings > 0 %}
-                                        <small class="text-muted ms-1">{{ tool.average_rating }}/5 ({{ tool.total_ratings }})</small>
+                            <div class="rating-display mb-2">
+                                {% for i in range(5) %}
+                                    {% if tool.average_rating and i < tool.average_rating %}
+                                        <i class="bi bi-star-fill text-warning"></i>
                                     {% else %}
-                                        <small class="text-muted ms-1">No ratings yet</small>
-                                    {% endif %}                                </div>
+                                        <i class="bi bi-star text-muted"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if tool.total_ratings > 0 %}
+                                    <small class="text-muted ms-1">{{ tool.average_rating }}/5 ({{ tool.total_ratings }})</small>
+                                {% else %}
+                                    <small class="text-muted ms-1">No ratings yet</small>
+                                {% endif %}
                             </div>
-                            <span class="badge bg-primary rounded-pill">{{ tool.category }}</span>
-                            {% if tool.country_of_origin and tool.country_of_origin != 'Unknown' %}
-                                <span class="badge bg-secondary rounded-pill ms-1" title="Country of Origin">
-                                    <i class="bi bi-globe me-1"></i>{{ tool.country_of_origin }}
-                                </span>
-                            {% endif %}
+                            <div class="d-flex flex-wrap gap-1">
+                                <span class="badge bg-primary rounded-pill">{{ tool.category }}</span>
+                                {% if tool.country_of_origin and tool.country_of_origin != 'Unknown' %}
+                                    <span class="badge bg-secondary rounded-pill" title="Country of Origin">
+                                        <i class="bi bi-globe me-1"></i>{{ tool.country_of_origin }}
+                                    </span>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                     

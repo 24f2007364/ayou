@@ -1,0 +1,1008 @@
+{% extends "layout.html" %}
+
+{% block title %}Advertise with AI Exchange - Reach Thousands of AI Enthusiasts{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .advertise-hero {
+        background: linear-gradient(135deg, #1e293b 0%, #3b82f6 50%, #8b5cf6 100%);
+        color: white;
+        padding: 6rem 0 4rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .advertise-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="c" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="%23fff" stop-opacity="0.1"/><stop offset="100%" stop-color="%23fff" stop-opacity="0"/></radialGradient></defs><circle cx="200" cy="200" r="100" fill="url(%23c)"/><circle cx="800" cy="300" r="150" fill="url(%23c)"/><circle cx="300" cy="700" r="120" fill="url(%23c)"/><circle cx="700" cy="800" r="80" fill="url(%23c)"/></svg>');
+        animation: float 20s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(1deg); }
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.3rem;
+        margin-bottom: 2rem;
+        opacity: 0.9;
+        line-height: 1.6;
+    }
+    
+    .cta-button {
+        display: inline-block;
+        background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+        color: white;
+        padding: 1rem 2.5rem;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+        box-shadow: 0 8px 32px rgba(245, 158, 11, 0.4);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .cta-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .cta-button:hover::before {
+        left: 100%;
+    }
+    
+    .cta-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(245, 158, 11, 0.5);
+        color: white;
+        text-decoration: none;
+    }
+    
+    /* Stats Section */
+    .stats-section {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        padding: 4rem 0;
+        margin-top: -2rem;
+        position: relative;
+        z-index: 3;
+    }
+    
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .stat-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 2.5rem 2rem;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .stat-label {
+        font-size: 1.1rem;
+        color: #64748b;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-description {
+        font-size: 0.9rem;
+        color: #94a3b8;
+    }
+    
+    /* Why Advertise Section */
+    .why-section {
+        padding: 5rem 0;
+        background: white;
+    }
+    
+    .benefit-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 3rem;
+        margin-top: 3rem;
+    }
+    
+    .benefit-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+        border-radius: 24px;
+        padding: 3rem 2.5rem;
+        border: 2px solid #e2e8f0;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .benefit-card:hover {
+        border-color: #3b82f6;
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(59, 130, 246, 0.1);
+    }
+    
+    .benefit-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 2rem;
+        font-size: 2rem;
+        color: white;
+    }
+    
+    .benefit-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 1rem;
+    }
+    
+    .benefit-description {
+        font-size: 1.1rem;
+        color: #64748b;
+        line-height: 1.6;
+    }
+    
+    /* Pricing Section */
+    .pricing-section {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: white;
+        padding: 6rem 0;
+        position: relative;
+    }
+    
+    .pricing-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .pricing-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border-radius: 32px;
+        padding: 3rem 2.5rem;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .pricing-card.featured {
+        border-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.1);
+        transform: scale(1.05);
+    }
+    
+    .pricing-card.featured::before {
+        content: 'MOST POPULAR';
+        position: absolute;
+        top: -1px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #f59e0b, #f97316);
+        color: white;
+        padding: 0.5rem 2rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        border-radius: 0 0 20px 20px;
+    }
+    
+    .pricing-card:hover {
+        transform: translateY(-10px);
+        border-color: #3b82f6;
+    }
+    
+    .pricing-card.featured:hover {
+        transform: translateY(-10px) scale(1.05);
+    }
+    
+    .plan-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+    
+    .plan-price {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .price-amount {
+        font-size: 4rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .price-period {
+        font-size: 1.2rem;
+        color: #94a3b8;
+        margin-left: 0.5rem;
+    }
+    
+    .plan-features {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 2.5rem;
+    }
+    
+    .plan-features li {
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        font-size: 1.1rem;
+    }
+    
+    .plan-features li:last-child {
+        border-bottom: none;
+    }
+    
+    .plan-features i {
+        color: #10b981;
+        margin-right: 1rem;
+        font-size: 1.2rem;
+    }
+    
+    .plan-button {
+        width: 100%;
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+        border: none;
+        padding: 1.2rem 2rem;
+        border-radius: 16px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .plan-button.featured {
+        background: linear-gradient(135deg, #f59e0b, #f97316);
+    }
+    
+    .plan-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
+    }
+    
+    .plan-button.featured:hover {
+        box-shadow: 0 8px 32px rgba(245, 158, 11, 0.4);
+    }
+    
+    /* Comparison Section */
+    .comparison-section {
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        padding: 5rem 0;
+    }
+    
+    .comparison-table {
+        background: white;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .comparison-header {
+        background: linear-gradient(135deg, #1e293b, #3b82f6);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .comparison-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        align-items: center;
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .comparison-row:nth-child(even) {
+        background: #f8fafc;
+    }
+    
+    .comparison-feature {
+        font-weight: 600;
+        color: #1e293b;
+    }
+    
+    .comparison-competitor {
+        text-align: center;
+        color: #ef4444;
+        font-weight: 600;
+    }
+    
+    .comparison-us {
+        text-align: center;
+        color: #10b981;
+        font-weight: 600;
+    }
+    
+    /* Testimonials */
+    .testimonials-section {
+        background: white;
+        padding: 5rem 0;
+    }
+    
+    .testimonial-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 3rem;
+    }
+    
+    .testimonial-card {
+        background: linear-gradient(135deg, #f8fafc, #ffffff);
+        border-radius: 20px;
+        padding: 2.5rem;
+        border: 2px solid #e2e8f0;
+        position: relative;
+    }
+    
+    .testimonial-content {
+        font-style: italic;
+        font-size: 1.1rem;
+        color: #475569;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+    
+    .testimonial-author {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .author-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+    
+    .author-info {
+        flex: 1;
+    }
+    
+    .author-name {
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.2rem;
+    }
+    
+    .author-title {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+    
+    /* FAQ Section */
+    .faq-section {
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        padding: 5rem 0;
+    }
+    
+    .faq-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .faq-item {
+        background: white;
+        border-radius: 16px;
+        margin-bottom: 1rem;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    
+    .faq-question {
+        padding: 2rem;
+        background: white;
+        border: none;
+        width: 100%;
+        text-align: left;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #1e293b;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .faq-question:hover {
+        background: #f8fafc;
+    }
+    
+    .faq-answer {
+        padding: 0 2rem 2rem 2rem;
+        color: #64748b;
+        line-height: 1.6;
+        font-size: 1.1rem;
+    }
+    
+    /* Section Headers */
+    .section-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .section-title {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #1e293b 0%, #3b82f6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .section-subtitle {
+        font-size: 1.3rem;
+        color: #64748b;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        
+        .stats-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .benefit-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .pricing-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .pricing-card.featured {
+            transform: none;
+        }
+        
+        .comparison-row {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            text-align: center;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="advertise-hero">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="hero-title">Supercharge Your AI Tool's Growth</h1>
+            <p class="hero-subtitle">
+                Reach 100,000+ AI enthusiasts, developers, and decision-makers actively searching for the next breakthrough tool. 
+                Join the fastest-growing AI tool directory with unmatched engagement rates.
+            </p>
+            <a href="#pricing" class="cta-button">
+                <i class="bi bi-rocket-takeoff me-2"></i>
+                Start Advertising Today
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="container">
+        <div class="stats-container">
+            <div class="stat-card">
+                <span class="stat-number">100K+</span>
+                <div class="stat-label">Monthly Visitors</div>
+                <p class="stat-description">Highly engaged AI professionals and enthusiasts</p>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">85%</span>
+                <div class="stat-label">Decision Makers</div>
+                <p class="stat-description">CTOs, Product Managers, and Technical Leaders</p>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">12min</span>
+                <div class="stat-label">Avg. Session Time</div>
+                <p class="stat-description">Users spend quality time exploring tools</p>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">40%</span>
+                <div class="stat-label">Return Rate</div>
+                <p class="stat-description">Users come back weekly to discover new tools</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Why Advertise Section -->
+<section class="why-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Why AI Exchange?</h2>
+            <p class="section-subtitle">
+                We're not just another directory. We're the go-to platform where AI innovation meets opportunity.
+            </p>
+        </div>
+        
+        <div class="benefit-grid">
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="bi bi-bullseye"></i>
+                </div>
+                <h3 class="benefit-title">Hyper-Targeted Audience</h3>
+                <p class="benefit-description">
+                    Every visitor is actively looking for AI tools. No wasted impressions, no irrelevant traffic. 
+                    Your ads reach people ready to adopt new AI solutions.
+                </p>
+            </div>
+            
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <h3 class="benefit-title">Proven ROI</h3>
+                <p class="benefit-description">
+                    Our advertisers see 300% higher conversion rates compared to traditional tech advertising. 
+                    Average ROAS of 5:1 within the first month.
+                </p>
+            </div>
+            
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="bi bi-speedometer2"></i>
+                </div>
+                <h3 class="benefit-title">Instant Visibility</h3>
+                <p class="benefit-description">
+                    Your tool appears at the top of relevant searches immediately. 
+                    Start generating leads within hours, not weeks.
+                </p>
+            </div>
+            
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <h3 class="benefit-title">Quality Over Quantity</h3>
+                <p class="benefit-description">
+                    We curate our audience. Every user is verified, ensuring you reach real decision-makers, 
+                    not bots or casual browsers.
+                </p>
+            </div>
+            
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="bi bi-lightning-charge"></i>
+                </div>
+                <h3 class="benefit-title">Lightning Fast Setup</h3>
+                <p class="benefit-description">
+                    Go live in under 10 minutes. Our streamlined process gets your campaigns running 
+                    faster than any competitor.
+                </p>
+            </div>
+            
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="bi bi-headset"></i>
+                </div>
+                <h3 class="benefit-title">White-Glove Support</h3>
+                <p class="benefit-description">
+                    Dedicated account manager, real-time optimization suggestions, and 24/7 support. 
+                    We're invested in your success.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section class="pricing-section" id="pricing">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title" style="color: white;">Choose Your Growth Plan</h2>
+            <p class="section-subtitle" style="color: #cbd5e1;">
+                Transparent pricing. No hidden fees. Cancel anytime. Start with the plan that fits your goals.
+            </p>
+        </div>
+        
+        <div class="pricing-container">
+            <div class="pricing-card">
+                <h3 class="plan-name">Pro</h3>
+                <div class="plan-price">
+                    <span class="price-amount">$10</span>
+                    <span class="price-period">/month</span>
+                </div>
+                <ul class="plan-features">
+                    <li><i class="bi bi-check-circle-fill"></i> Featured Tool Placement</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Priority in Search Results</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Enhanced Tool Profile</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Basic Analytics Dashboard</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Email Support</li>
+                    <li><i class="bi bi-check-circle-fill"></i> 30-Day Performance Report</li>
+                </ul>
+                <button class="plan-button">Start Pro Plan</button>
+            </div>
+            
+            <div class="pricing-card featured">
+                <h3 class="plan-name">Premium+</h3>
+                <div class="plan-price">
+                    <span class="price-amount">$15</span>
+                    <span class="price-period">/month</span>
+                </div>
+                <ul class="plan-features">
+                    <li><i class="bi bi-check-circle-fill"></i> Everything in Pro</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Homepage Banner Placement</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Category Page Sponsorship</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Advanced Analytics & Insights</li>
+                    <li><i class="bi bi-check-circle-fill"></i> A/B Testing for Descriptions</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Dedicated Account Manager</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Weekly Performance Reviews</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Custom Call-to-Action Buttons</li>
+                </ul>
+                <button class="plan-button featured">Start Premium+ Plan</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Comparison Section -->
+<section class="comparison-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">We're 70% Cheaper Than Competitors</h2>
+            <p class="section-subtitle">
+                Get more value for your advertising budget. See how we stack up against the competition.
+            </p>
+        </div>
+        
+        <div class="comparison-table">
+            <div class="comparison-header">
+                <h3 style="margin: 0; font-size: 1.5rem;">Advertising Cost Comparison</h3>
+            </div>
+            <div class="comparison-row">
+                <div class="comparison-feature">Monthly Featured Placement</div>
+                <div class="comparison-competitor">$35-50</div>
+                <div class="comparison-us">$10-15</div>
+            </div>
+            <div class="comparison-row">
+                <div class="comparison-feature">Setup Fees</div>
+                <div class="comparison-competitor">$200-500</div>
+                <div class="comparison-us">$0</div>
+            </div>
+            <div class="comparison-row">
+                <div class="comparison-feature">Minimum Contract</div>
+                <div class="comparison-competitor">6-12 months</div>
+                <div class="comparison-us">Month-to-month</div>
+            </div>
+            <div class="comparison-row">
+                <div class="comparison-feature">Analytics & Reporting</div>
+                <div class="comparison-competitor">Basic ($50/mo)</div>
+                <div class="comparison-us">Advanced (Included)</div>
+            </div>
+            <div class="comparison-row">
+                <div class="comparison-feature">Account Management</div>
+                <div class="comparison-competitor">$300/mo extra</div>
+                <div class="comparison-us">Included</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="testimonials-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">What Our Advertisers Say</h2>
+            <p class="section-subtitle">
+                Real results from real companies who chose AI Exchange for their advertising needs.
+            </p>
+        </div>
+        
+        <div class="testimonial-grid">
+            <div class="testimonial-card">
+                <p class="testimonial-content">
+                    "AI Exchange delivered 340% more qualified leads than our previous advertising platform. 
+                    The ROI was evident within the first week."
+                </p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">M</div>
+                    <div class="author-info">
+                        <div class="author-name">Marcus Chen</div>
+                        <div class="author-title">CEO, TechFlow AI</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonial-card">
+                <p class="testimonial-content">
+                    "The quality of traffic is unmatched. Every click converts because users are actively seeking AI solutions. 
+                    Best advertising decision we've made."
+                </p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">S</div>
+                    <div class="author-info">
+                        <div class="author-name">Sarah Rodriguez</div>
+                        <div class="author-title">VP Marketing, InnovateAI</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonial-card">
+                <p class="testimonial-content">
+                    "From setup to results, everything exceeded expectations. Our tool went from unknown to trending 
+                    in just 3 weeks of advertising."
+                </p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">A</div>
+                    <div class="author-info">
+                        <div class="author-name">Alex Thompson</div>
+                        <div class="author-title">Founder, CodeGenie</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Frequently Asked Questions</h2>
+            <p class="section-subtitle">
+                Get answers to common questions about advertising on AI Exchange.
+            </p>
+        </div>
+        
+        <div class="faq-container">
+            <div class="faq-item">
+                <button class="faq-question">
+                    How quickly can I start advertising?
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    You can start advertising within minutes! Simply choose your plan, provide your tool information, 
+                    and your campaign goes live immediately. No waiting periods or approval delays.
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <button class="faq-question">
+                    What kind of analytics do you provide?
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    Our analytics include detailed metrics on impressions, clicks, conversions, user demographics, 
+                    traffic sources, and performance trends. Premium+ customers get advanced insights and A/B testing results.
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <button class="faq-question">
+                    Can I change or cancel my plan anytime?
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    Absolutely! We offer complete flexibility. Upgrade, downgrade, or cancel your plan at any time 
+                    with no penalties or fees. Changes take effect immediately.
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <button class="faq-question">
+                    Do you offer custom advertising solutions?
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    Yes! For larger campaigns or specific requirements, we create custom advertising packages. 
+                    Contact our team to discuss enterprise solutions tailored to your needs.
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Final CTA Section -->
+<section class="advertise-hero" style="padding: 4rem 0;">
+    <div class="container">
+        <div class="hero-content">
+            <h2 class="hero-title" style="font-size: 2.5rem;">Ready to Dominate the AI Market?</h2>
+            <p class="hero-subtitle">
+                Join successful AI companies that chose AI Exchange for explosive growth. 
+                Your competitors are already here - don't let them get ahead.
+            </p>
+            <a href="#pricing" class="cta-button">
+                <i class="bi bi-lightning-charge me-2"></i>
+                Launch Your Campaign Now
+            </a>
+        </div>
+    </div>
+</section>
+
+<script>
+// FAQ Accordion
+document.querySelectorAll('.faq-question').forEach(question => {
+    question.addEventListener('click', () => {
+        const answer = question.nextElementSibling;
+        const icon = question.querySelector('i');
+        
+        // Close all other FAQs
+        document.querySelectorAll('.faq-answer').forEach(otherAnswer => {
+            if (otherAnswer !== answer) {
+                otherAnswer.style.display = 'none';
+                otherAnswer.previousElementSibling.querySelector('i').style.transform = 'rotate(0deg)';
+            }
+        });
+        
+        // Toggle current FAQ
+        if (answer.style.display === 'block') {
+            answer.style.display = 'none';
+            icon.style.transform = 'rotate(0deg)';
+        } else {
+            answer.style.display = 'block';
+            icon.style.transform = 'rotate(180deg)';
+        }
+    });
+});
+
+// Smooth scrolling for CTA buttons
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+
+// Animate stats on scroll
+const observerOptions = {
+    threshold: 0.5,
+    rootMargin: '0px'
+};
+
+const statsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const statNumber = entry.target.querySelector('.stat-number');
+            const finalValue = statNumber.textContent;
+            const isPercentage = finalValue.includes('%');
+            const hasPlus = finalValue.includes('+');
+            const numericValue = parseInt(finalValue.replace(/[^\d]/g, ''));
+            
+            let currentValue = 0;
+            const increment = numericValue / 50;
+            
+            const counter = setInterval(() => {
+                currentValue += increment;
+                if (currentValue >= numericValue) {
+                    currentValue = numericValue;
+                    clearInterval(counter);
+                }
+                
+                let displayValue = Math.floor(currentValue);
+                if (numericValue >= 1000) {
+                    displayValue = displayValue >= 1000 ? Math.floor(displayValue / 1000) + 'K' : displayValue;
+                }
+                
+                if (finalValue.includes('min')) {
+                    statNumber.textContent = displayValue + 'min';
+                } else if (isPercentage) {
+                    statNumber.textContent = displayValue + '%';
+                } else if (hasPlus) {
+                    statNumber.textContent = displayValue + 'K+';
+                } else {
+                    statNumber.textContent = displayValue;
+                }
+            }, 50);
+            
+            statsObserver.unobserve(entry.target);
+        }
+    });
+}, observerOptions);
+
+document.querySelectorAll('.stat-card').forEach(card => {
+    statsObserver.observe(card);
+});
+</script>
+{% endblock %}
