@@ -4265,6 +4265,137 @@ html {
     transform: translateY(-1px);
 }
 
+/* Firsto Badge Styling */
+.firsto-badge {
+    background: transparent !important;
+    border: none !important;
+    padding: 0.2rem !important;
+    margin-right: 0.5rem;
+}
+
+.firsto-badge a {
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.firsto-badge a:hover {
+    transform: translateY(-2px) scale(1.05);
+}
+
+.firsto-badge-img {
+    height: 32px;
+    width: auto;
+    max-width: 140px;
+    filter: brightness(1.1);
+    transition: all 0.3s ease;
+}
+
+.firsto-badge:hover .firsto-badge-img {
+    filter: brightness(1.2) saturate(1.1);
+}
+
+/* Product Hunt Badge Styling */
+.product-hunt-badge {
+    background: transparent !important;
+    border: none !important;
+    padding: 0.2rem !important;
+    margin-right: 0.5rem;
+}
+
+.product-hunt-badge a {
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.product-hunt-badge a:hover {
+    transform: translateY(-2px) scale(1.05);
+}
+
+.product-hunt-badge-img {
+    height: 32px;
+    width: auto;
+    max-width: 180px;
+    filter: brightness(1.1);
+    transition: all 0.3s ease;
+}
+
+.product-hunt-badge:hover .product-hunt-badge-img {
+    filter: brightness(1.2) saturate(1.1);
+}
+
+/* ShipSquad Badge Styling */
+.shipsquad-badge {
+    background: transparent !important;
+    border: none !important;
+    padding: 0.2rem !important;
+    margin-right: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.shipsquad-badge a {
+    text-decoration: none;
+    color: inherit;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.shipsquad-badge a:hover {
+    transform: translateY(-2px) scale(1.05);
+}
+
+.shipsquad-badge-content {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    min-width: 140px;
+    text-align: center;
+}
+
+.shipsquad-badge:hover .shipsquad-badge-content {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    border-color: #d1d5db;
+}
+
+.shipsquad-top-text {
+    font-size: 0.7rem;
+    color: #6b7280;
+    font-weight: 500;
+    margin-bottom: 0.15rem;
+    line-height: 1;
+}
+
+.shipsquad-main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-bottom: 0.15rem;
+}
+
+.shipsquad-logo {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.shipsquad-brand {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #374151;
+    line-height: 1;
+}
+
+.shipsquad-achievement {
+    font-size: 0.7rem;
+    color: #059669;
+    font-weight: 600;
+    line-height: 1;
+}
+
 /* Mobile Responsiveness for Footer */
 @media (max-width: 992px) {
     .footer-main {
@@ -4274,6 +4405,38 @@ html {
     .footer-badges {
         justify-content: flex-start;
         margin-top: 1rem;
+    }
+    
+    .firsto-badge-img {
+        height: 28px;
+        max-width: 120px;
+    }
+    
+    .product-hunt-badge-img {
+        height: 28px;
+        max-width: 160px;
+    }
+    
+    .shipsquad-badge-content {
+        padding: 0.4rem 0.6rem;
+        min-width: 120px;
+    }
+    
+    .shipsquad-top-text {
+        font-size: 0.65rem;
+    }
+    
+    .shipsquad-brand {
+        font-size: 0.75rem;
+    }
+    
+    .shipsquad-achievement {
+        font-size: 0.65rem;
+    }
+    
+    .shipsquad-logo {
+        width: 14px;
+        height: 14px;
     }
 }
 
@@ -4308,6 +4471,38 @@ html {
     .footer-badges {
         justify-content: center;
         margin-top: 1rem;
+    }
+    
+    .firsto-badge-img {
+        height: 26px;
+        max-width: 110px;
+    }
+    
+    .product-hunt-badge-img {
+        height: 26px;
+        max-width: 140px;
+    }
+    
+    .shipsquad-badge-content {
+        padding: 0.3rem 0.5rem;
+        min-width: 110px;
+    }
+    
+    .shipsquad-top-text {
+        font-size: 0.6rem;
+    }
+    
+    .shipsquad-brand {
+        font-size: 0.7rem;
+    }
+    
+    .shipsquad-achievement {
+        font-size: 0.6rem;
+    }
+    
+    .shipsquad-logo {
+        width: 12px;
+        height: 12px;
     }
     
     .newsletter-form .input-group {
@@ -4346,6 +4541,38 @@ html {
     .badge-item {
         font-size: 0.75rem;
         padding: 0.4rem 0.8rem;
+    }
+    
+    .firsto-badge-img {
+        height: 24px;
+        max-width: 100px;
+    }
+    
+    .product-hunt-badge-img {
+        height: 24px;
+        max-width: 120px;
+    }
+    
+    .shipsquad-badge-content {
+        padding: 0.25rem 0.4rem;
+        min-width: 100px;
+    }
+    
+    .shipsquad-top-text {
+        font-size: 0.55rem;
+    }
+    
+    .shipsquad-brand {
+        font-size: 0.65rem;
+    }
+    
+    .shipsquad-achievement {
+        font-size: 0.55rem;
+    }
+    
+    .shipsquad-logo {
+        width: 11px;
+        height: 11px;
     }
 }
 

@@ -35,10 +35,7 @@ if SUPABASE_URL and SUPABASE_ANON_KEY:
 else:
     print("Supabase configuration missing. Set SUPABASE_URL and SUPABASE_ANON_KEY environment variables.")
 
-# Make Supabase URLs and keys available in templates
-# @app.context_processor
-# def inject_supabase_config():
-# return dict(supabase_url=SUPABASE_URL, supabase_anon_key=SUPABASE_ANON_KEY)
+
 
 @app.route('/config')
 def get_config():
@@ -75,14 +72,6 @@ def from_json_filter(json_str):
         return []
 
 def get_db_path():
-    """Get database path - use /tmp for Vercel persistence"""
-    if os.environ.get('VERCEL'):
-        # Use /tmp directory on Vercel for better persistence
-        db_dir = '/tmp'
-        os.makedirs(db_dir, exist_ok=True)
-        return os.path.join(db_dir, 'database.db')
-    else:
-        # Use local directory for development
         return 'database.db'
 
 # Database initialization
@@ -90,59 +79,7 @@ def init_db():
     """Initialize database - Supabase for production, SQLite for local"""
     if os.environ.get('SUPABASE_URL') and os.environ.get('SUPABASE_ANON_KEY'):
         init_supabase_db()
-    else:
-        init_sqlite_db()
 
-def init_sqlite_db():
-    """Initialize SQLite database tables"""
-    conn = sqlite3.connect(get_db_path())
-    conn.execute('''
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        password_hash TEXT,
-        xp INTEGER DEFAULT 0,
-        rank TEXT DEFAULT 'AI Rookie',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        provider TEXT DEFAULT 'local',
-        provider_id TEXT,
-        avatar_url TEXT
-    )
-    ''')
-      # Add OAuth columns to existing users table if they don't exist
-    try:
-        columns = conn.execute("PRAGMA table_info(users)").fetchall()
-        column_names = [col[1] for col in columns]
-        
-        if 'provider' not in column_names:
-            conn.execute("ALTER TABLE users ADD COLUMN provider TEXT DEFAULT 'local'")
-        if 'provider_id' not in column_names:
-            conn.execute("ALTER TABLE users ADD COLUMN provider_id TEXT")
-        if 'avatar_url' not in column_names:
-            conn.execute("ALTER TABLE users ADD COLUMN avatar_url TEXT")
-    except Exception as e:
-        print(f"Error updating SQLite users schema: {e}")
-    
-    # Add new columns to tools table if it exists
-    try:
-        # Check if tools table exists
-        cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='tools'")
-        if cursor.fetchone():
-            # Table exists, check for new columns
-            columns = conn.execute("PRAGMA table_info(tools)").fetchall()
-            column_names = [col[1] for col in columns]
-            
-            if 'country_of_origin' not in column_names:
-                conn.execute("ALTER TABLE tools ADD COLUMN country_of_origin TEXT DEFAULT 'Unknown'")
-                print("Added country_of_origin column to tools table")
-    except Exception as e:
-        print(f"Error updating SQLite tools schema: {e}")
-    
-    conn.commit()
-    conn.close()
-    
-    print("SQLite initialization complete")
 
 def init_supabase_db():
     """Initialize Supabase database tables"""
@@ -906,7 +843,8 @@ class SupabaseConnection:
                 print(f"Delete replies response: {response.status_code} - {response.text}")
                 self._result = []
             
-            # COMMENT DELETION            elif 'delete from comments where id =' in sql_lower and 'or parent_id =' in sql_lower and params:
+            # COMMENT DELETION            
+            elif 'delete from comments where id =' in sql_lower and 'or parent_id =' in sql_lower and params:
                 # Delete comment and its replies
                 comment_id = params[0]  # Both params should be the same comment_id
                 # Delete replies first
@@ -1488,6 +1426,36 @@ def inject_user():
 # Before request handler to check session and update activity
 @app.before_request
 def before_request():
+    # Security checks and session management
+    check_session_timeout()
+    update_session_activity()
+
+# After request handler to add security headers
+@app.after_request
+def after_request(response):
+    # Add security headers to prevent clickjacking and other attacks
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    
+    # Content Security Policy to further prevent clickjacking and XSS
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com https://code.jquery.com; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; "
+        "img-src 'self' data: https: http:; "
+        "font-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; "
+        "connect-src 'self' https:; "
+        "frame-ancestors 'none'; "
+        "frame-src 'none';"
+    )
+    
+    return response
+
+# Before request handler to check session and update activity  
+@app.before_request
+def before_request():
     """Run before each request to check session validity"""
     if not check_session_timeout():
         return redirect(url_for('login'))
@@ -1885,7 +1853,8 @@ def add_comment():
             'username': new_comment['username'],
             'rank': new_comment['rank'],
             'comment': new_comment['comment'],
-            'created_at': new_comment['created_at'],            'like_count': new_comment['like_count'],
+            'created_at': new_comment['created_at'],            
+            'like_count': new_comment['like_count'],
             'love_count': new_comment['love_count'],
             'angry_count': new_comment['angry_count'],
             'laugh_count': new_comment['laugh_count'],
@@ -3170,15 +3139,3 @@ if __name__ == '__main__':
     if not os.path.exists('static/uploads'):
         os.makedirs('static/uploads')
     app.run(debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
-
-# Initialize database on import for Vercel
-if os.environ.get('VERCEL'):
-    init_db()
-
-# Initialize database on module import for Vercel
-if os.environ.get('VERCEL'):
-    # Ensure upload directory exists in temp
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
-# ============================================================================
-
