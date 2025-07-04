@@ -2,6 +2,106 @@
 
 {% block title %}Leaderboard - AI Exchange{% endblock %}
 
+{% block meta_description %}Discover top AI tools and community leaders on AI Exchange leaderboard. See most popular AI tools, top contributors, and community rankings. Join the AI community today!{% endblock %}
+
+{% block meta_keywords %}AI tools leaderboard, popular AI tools, AI community ranking, top AI contributors, best AI tools 2025, AI tool ratings, AI community leaders, trending AI tools{% endblock %}
+
+{% block og_title %}AI Tools & Community Leaderboard - AI Exchange{% endblock %}
+
+{% block og_description %}Explore the most popular AI tools and meet our top community contributors. See trending tools, community rankings, and join the AI Exchange leaderboard today!{% endblock %}
+
+{% block og_url %}https://www.aiexchange.tech/leaderboard{% endblock %}
+
+{% block twitter_title %}AI Tools & Community Leaderboard - AI Exchange{% endblock %}
+
+{% block twitter_description %}Check out the most popular AI tools and top community contributors on AI Exchange. Join our growing AI community and start earning XP today!{% endblock %}
+
+{% block json_ld_schema %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "AI Tools & Community Leaderboard",
+  "description": "Community leaderboard showcasing the most popular AI tools and top contributors on AI Exchange platform.",
+  "url": "https://www.aiexchange.tech/leaderboard",
+  "mainEntity": [
+    {
+      "@type": "ItemList",
+      "name": "Most Popular AI Tools",
+      "description": "Ranking of AI tools based on community visits and engagement",
+      "numberOfItems": "{{ top_tools|length if top_tools else 5 }}",
+      "itemListElement": [
+        {% if top_tools %}
+          {% for tool in top_tools %}
+          {
+            "@type": "SoftwareApplication",
+            "position": {{ loop.index }},
+            "name": "AI Exchange",
+            "description": "Leaderboard of AI tools",
+            "url": "www.aiexchange.tech",
+            "applicationCategory": "AI Tool Ranking",
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "{{ tool.rating or 0 }}",
+              "ratingCount": "{{ tool.visits or 0 }}"
+            }
+          }{% if not loop.last %},{% endif %}
+          {% endfor %}
+        {% endif %}
+      ]
+    },
+    {
+      "@type": "ItemList",
+      "name": "Top Community Contributors",
+      "description": "Ranking of community members based on contributions and engagement",
+      "numberOfItems": "{{ leaderboard|length if leaderboard else 10 }}",
+      "itemListElement": [
+        {% if leaderboard %}
+          {% for user in leaderboard[:5] %}
+          {
+            "@type": "Person",
+            "position": {{ loop.index }},
+            "name": "{{ user.username }}",
+            "description": "AI Exchange community contributor with {{ user.total_score or 0 }} XP points"
+          }{% if not loop.last %},{% endif %}
+          {% endfor %}
+        {% endif %}
+      ]
+    }
+  ],
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://www.aiexchange.tech/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Leaderboard",
+        "item": "https://www.aiexchange.tech/leaderboard"
+      }
+    ]
+  },
+  "potentialAction": [
+    {
+      "@type": "JoinAction",
+      "target": "https://www.aiexchange.tech/register",
+      "name": "Join AI Exchange Community"
+    },
+    {
+      "@type": "ViewAction",
+      "target": "https://www.aiexchange.tech/tools",
+      "name": "Browse AI Tools"
+    }
+  ]
+}
+</script>
+{% endblock %}
+
 {% block head %}
 {{ super() }}
 <style>
