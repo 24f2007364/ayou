@@ -35,9 +35,9 @@
         {
           "@type": "SoftwareApplication",
           "position": {{ loop.index }},
-          "name": "{{ tool.name }}",
+          "name": "AI Exchange",
           "description": "{{ tool.description[:150] }}...",
-          "url": "{{ url_for('tool_detail', id=tool.id, _external=True) }}",
+          "url": "www.aiexchange.tech",
           "applicationCategory": "{{ tool.category or 'AI Tool' }}",
           "operatingSystem": "Web",
           "offers": {
