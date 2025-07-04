@@ -2,6 +2,207 @@
 
 {% block title %}Leaderboard - AI Exchange{% endblock %}
 
+{% block head %}
+{{ super() }}
+<style>
+
+
+/* Fade in animation for compact items */
+.compact-leaderboard-item {
+    opacity: 0;
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+.compact-leaderboard-item:nth-child(1) { animation-delay: 0.1s; }
+.compact-leaderboard-item:nth-child(2) { animation-delay: 0.2s; }
+.compact-leaderboard-item:nth-child(3) { animation-delay: 0.3s; }
+.compact-leaderboard-item:nth-child(4) { animation-delay: 0.4s; }
+.compact-leaderboard-item:nth-child(5) { animation-delay: 0.5s; }
+.compact-leaderboard-item:nth-child(n+6) { animation-delay: 0.6s; }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .scrollable-leaderboard {
+        max-height: 300px;
+    }
+    
+    .compact-leaderboard-item {
+        padding: 0.6rem 0.8rem;
+    }
+    
+    .compact-username {
+        max-width: 100px;
+    }
+}
+
+/* Tool Leaderboard Styles */
+.tool-leaderboard-item {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+.tool-leaderboard-item:nth-child(1) { animation-delay: 0.1s; }
+.tool-leaderboard-item:nth-child(2) { animation-delay: 0.2s; }
+.tool-leaderboard-item:nth-child(3) { animation-delay: 0.3s; }
+.tool-leaderboard-item:nth-child(4) { animation-delay: 0.4s; }
+.tool-leaderboard-item:nth-child(5) { animation-delay: 0.5s; }
+
+.tool-leaderboard-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.rank-badge-tool {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.rank-badge-tool.gold {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    color: #8b5a00;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+}
+
+.rank-badge-tool.silver {
+    background: linear-gradient(135deg, #c0c0c0, #e5e5e5);
+    color: #555;
+    box-shadow: 0 4px 15px rgba(192, 192, 192, 0.4);
+}
+
+.rank-badge-tool.bronze {
+    background: linear-gradient(135deg, #cd7f32, #e6a85c);
+    color: white;
+    box-shadow: 0 4px 15px rgba(205, 127, 50, 0.4);
+}
+
+.rank-badge-tool.default {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+/* Special styling for top 3 tools */
+.tool-first {
+    position: relative;
+    box-shadow: 0 2px 12px rgba(255, 193, 7, 0.15) !important;
+}
+
+.tool-second {
+    position: relative;
+    box-shadow: 0 2px 12px rgba(13, 202, 240, 0.15) !important;
+}
+
+.tool-third {
+    position: relative;
+    box-shadow: 0 2px 12px rgba(25, 135, 84, 0.15) !important;
+}
+
+.tool-first::after {
+    content: '\F4CB'; /* Bootstrap Icons crown-fill */
+    font-family: 'bootstrap-icons';
+    position: absolute;
+    top: -2px;
+    right: 10px;
+    font-size: 1.2rem;
+    color: #ffc107;
+    animation: bounce 2s infinite;
+}
+
+.tool-second::after {
+    content: '\F4CA'; /* Bootstrap Icons trophy-fill */
+    font-family: 'bootstrap-icons';
+    position: absolute;
+    top: -2px;
+    right: 10px;
+    font-size: 1.1rem;
+    color: #6c757d;
+    animation: bounce 2s infinite 0.5s;
+}
+
+.tool-third::after {
+    content: '\F4C9'; /* Bootstrap Icons trophy */
+    font-family: 'bootstrap-icons';
+    position: absolute;
+    top: -2px;
+    right: 10px;
+    font-size: 1.1rem;
+    color: #198754;
+    animation: bounce 2s infinite 1s;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+.tool-info a:hover {
+    color: #6366f1 !important;
+}
+
+/* Tool placeholder logo animation */
+.tool-placeholder-logo {
+    transition: all 0.3s ease;
+}
+
+.tool-leaderboard-item:hover .tool-placeholder-logo {
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+/* Loading state for better UX */
+.scrollable-leaderboard.loading {
+    position: relative;
+    min-height: 200px;
+}
+
+.scrollable-leaderboard.loading::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 32px;
+    height: 32px;
+    margin: -16px 0 0 -16px;
+    border: 3px solid #f3f4f6;
+    border-top: 3px solid #6366f1;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <!-- Header -->
@@ -9,21 +210,96 @@
         <div class="container">
             <div class="text-center">
                 <div class="display-4 text-primary mb-3">
-                    <i class="bi bi-trophy"></i>
+                    <i class="bi bi-trophy-fill"></i>
                 </div>
                 <h1 class="display-5 fw-bold mb-3">Community Leaderboard</h1>
                 <p class="lead text-muted mb-4">
-                    Celebrating our most active AI enthusiasts. Earn XP by rating tools, 
-                    writing reviews, and participating in discussions.
+                    Discover the most popular AI tools and top contributors in our community. 
+                    Track tool popularity, user achievements, and engagement across our platform.
                 </p>
             </div>
         </div>
     </div>    <div class="row g-4">
-        <!-- Leaderboard -->
+        <!-- Tools Leaderboard Section -->
         <div class="col-lg-8">
+            <div class="leaderboard-main-card glass-card-enhanced p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold mb-0 gradient-text"><i class="bi bi-fire me-2"></i>Most Popular Tools</h3>
+                    <div class="d-flex align-items-center text-muted update-indicator">
+                        <i class="bi bi-eye me-1"></i>
+                        <small>Based on visits</small>
+                    </div>
+                </div>
+                
+                {% if top_tools %}
+                <div class="row g-3">
+                    {% for tool in top_tools %}
+                    <div class="col-12">
+                        <div class="tool-leaderboard-item d-flex align-items-center p-3 rounded-3 border {% if loop.index == 1 %}border-warning bg-opacity-5 tool-first{% elif loop.index == 2 %}border-info  bg-opacity-5 tool-second{% elif loop.index == 3 %}border-success  bg-opacity-5 tool-third{% else %}border-light bg-light bg-opacity-50{% endif %}">
+                            <div class="rank-badge-tool 
+                                {% if loop.index == 1 %}gold
+                                {% elif loop.index == 2 %}silver
+                                {% elif loop.index == 3 %}bronze
+                                {% else %}default{% endif %} me-3">
+                                {{ loop.index }}
+                            </div>
+                            
+                            <div class="tool-logo me-3">
+                                {% if tool.logo_url %}
+                                    <img src="{{ tool.logo_url }}" alt="{{ tool.name }}" class="rounded" style="width: 48px; height: 48px; object-fit: cover;">
+                                {% else %}
+                                    <div class="tool-placeholder-logo d-flex align-items-center justify-content-center rounded" style="width: 48px; height: 48px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; font-weight: bold;">
+                                        {{ tool.name[0] }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="tool-info flex-grow-1">
+                                <h6 class="fw-bold mb-1">
+                                    <a href="{{ url_for('tool_detail', tool_name=tool.name) }}" class="text-decoration-none text-dark">
+                                        {{ tool.name }}
+                                    </a>
+                                </h6>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-primary bg-opacity-10 text-primary">{{ tool.category }}</span>
+                                    {% if tool.average_rating > 0 %}
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-star-fill text-warning me-1"></i>
+                                        <small class="text-muted">{{ "%.1f"|format(tool.average_rating) }} ({{ tool.total_ratings }})</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="text-end">
+                                <div class="fw-bold text-primary fs-5">{{ tool.visits }}</div>
+                                <small class="text-muted">visits</small>
+                                {% if loop.index == 1 %}
+                                    <div class="mt-1">
+                                        <span class="badge bg-warning text-dark rounded-pill"><i class="bi bi-fire me-1"></i>Trending</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="display-1 text-muted mb-3">🔧</div>
+                        <h4 class="fw-bold mb-3">No tool visits yet</h4>
+                        <p class="text-muted mb-4">Visit some tools to see the leaderboard!</p>
+                        <a href="{{ url_for('tools') }}" class="btn btn-primary rounded-pill">
+                            <i class="bi bi-tools me-2"></i>Browse Tools
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- User Leaderboard -->
             <div class="leaderboard-main-card glass-card-enhanced p-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="fw-bold mb-0 gradient-text">🏆 Top Contributors</h3>
+                    <h3 class="fw-bold mb-0 gradient-text"><i class="bi bi-trophy-fill me-2"></i>Top Contributors</h3>
                     <div class="d-flex align-items-center text-muted update-indicator">
                         <i class="bi bi-arrow-clockwise me-1 rotating-icon"></i>
                         <small>Updated daily</small>
@@ -77,31 +353,11 @@
                         </div>
                     </div>
                     {% endif %}
-                      <!-- Rest of the leaderboard -->
-                    <div class="leaderboard-list">
+                      <!-- Top 3 in list format for mobile -->
+                    <div class="d-md-none mb-4">
                         {% for user in users %}
-                            {% if loop.index > 3 %}
-                            <div class="leaderboard-item-enhanced d-flex align-items-center justify-content-between fade-in-item">
-                                <div class="d-flex align-items-center">
-                                    <div class="rank-badge-small me-3 pulse-on-hover">{{ loop.index }}</div>
-                                    <div class="user-info">
-                                        <h6 class="fw-bold mb-1 user-name">{{ user.username }}</h6>
-                                        <small class="text-muted rank-subtitle">{{ user.rank }}</small>
-                                    </div>
-                                </div>
-                                <div class="text-end user-stats">
-                                    <div class="fw-bold text-primary xp-number">{{ user.xp }} XP</div>
-                                    <small class="text-muted progress-text">
-                                        {{ ((user.xp % 1000) / 1000 * 100)|round }}% to next rank
-                                    </small>
-                                    <div class="mini-progress-bar">
-                                        <div class="mini-progress-fill" style="width: {{ ((user.xp % 1000) / 1000 * 100)|round }}%"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% elif loop.index <= 3 %}
-                            <!-- Top 3 in list format for mobile -->
-                            <div class="leaderboard-item d-flex align-items-center justify-content-between d-md-none">
+                            {% if loop.index <= 3 %}
+                            <div class="leaderboard-item d-flex align-items-center justify-content-between">
                                 <div class="d-flex align-items-center">
                                     <div class="rank-badge 
                                         {% if loop.index == 1 %}gold
@@ -117,13 +373,15 @@
                                 <div class="text-end">
                                     <div class="fw-bold text-primary">{{ user.xp }} XP</div>
                                     {% if loop.index == 1 %}
-                                        <span class="badge bg-warning rounded-pill">👑 Champion</span>
+                                        <span class="badge bg-warning rounded-pill"><i class="bi bi-crown-fill me-1"></i>Champion</span>
                                     {% endif %}
                                 </div>
                             </div>
                             {% endif %}
                         {% endfor %}
                     </div>
+
+
                 {% else %}
                     <div class="text-center py-5">
                         <div class="display-1 text-muted mb-3">🏆</div>
@@ -143,7 +401,7 @@
         <div class="col-lg-4">            <!-- Your Rank (if logged in) -->
             {% if session.user_id %}
             <div class="user-stats-card glass-card-enhanced p-4 mb-4">
-                <h5 class="fw-bold mb-3 gradient-text">👤 Your Stats</h5>                <div class="text-center">
+                <h5 class="fw-bold mb-3 gradient-text"><i class="bi bi-person-circle me-2"></i>Your Stats</h5>                <div class="text-center">
                     <div class="user-avatar-large mx-auto mb-3 pulse-animation" style="width: 72px; height: 72px; font-size: 28px;" data-username="{{ session.username }}">
                         {{ session.username[0].upper() }}
                     </div>
@@ -203,7 +461,7 @@
                 {% if not session.user_id %}
                 <div class="text-center mt-4">
                     <a href="{{ url_for('register') }}" class="btn btn-primary btn-enhanced rounded-pill">
-                        ✨ Start Earning XP
+                        <i class="bi bi-lightning-charge me-2"></i>Start Earning XP
                     </a>
                 </div>
                 {% endif %}
@@ -211,7 +469,7 @@
 
             <!-- Rank System -->
             <div class="glass-card p-4 mb-4">
-                <h5 class="fw-bold mb-3">🎖️ Rank System</h5>
+                <h5 class="fw-bold mb-3"><i class="bi bi-award me-2"></i>Rank System</h5>
                 <div class="list-group list-group-flush">
                     <div class="list-group-item bg-transparent border-0 px-0 py-2">
                         <div class="d-flex justify-content-between">

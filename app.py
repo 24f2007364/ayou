@@ -143,6 +143,42 @@ class SupabaseConnection:
                         self._result = [(len(data),)]
                     else:
                         self._result = [(0,)]
+                elif 'where 1=1' in sql_lower:
+                    # Handle count query with filters for pagination
+                    url = f"{self.base_url}/rest/v1/tools?select=id"
+                    filters = []
+                    
+                    if params:
+                        param_idx = 0
+                        if 'name like' in sql_lower or 'description like' in sql_lower:
+                            search_term = params[param_idx].replace('%', '')
+                            filters.append(f"or=(name.ilike.%{search_term}%,description.ilike.%{search_term}%)")
+                            param_idx += 2  # Skip both search params
+                        
+                        if param_idx < len(params) and 'category =' in sql_lower:
+                            category = params[param_idx]
+                            filters.append(f"category=eq.{category}")
+                            param_idx += 1
+                        
+                        if param_idx < len(params) and 'country_of_origin =' in sql_lower:
+                            country = params[param_idx]
+                            filters.append(f"country_of_origin=eq.{country}")
+                            param_idx += 1
+                        
+                        if param_idx < len(params) and 'pricing_model =' in sql_lower:
+                            price_model = params[param_idx]
+                            filters.append(f"pricing_model=eq.{price_model}")
+                            param_idx += 1
+                    
+                    if filters:
+                        url += "&" + "&".join(filters)
+                    
+                    response = self.session.get(url)
+                    if response.status_code == 200:
+                        data = response.json()
+                        self._result = [(len(data),)]
+                    else:
+                        self._result = [(0,)]
                 else:
                     # Use the PostgreSQL function for accurate count
                     try:
@@ -419,6 +455,8 @@ class SupabaseConnection:
                 # Tools page query with search/filter
                 url = f"{self.base_url}/rest/v1/tools?select=*"
                 filters = []
+                limit = None
+                offset = None
                 
                 if params:
                     param_idx = 0
@@ -441,9 +479,18 @@ class SupabaseConnection:
                         price_model = params[param_idx]
                         filters.append(f"pricing_model=eq.{price_model}")
                         param_idx += 1
+                    
+                    # Handle LIMIT and OFFSET for pagination - they should be the last two parameters
+                    if 'limit ? offset ?' in sql_lower and len(params) >= 2:
+                        limit = params[-2]  # Second to last parameter
+                        offset = params[-1]  # Last parameter
                 
                 if filters:
                     url += "&" + "&".join(filters)
+                
+                # Add pagination parameters
+                if limit is not None and offset is not None:
+                    url += f"&limit={limit}&offset={offset}"
                 
                 # Handle different sorting options
                 if 'order by created_at desc' in sql_lower:
@@ -455,14 +502,17 @@ class SupabaseConnection:
                 else:  # Default rating sort
                     url += "&order=average_rating.desc.nullslast,total_ratings.desc.nullslast"
                 
+                print(f"DEBUG: Supabase URL for tools query: {url}")
                 response = self.session.get(url)
                 if response.status_code == 200:
                     data = response.json()
+                    print(f"DEBUG: Retrieved {len(data)} tools from Supabase")
                     for tool in data:
                         tool['average_rating'] = tool.get('average_rating') or 0
                         tool['total_ratings'] = tool.get('total_ratings') or 0
                     self._result = data
                 else:
+                    print(f"DEBUG: Supabase tools query failed: {response.status_code} - {response.text}")
                     self._result = []
             
             elif 'select distinct category from tools' in sql_lower:
@@ -541,7 +591,28 @@ class SupabaseConnection:
                     self._result = []
             
             elif 'update tools set' in sql_lower and 'where id =' in sql_lower and params:
-                if 'average_rating' in sql_lower:
+                if 'visits = coalesce(visits, 0) + 1' in sql_lower:
+                    # Handle visits increment
+                    tool_id = params[0]
+                    # First get current visits count
+                    response = self.session.get(f"{self.base_url}/rest/v1/tools?id=eq.{tool_id}&select=visits")
+                    if response.status_code == 200:
+                        data = response.json()
+                        current_visits = data[0].get('visits', 0) if data else 0
+                        new_visits = current_visits + 1
+                        
+                        # Update with new visits count
+                        tool_data = {'visits': new_visits}
+                        response = self.session.patch(f"{self.base_url}/rest/v1/tools?id=eq.{tool_id}", json=tool_data)
+                        if response.status_code in [200, 204]:
+                            self._result = []
+                        else:
+                            print(f"ERROR updating visits: {response.status_code} - {response.text}")
+                            self._result = []
+                    else:
+                        print(f"ERROR getting current visits: {response.status_code} - {response.text}")
+                        self._result = []
+                elif 'average_rating' in sql_lower:
                     # Update tool ratings
                     avg_rating, total_ratings, tool_id = params[:3]
                     tool_data = {'average_rating': avg_rating, 'total_ratings': total_ratings}
@@ -1132,6 +1203,34 @@ class SupabaseConnection:
                     print(f"Failed to fetch logo for tool {tool_name}: {response.status_code} - {response.text}")
                     self._result = []
             
+            # LEADERBOARD TOOLS QUERY HANDLER
+            elif ('select name, logo_url, category, coalesce(visits, 0) as visits' in sql_lower and 
+                  'coalesce(average_rating, 0) as average_rating' in sql_lower and
+                  'coalesce(total_ratings, 0) as total_ratings' in sql_lower and
+                  'from tools' in sql_lower and
+                  'order by coalesce(visits, 0) desc' in sql_lower and
+                  'limit 5' in sql_lower):
+                # Get top 5 tools ordered by visits
+                response = self.session.get(f"{self.base_url}/rest/v1/tools?select=name,logo_url,category,visits,average_rating,total_ratings&order=visits.desc.nullslast&limit=5")
+                if response.status_code == 200:
+                    data = response.json()
+                    # Format the data to match expected structure
+                    formatted_data = []
+                    for tool in data:
+                        formatted_tool = {
+                            'name': tool.get('name', ''),
+                            'logo_url': tool.get('logo_url', ''),
+                            'category': tool.get('category', ''),
+                            'visits': tool.get('visits', 0) or 0,  # Handle null visits
+                            'average_rating': tool.get('average_rating', 0) or 0,
+                            'total_ratings': tool.get('total_ratings', 0) or 0
+                        }
+                        formatted_data.append(formatted_tool)
+                    self._result = formatted_data
+                else:
+                    print(f"Failed to fetch tools for leaderboard: {response.status_code} - {response.text}")
+                    self._result = []
+            
             else:
                 print(f"Unhandled SQL query: {sql_lower[:100]}...")
                 self._result = []
@@ -1578,6 +1677,8 @@ def logout():
 
 @app.route('/tools')
 def tools():
+    page = request.args.get('page', 1, type=int)
+    PER_PAGE = 20
     search = request.args.get('search', '')
     category = request.args.get('category', '')
     country = request.args.get('country', '')
@@ -1595,24 +1696,42 @@ def tools():
     
     # Get regular tools with sorting
     query = 'SELECT *, COALESCE(average_rating, 0) as average_rating, COALESCE(total_ratings, 0) as total_ratings FROM tools WHERE 1=1'
+    count_query = 'SELECT COUNT(*) as count FROM tools WHERE 1=1'
     params = []
     
     if search:
         query += ' AND (name LIKE ? OR description LIKE ?)'
+        count_query += ' AND (name LIKE ? OR description LIKE ?)'
         params.extend([f'%{search}%', f'%{search}%'])
     
     if category:
         query += ' AND category = ?'
+        count_query += ' AND category = ?'
         params.append(category)
     
     if country:
         query += ' AND country_of_origin = ?'
+        count_query += ' AND country_of_origin = ?'
         params.append(country)
     
     if pricing_model:
         query += ' AND pricing_model = ?'
+        count_query += ' AND pricing_model = ?'
         params.append(pricing_model)
-      # Handle sorting
+
+    # Get filtered count for pagination
+    count_result = conn.execute(count_query, params).fetchone()
+    
+    if count_result is None:
+        filtered_count = 0
+    elif isinstance(count_result, tuple):
+        filtered_count = count_result[0]
+    else:
+        filtered_count = count_result['count']
+
+    total_pages = (filtered_count + PER_PAGE - 1) // PER_PAGE
+
+    # Handle sorting
     if sort == 'newest':
         query += ' ORDER BY created_at DESC'
     elif sort == 'name':
@@ -1620,7 +1739,12 @@ def tools():
     elif sort == 'reviews':
         query += ' ORDER BY total_ratings DESC, COALESCE(average_rating, 0) DESC'
     else:     # Default to rating
-        query += ' ORDER BY COALESCE(average_rating, 0) DESC, total_ratings DESC'    
+        query += ' ORDER BY COALESCE(average_rating, 0) DESC, total_ratings DESC'
+    
+    query += ' LIMIT ? OFFSET ?'
+    params.append(PER_PAGE)
+    params.append((page - 1) * PER_PAGE)
+
     tools = conn.execute(query, params).fetchall()
       # Get total count of all tools (without filters for the main count)
     try:
@@ -1641,15 +1765,11 @@ def tools():
         print(f"ERROR: Failed to get tools count: {e}")
         total_tools_count = 0
     
-    # Get filtered count (for search results)
-    filtered_count = len(tools)
     # Get all categories
     categories = conn.execute('SELECT DISTINCT category FROM tools').fetchall()
     
     # Get all countries (only those that have tools)
     countries = conn.execute("SELECT DISTINCT country_of_origin FROM tools WHERE country_of_origin IS NOT NULL AND country_of_origin != 'Unknown' ORDER BY country_of_origin").fetchall()
-    
-
     
     # Get all pricing models
     pricing_models = conn.execute("SELECT DISTINCT pricing_model FROM tools WHERE pricing_model IS NOT NULL ORDER BY pricing_model").fetchall()
@@ -1662,7 +1782,8 @@ def tools():
                           countries=countries, pricing_models=pricing_models,
                           current_search=search, current_category=category, current_country=country, 
                           current_price=pricing_model, current_sort=sort,
-                          total_tools_count=total_tools_count, filtered_count=filtered_count)
+                          total_tools_count=total_tools_count, filtered_count=filtered_count,
+                          page=page, total_pages=total_pages)
 
 @app.route('/tool/<string:tool_name>') # Changed from <int:tool_id>
 def tool_detail(tool_name): # Changed from tool_id
@@ -1675,6 +1796,10 @@ def tool_detail(tool_name): # Changed from tool_id
         return redirect(url_for('tools'))
     
     tool_id = tool['id'] # We still need tool_id for other queries
+    
+    # Track visit - increment visits count
+    conn.execute('UPDATE tools SET visits = COALESCE(visits, 0) + 1 WHERE id = ?', (tool_id,))
+    conn.commit()
     
     # Get ratings and reviews
     ratings = conn.execute('''
@@ -2031,6 +2156,38 @@ def delete_comment():
     
     return jsonify({'success': True})
 
+@app.route('/track-visit', methods=['POST'])
+def track_visit():
+    """Track a visit to a tool from various sources"""
+    try:
+        data = request.get_json()
+        tool_name = data.get('tool_name')
+        source = data.get('source', 'unknown')  # 'visit_button', 'details_button', 'try_now_button'
+        
+        if not tool_name:
+            return jsonify({'error': 'Tool name required'}), 400
+        
+        conn = get_db_connection()
+        
+        # Get tool ID from name
+        tool = conn.execute('SELECT id FROM tools WHERE name = ?', (tool_name,)).fetchone()
+        if not tool:
+            conn.close()
+            return jsonify({'error': 'Tool not found'}), 404
+        
+        tool_id = tool['id']
+        
+        # Increment visits count
+        conn.execute('UPDATE tools SET visits = COALESCE(visits, 0) + 1 WHERE id = ?', (tool_id,))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': f'Visit tracked for {tool_name} from {source}'})
+        
+    except Exception as e:
+        print(f"Error tracking visit: {e}")
+        return jsonify({'error': 'Failed to track visit'}), 500
+
 @app.route('/leaderboard')
 def leaderboard():
     conn = get_db_connection()
@@ -2038,6 +2195,21 @@ def leaderboard():
         SELECT username, xp, rank FROM users 
         ORDER BY xp DESC LIMIT 50
     ''').fetchall()
+    
+    # Get top 5 most visited tools
+    top_tools = conn.execute('''
+        SELECT name, logo_url, category, COALESCE(visits, 0) as visits, 
+               COALESCE(average_rating, 0) as average_rating, 
+               COALESCE(total_ratings, 0) as total_ratings
+        FROM tools 
+        ORDER BY COALESCE(visits, 0) DESC 
+        LIMIT 5
+    ''').fetchall()
+    
+    # Debug: Print the results
+    print("DEBUG: Top tools from leaderboard query:")
+    for tool in top_tools:
+        print(f"  {tool.get('name', 'Unknown')}: {tool.get('visits', 0)} visits")
     
     # Get current user's data if logged in
     current_user = None
@@ -2050,7 +2222,7 @@ def leaderboard():
     
     conn.close()
     
-    return render_template('leaderboard.html', users=users, current_user=current_user)
+    return render_template('leaderboard.html', users=users, current_user=current_user, top_tools=top_tools)
 
 @app.route('/support')
 def support():

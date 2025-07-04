@@ -160,10 +160,10 @@ Join a growing community of makers, devs, and dreamers building the future with 
                         </span>
                     </div>
                     <div class="d-flex gap-2">
-                        <a href="{{ tool.link }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill">
+                        <a href="{{ tool.link }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill" onclick="trackVisit('{{ tool.name }}', 'visit_button')">
                             <i class="bi bi-box-arrow-up-right me-1"></i>Visit
                         </a>
-                        <a href="{{ url_for('tool_detail', tool_name=tool.name) }}" class="btn btn-primary btn-sm rounded-pill">
+                        <a href="{{ url_for('tool_detail', tool_name=tool.name) }}" class="btn btn-primary btn-sm rounded-pill" onclick="trackVisit('{{ tool.name }}', 'details_button')">
                             Details
                         </a>
                     </div>
@@ -231,9 +231,9 @@ Join a growing community of makers, devs, and dreamers building the future with 
                             {% else %}bg-warning{% endif %} rounded-pill">
                             {{ tool.pricing_model }}
                         </span>
-                    </div>                    <div class="d-flex gap-2">                        <a href="{{ tool.link }}" target="_blank" class="btn btn-sm btn-outline-primary btn-visit" data-bs-toggle="tooltip" title="Visit Tool">
+                    </div>                    <div class="d-flex gap-2">                        <a href="{{ tool.link }}" target="_blank" class="btn btn-sm btn-outline-primary btn-visit" data-bs-toggle="tooltip" title="Visit Tool" onclick="trackVisit('{{ tool.name }}', 'visit_button')">
                             <i class="bi bi-box-arrow-up-right"></i><span>Visit</span>
-                        </a>                        <a href="{{ url_for('tool_detail', tool_name=tool.name) }}" class="btn btn-sm btn-primary">
+                        </a>                        <a href="{{ url_for('tool_detail', tool_name=tool.name) }}" class="btn btn-sm btn-primary" onclick="trackVisit('{{ tool.name }}', 'details_button')">
                             Details <i class="bi bi-arrow-right ms-1"></i>
                         </a>
                     </div>
@@ -413,5 +413,21 @@ Join a growing community of makers, devs, and dreamers building the future with 
             statsObserver.observe(card);
         });
     });
+    
+    // Track visit function
+    function trackVisit(toolName, source) {
+        fetch('/track-visit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                tool_name: toolName,
+                source: source
+            })
+        }).catch(error => {
+            console.error('Error tracking visit:', error);
+        });
+    }
 </script>
 {% endblock %}

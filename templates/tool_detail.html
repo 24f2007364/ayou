@@ -1,47 +1,94 @@
 {% extends "layout.html" %}
 
-{% block title %}{{ tool.name }} - AI Exchange AI Marketplace{% endblock %}
+{% block title %}{{ tool.name }} - Best {{ tool.category }} Reviews, Pricing & Alternatives | AI Exchange{% endblock %}
+{% block meta_description %}{% set desc = "In-depth review and details for " + tool.name + ". " + (tool.description[:120] if tool.description else 'Find features, pricing, and user reviews for ' + tool.name + ' on AI Exchange.') %}{{ desc }}{% endblock %}
+{% block meta_keywords %}{{ tool.name }}, {{ tool.category }}, AI tool, {{ tool.name }} review, {{ tool.name }} pricing, what is {{ tool.name }}, {{ tool.name }} alternatives{% endblock %}
 
-{% block og_title %}{{ tool.name }} - AI Exchange AI Marketplace{% endblock %}
-{% block og_description %}{{ tool.description[:160] if tool.description else 'Discover and review ' + tool.name + ' on AI Exchange' }}{% endblock %}
+{% block og_title %}{{ tool.name }} - AI Tool Details & Reviews{% endblock %}
+{% block og_description %}{{ self.meta_description() }}{% endblock %}
 {% block og_url %}https://www.aiexchange.tech{{ url_for('tool_detail', tool_name=tool.name) }}{% endblock %}
 {% block og_image %}{{ tool.logo_url if tool.logo_url else 'https://www.aiexchange.tech/static/images/og-image.png' }}{% endblock %}
+{% block og_type %}product{% endblock %}
 
-{% block twitter_title %}{{ tool.name }} - AI Exchange{% endblock %}
-{% block twitter_description %}{{ tool.description[:160] if tool.description else 'Discover and review ' + tool.name + ' on AI Exchange' }}{% endblock %}
+{% block twitter_card %}summary_large_image{% endblock %}
+{% block twitter_title %}{{ tool.name }} - Is it worth it? (Review & Details){% endblock %}
+{% block twitter_description %}{{ self.meta_description() }}{% endblock %}
 {% block twitter_image %}{{ tool.logo_url if tool.logo_url else 'https://www.aiexchange.tech/static/images/og-image.png' }}{% endblock %}
 
 {% block json_ld_schema %}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "Product",
-  "name": "{{ tool.name }}",
-  "description": "{{ tool.description }}",
-  "image": "{{ tool.logo_url }}",
-  "brand": {
-    "@type": "Brand",
-    "name": "AI Exchange"
-  },
-  "offers": {
-    "@type": "Offer",
-    "price":"20",
-    "priceCurrency": "USD",
-    "availability": "http://schema.org/InStock"
-
-  },
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "{{ tool.average_rating }}",
-    "reviewCount": "{{ tool.total_ratings }}"
-  }
+  "@graph": [
+    {
+      "@type": "Product",
+      "name": "{{ tool.name }}",
+      "description": "{{ tool.description }}",
+      "image": "{{ tool.logo_url }}",
+      "url": "{{ url_for('tool_detail', tool_name=tool.name, _external=True) }}",
+      "brand": {
+        "@type": "Brand",
+        "name": "{{ tool.name }}"
+      },
+      "category": "{{ tool.category }}",
+      "offers": {
+        "@type": "Offer",
+        "price": "0", 
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "{{ tool.average_rating or 5 }}",
+        "reviewCount": "{{ tool.total_ratings or 1 }}"
+      }
+      {% if ratings %}
+      ,"review": [
+        {% for rating in ratings %}
+        {
+          "@type": "Review",
+          "author": {"@type": "Person", "name": "{{ rating.username }}"},
+          "datePublished": "{{ rating.created_at | format_date }}",
+          "reviewBody": "{{ rating.review }}",
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "{{ rating.rating }}"
+          }
+        }{{ "," if not loop.last }}
+        {% endfor %}
+      ]
+      {% endif %}
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [{
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "{{ url_for('index', _external=True) }}"
+      },{
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Tools",
+        "item": "{{ url_for('tools', _external=True) }}"
+      },{
+        "@type": "ListItem",
+        "position": 3,
+        "name": "{{ tool.category }}",
+        "item": "{{ url_for('tools', category=tool.category, _external=True) }}"
+      },{
+        "@type": "ListItem",
+        "position": 4,
+        "name": "{{ tool.name }}"
+      }]
+    }
+  ]
 }
 </script>
 {% endblock json_ld_schema %}
 
 {% block head %}
 {{ super() }}
-{# Remove the old script tag if it exists, otherwise it will be duplicated #}
 {% endblock %}
 
 {% block content %}
@@ -80,7 +127,7 @@
                 </div>
                 <div class="col-lg-3 col-md-3">
                     <div class="tool-actions">
-                        <a href="{{ tool.link }}" target="_blank" class="btn btn-light btn-lg w-100 mb-3">
+                        <a href="{{ tool.link }}" target="_blank" class="btn btn-light btn-lg w-100 mb-3" onclick="trackVisit('{{ tool.name }}', 'try_now_button')">
                             <i class="bi bi-box-arrow-up-right me-2"></i>Try Now
                         </a>
                         <div class="tool-stats-quick">
@@ -1528,5 +1575,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Track visit function
+function trackVisit(toolName, source) {
+    fetch('/track-visit', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            tool_name: toolName,
+            source: source
+        })
+    }).catch(error => {
+        console.error('Error tracking visit:', error);
+    });
+}
 </script>
 {% endblock %}

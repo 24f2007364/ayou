@@ -59,6 +59,7 @@ ALTER TABLE tools ADD COLUMN IF NOT EXISTS gallery_images TEXT;
 ALTER TABLE tools ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT FALSE;
 ALTER TABLE tools ADD COLUMN IF NOT EXISTS featured_since TIMESTAMP;
 ALTER TABLE tools ADD COLUMN IF NOT EXISTS country_of_origin VARCHAR(255) DEFAULT 'Unknown';
+ALTER TABLE tools ADD COLUMN IF NOT EXISTS visits INTEGER DEFAULT 0;
 
 -- Add new columns to existing users table for OAuth support
 ALTER TABLE users ADD COLUMN IF NOT EXISTS provider VARCHAR(50) DEFAULT 'local';
