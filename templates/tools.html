@@ -2,6 +2,75 @@
 
 {% block title %}Explore AI Tools - AI Exchange{% endblock %}
 
+{% block meta_description %}Browse our comprehensive directory of AI tools. Discover coding assistants, image generators, writing tools, and more. Compare features, ratings, and find the perfect AI tool for your needs.{% endblock %}
+
+{% block meta_keywords %}AI tools directory, AI tool finder, best AI tools 2025, coding AI, image generation AI, writing AI, AI comparison, artificial intelligence tools, machine learning tools{% endblock %}
+
+{% block og_title %}Explore AI Tools Directory - AI Exchange{% endblock %}
+
+{% block og_description %}Discover the best AI tools in our comprehensive directory. From coding assistants to image generators - find, compare, and rate AI tools that match your needs.{% endblock %}
+
+{% block og_url %}https://www.aiexchange.tech/tools{% endblock %}
+
+{% block twitter_title %}Explore AI Tools Directory - AI Exchange{% endblock %}
+
+{% block twitter_description %}Browse hundreds of AI tools in one place. Find coding assistants, image generators, writing tools and more. Compare features and ratings.{% endblock %}
+
+{% block json_ld_schema %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "AI Tools Directory",
+  "description": "Comprehensive directory of AI tools including coding assistants, image generators, writing tools, and more.",
+  "url": "https://www.aiexchange.tech/tools",
+  "mainEntity": {
+    "@type": "ItemList",
+    "name": "AI Tools Collection",
+    "description": "Curated collection of the best AI tools across different categories",
+    "numberOfItems": "{{ tools|length if tools else 0 }}",
+    "itemListElement": [
+      {% if tools %}
+        {% for tool in tools[:10] %}
+        {
+          "@type": "SoftwareApplication",
+          "position": {{ loop.index }},
+          "name": "{{ tool.name }}",
+          "description": "{{ tool.description[:150] }}...",
+          "url": "{{ url_for('tool_detail', id=tool.id, _external=True) }}",
+          "applicationCategory": "{{ tool.category or 'AI Tool' }}",
+          "operatingSystem": "Web",
+          "offers": {
+            "@type": "Offer",
+            "price": "{% if tool.pricing and 'free' in tool.pricing.lower() %}0{% else %}varies{% endif %}",
+            "priceCurrency": "USD"
+          }
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+      {% endif %}
+    ]
+  },
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://www.aiexchange.tech/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "AI Tools",
+        "item": "https://www.aiexchange.tech/tools"
+      }
+    ]
+  }
+}
+</script>
+{% endblock %}
+
 {% block head %}
 {{ super() }}
 <style>

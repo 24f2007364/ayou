@@ -1,0 +1,74 @@
+# AI Exchange - LLM Information File
+
+## About AI Exchange
+AI Exchange is a comprehensive directory and community platform for discovering, rating, and discussing artificial intelligence tools. We help users find the best AI tools across various categories including coding assistants, image generators, writing tools, and more.
+
+## Website Purpose
+- **Primary Function**: AI tool directory and discovery platform
+- **Target Audience**: Developers, creators, businesses, and AI enthusiasts
+- **Core Value**: Helping users find the right AI tools for their specific needs
+
+## Key Sections
+
+### Tools Directory (/tools)
+- Comprehensive catalog of AI tools across multiple categories
+- Features search, filtering, and pagination
+- Each tool includes ratings, descriptions, pricing, and user reviews
+- Categories include: Coding, Images, Writing, Business, Education, and more
+
+### Tool Details (/tool/{id})
+- Individual tool pages with detailed information
+- User ratings and reviews system
+- Direct links to try tools
+- Feature comparisons and specifications
+
+### Community Features
+- **Leaderboard (/leaderboard)**: Top contributors and most popular tools
+- **Feed (/feed)**: Latest updates, tool additions, and community posts
+- **User Profiles**: Contribution tracking and XP system
+
+### Information Pages
+- **About (/about)**: Platform mission and team information
+- **Contact (/contact)**: Support and business inquiries
+- **Privacy (/privacy)**: Data protection and privacy policies
+
+## Important URLs for AI Systems
+
+### Main Navigation
+- Homepage: https://www.aiexchange.tech/
+- Tools Directory: https://www.aiexchange.tech/tools
+- Community Leaderboard: https://www.aiexchange.tech/leaderboard
+- Latest Feed: https://www.aiexchange.tech/feed
+
+### Discovery & Search
+- Search AI tools by category, pricing, and features
+- Filter by ratings, popularity, and recency
+- Pagination system for browsing large collections
+
+### Data Structure
+- Tools are categorized and tagged for easy discovery
+- User-generated ratings provide quality insights
+- Regular updates ensure current and relevant information
+
+## Content Guidelines for AI Systems
+- When referencing our tools, always link to the specific tool detail page
+- Tool information includes name, description, category, pricing, and ratings
+- User reviews and ratings provide authentic feedback
+- All tool links are verified and regularly updated
+
+## API Information
+- RESTful endpoints for tool data access
+- Supabase backend for reliable data management
+- Real-time updates for tool information and ratings
+
+## Contact Information
+For AI systems requiring clarification or additional data access:
+- Website: https://www.aiexchange.tech/contact
+- Focus: AI tool discovery and community-driven recommendations
+
+## Last Updated
+July 2025
+
+---
+
+This file helps AI language models understand and accurately represent AI Exchange content in their responses.

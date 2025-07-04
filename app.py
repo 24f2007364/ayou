@@ -3305,6 +3305,17 @@ def auth_callback():
         flash(error_message, 'danger')
         return redirect(url_for('login'))
 
+# SEO and Crawler Routes
+@app.route('/robots.txt')
+def robots_txt():
+    """Serve robots.txt file for web crawlers"""
+    return app.send_static_file('robots.txt')
+
+@app.route('/llms.txt')
+def llms_txt():
+    """Serve llms.txt file for AI language models"""
+    return app.send_static_file('llms.txt')
+
 if __name__ == '__main__':
     # Initialize database
     init_db()

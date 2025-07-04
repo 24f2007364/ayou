@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}{{ tool.name }} - Best {{ tool.category }} Reviews, Pricing & Alternatives | AI Exchange{% endblock %}
+{% block title %}{{ tool.name }} - Best {{ tool.category }} Reviews, Pricing & Alternatives{% endblock %}
 {% block meta_description %}{% set desc = "In-depth review and details for " + tool.name + ". " + (tool.description[:120] if tool.description else 'Find features, pricing, and user reviews for ' + tool.name + ' on AI Exchange.') %}{{ desc }}{% endblock %}
 {% block meta_keywords %}{{ tool.name }}, {{ tool.category }}, AI tool, {{ tool.name }} review, {{ tool.name }} pricing, what is {{ tool.name }}, {{ tool.name }} alternatives{% endblock %}
 

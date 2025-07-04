@@ -1,0 +1,26 @@
+User-agent: *
+Allow: /
+
+# Important pages for crawlers
+Allow: /tools
+Allow: /tool/*
+Allow: /leaderboard
+Allow: /feed
+Allow: /about
+Allow: /contact
+
+# Admin and user-specific pages
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+Disallow: /my_stacks
+Disallow: /auth_callback_handler
+
+# Static files (usually allowed by default)
+Allow: /static/
+
+# Sitemap location
+Sitemap: https://www.aiexchange.tech/static/sitemap.xml
+
+# Crawl delay (optional - adjust based on server capacity)
+Crawl-delay: 1
