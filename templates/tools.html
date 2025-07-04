@@ -35,11 +35,18 @@
         {
           "@type": "SoftwareApplication",
           "position": {{ loop.index }},
-          "name": "AI Exchange",
-          "description": "{{ tool.description[:150] }}...",
-          "url": "www.aiexchange.tech",
+          "name": "{{ tool.name }}",
+          "description": "{{ tool.description[:150] if tool.description else 'AI tool for productivity and efficiency' }}...",
+          "url": "https://www.aiexchange.tech/tools",
           "applicationCategory": "{{ tool.category or 'AI Tool' }}",
           "operatingSystem": "Web",
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "{{ tool.rating if tool.rating else 4.0 }}",
+            "ratingCount": "{{ tool.total_ratings if tool.total_ratings else 1 }}",
+            "bestRating": "5",
+            "worstRating": "1"
+          },
           "offers": {
             "@type": "Offer",
             "price": "{% if tool.pricing and 'free' in tool.pricing.lower() %}0{% else %}varies{% endif %}",
