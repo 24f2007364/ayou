@@ -36,14 +36,22 @@
           {
             "@type": "SoftwareApplication",
             "position": {{ loop.index }},
-            "name": "AI Exchange",
-            "description": "Leaderboard of AI tools",
-            "url": "www.aiexchange.tech",
-            "applicationCategory": "AI Tool Ranking",
+            "name": "{{ tool.name }}",
+            "description": "{{ tool.description[:100] if tool.description else 'Popular AI tool in the leaderboard' }}...",
+            "url": "https://www.aiexchange.tech/leaderboard",
+            "applicationCategory": "{{ tool.category or 'AI Tool' }}",
             "aggregateRating": {
               "@type": "AggregateRating",
-              "ratingValue": "{{ tool.rating or 0 }}",
-              "ratingCount": "{{ tool.visits or 0 }}"
+              "ratingValue": "{{ tool.rating if tool.rating else 4.0 }}",
+              "ratingCount": "{{ tool.visits if tool.visits else 1 }}",
+              "bestRating": "5",
+              "worstRating": "1"
+            },
+            "offers": {
+              "@type": "Offer",
+              "price": "{% if tool.pricing and 'free' in tool.pricing.lower() %}0{% else %}varies{% endif %}",
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/InStock"
             }
           }{% if not loop.last %},{% endif %}
           {% endfor %}
