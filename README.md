@@ -59,7 +59,7 @@ A stunning AI-powered platform for AI tools with community features, ranking sys
 
    - Main Application: http://127.0.0.1:5000
    - Admin Panel: http://127.0.0.1:5000/super-admin
-   - Admin Password: `admin123` (change in production!)
+   - Admin Password: `admin123` 
 
 ### Quick Start with Batch File
 
